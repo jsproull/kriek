@@ -56,7 +56,7 @@ ROOT_URLCONF = 'raspbrew.urls'
 WSGI_APPLICATION = 'raspbrew.wsgi.application'
 
 TEMPLATE_DIRS = (
-	 os.path.join(os.path.dirname(__file__) , 'templates').replace('\\','/')
+	 os.path.join(SITE_ROOT , 'templates').replace('\\','/')
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
@@ -90,4 +90,4 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = os.path.join(SITE_ROOT , 'static/').replace('\\','/')

@@ -1,0 +1,19 @@
+body {
+	padding-top: 80px !important;
+}
+
+/* Set the fixed height of the footer here */
+#push,
+#footer {
+	height: 5em;
+}
+
+#footer {
+	margin-top: 2em;
+	background-color: #f5f5f5;
+}
+
+#footer .container {
+	padding-top: 2em;
+	line-height: 1em;
+}
