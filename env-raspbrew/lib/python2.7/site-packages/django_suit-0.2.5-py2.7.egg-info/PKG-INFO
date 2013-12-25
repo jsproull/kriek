@@ -1,0 +1,25 @@
+Metadata-Version: 1.1
+Name: django-suit
+Version: 0.2.5
+Summary: Modern theme for Django admin interface.
+Home-page: http://djangosuit.com
+Author: Kaspars Sprogis (darklow)
+Author-email: info@djangosuit.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Framework :: Django
+Classifier: License :: Free for non-commercial use
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: System Administrators
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2.5
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.2
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Environment :: Web Environment
+Classifier: Topic :: Software Development
+Classifier: Topic :: Software Development :: User Interfaces

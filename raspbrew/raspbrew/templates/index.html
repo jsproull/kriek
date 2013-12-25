@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+	<div class="inputs">
+						<label for="fermMode">Mode:</label>
+						<select id="fermMode"/ disabled="true">
+							<option value="0">Regular</option>
+							<option value="1">Coolbot</option>
+						</select>
+					</div>
+					<div class="inputs">
+						<label for="wortTargetTemp">Wort Target Temp:</label><input disabled="true" type="text" id="wortTargetTemp"/>
+						<label for="fanTargetTemp">A/C Fan Minimum Temp:</label><input disabled="true" type="text" id="fanTargetTemp"/>
+					</div>
+					<div class="inputs">
+						<div class="dropdown pull-left">
+							<label for="startDate">Start Date/Time:</label><input type="text" id="startDate"/>
+							<label for="endDate">End Date/Time:</label><input type="text" id="endDate"/>
+						</div>
+						<div class="pull-left">
+							<ul class="nav nav-pills">
+								<li class="dropdown">
+								<a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
+								<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+									<li role="presentation"><a onclick="javascript:quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
+									<li role="presentation"><a onclick="javascript:quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
+									<li role="presentation"><a onclick="javascript:quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
+									<li role="presentation" class="divider"></li>
+									<li role="presentation"><a onclick="javascript:quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
+								</ul>
+								</li>
+ 							</ul>
+						</div>
+					</div>
+{% endblock %}
