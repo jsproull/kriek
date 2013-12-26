@@ -2,8 +2,8 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Config
+from .models import BrewConfiguration
 
-class ConfigAdmin(admin.ModelAdmin):
+class BrewConfigurationAdmin(admin.ModelAdmin):
     pass
-admin.site.register(Config, ConfigAdmin)
+admin.site.register(BrewConfiguration, BrewConfigurationAdmin)

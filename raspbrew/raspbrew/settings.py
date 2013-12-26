@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'raspbrew.brew',
+    'raspbrew.ferm',
     'raspbrew.common',
     'suit',
     'django.contrib.admin',
