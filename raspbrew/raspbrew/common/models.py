@@ -20,7 +20,7 @@ class Probe(models.Model):
 	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
 	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
 	
-	def getCurrentTemp(self):
+	def getCurrentTemp(self, units):
 		try:
 			f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
 		except IOError as e:
@@ -35,15 +35,20 @@ class Probe(models.Model):
 		temp = float(result_list[-1])/1000 # temp in Celcius
 
 		if self.correction_factor != None:
-			temp = temp + self.correction_factor # correction factor
-		
-		self.temperature = temp
+			temp = temp + float(self.correction_factor) # correction factor
 				
-		#temp = (9.0/5.0)*temp + 32  #convert to F
 		if crcLine.find("NO") > -1:
-			temp = -999
-				
-		return temp
+			temp = self.temperature
+		
+		if not temp:
+			return -999
+		
+		if units == 1:
+			temp = temp = (9.0/5.0)*temp + 32  #convert to F
+			
+		self.temperature = temp
+		
+		return self.temperature
 	
 	def __unicode__(self):
 		return self.name
@@ -62,9 +67,10 @@ class PID(models.Model):
 # An SSR has probe and PID information
 class SSR(models.Model):
 	#an ssr is directly tied to a probe and a pid
-	probe = models.OneToOneField(Probe, null=True)
+	probe = models.ForeignKey(Probe, null=True)
 	pid = models.OneToOneField(PID, null=True)
 	
+	#an ssr is a heater or a chiller
 	HEATER_OR_CHILLER = (
 		(0, 'Heater'),
 		(1, 'Chiller'),
@@ -93,13 +99,8 @@ class GlobalConfiguration(models.Model):
 		(0, 'Metric'),
 		(1, 'Imperial'),
 	)
-	FERMENTATION_MODE = (
-		(0, 'Regular'),
-		(1, 'Coolbot'),
-	)
-	
+
 	units = models.IntegerField(default=0, choices=UNITS)
-	mode = models.IntegerField(default=0, choices=FERMENTATION_MODE)
 	
 	def __unicode__(self):
 		return "Global Configuration"
@@ -136,17 +137,23 @@ class CurrentStatus(models.Model):
 			jsonOut['ssrs'][ssr.name]['pin'] = ssr.pin
 		
 		conf=GlobalConfiguration.objects.all()
-		if conf:
-			print conf[:1].get();
+		if not conf:
+			conf=GlobalConfiguration()
+			conf.save()
+		else:
+			conf=conf[0];
+		
+		jsonOut['config'] = {'units' : conf.get_units_display(), 'fermentation_mode' : conf.get_mode_display()}
 		
 		jsonOut = json.dumps(jsonOut)
 		
-		print jsonOut	
-		print status
+		#print jsonOut	
+		#print status
+		
+		status.status = jsonOut
 		
 		return status
-		#super(SSR, self).save()
-	
+			
 	#TODO - get as an object i guess? or just use the probe objects directly
 			
 	date = models.DateTimeField(auto_now=True)
