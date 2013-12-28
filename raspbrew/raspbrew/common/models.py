@@ -1,6 +1,7 @@
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
 import time
-import json
+import json, base64
 
 # Each Probe.
 class Probe(models.Model):
@@ -20,7 +21,8 @@ class Probe(models.Model):
 	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
 	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
 	
-	def getCurrentTemp(self, units):
+	def getCurrentTemp(self):
+		units=GlobalSettings.objects.get_setting('UNITS')
 		try:
 			f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
 		except IOError as e:
@@ -43,10 +45,12 @@ class Probe(models.Model):
 		if not temp:
 			return -999
 		
-		if units == 1:
+		if units == 'imperial':
 			temp = temp = (9.0/5.0)*temp + 32  #convert to F
-			
-		self.temperature = temp
+		
+		if (self.temperature != temp):
+			self.temperature = temp
+			self.save()
 		
 		return self.temperature
 	
@@ -78,7 +82,10 @@ class SSR(models.Model):
 	name = models.CharField(max_length=30)
 	pin = models.IntegerField()
 	heater_or_chiller = models.IntegerField(default=0, choices=HEATER_OR_CHILLER)
-
+	
+	enabled = models.BooleanField(default=True) #enabled
+	state = models.BooleanField(default=False) #on/off
+	
 	def __unicode__(self):
 		return self.name
 	
@@ -94,23 +101,44 @@ class SSR(models.Model):
 		verbose_name_plural = "SSRs"
 
 # This should be a singleton that contains global configuration	
-class GlobalConfiguration(models.Model):
-	UNITS = (
-		(0, 'Metric'),
-		(1, 'Imperial'),
-	)
+# class GlobalConfiguration(models.Model):
+# 	UNITS = (
+# 		(0, 'Metric'),
+# 		(1, 'Imperial'),
+# 	)
+# 
+# 	units = models.IntegerField(default=0, choices=UNITS)
+# 	
+# 	def __unicode__(self):
+# 		return "Global Configuration"
+# 		
+# 	class Meta:
+# 		verbose_name = "Global Configuration"
+# 		verbose_name_plural = "Global Configuration"
+		
+class GlobalSettingsManager(models.Manager):
+	def get_setting(self, key):
+		try:
+			setting = GlobalSettings.objects.get(key=key)
+		except:
+			raise Exception
+		return setting
 
-	units = models.IntegerField(default=0, choices=UNITS)
-	
+class GlobalSettings(models.Model):
+	key = models.CharField(unique=True, max_length=255)
+	value = models.CharField(max_length=255)
+
+	objects = GlobalSettingsManager()
+      
 	def __unicode__(self):
-		return "Global Configuration"
-		
+		return self.key + " : " + self.value
+	
 	class Meta:
-		verbose_name = "Global Configuration"
-		verbose_name_plural = "Global Configuration"
-		
+		verbose_name = "Global Setting"
+		verbose_name_plural = "Global Settings"
+					
 #this class stores the current status as a json string in the db
-class CurrentStatus(models.Model):
+class Status(models.Model):
 	
 	@classmethod
 	def create(cls):
@@ -120,37 +148,34 @@ class CurrentStatus(models.Model):
 		
 		probes=Probe.objects.all()
 		for probe in probes:
-			jsonOut['probes'][probe.name] = {}
-			jsonOut['probes'][probe.name]['id'] = probe.one_wire_Id
-			jsonOut['probes'][probe.name]['temp'] = probe.getCurrentTemp()
-			jsonOut['probes'][probe.name]['target_temp'] = probe.target_temperature
+			jsonOut['probes'][probe.pk] = {}
+			jsonOut['probes'][probe.pk]['name'] = probe.name
+			jsonOut['probes'][probe.pk]['id'] = probe.one_wire_Id
+			jsonOut['probes'][probe.pk]['temp'] = probe.getCurrentTemp()
+			jsonOut['probes'][probe.pk]['target_temp'] = probe.target_temperature
 		
 		ssrs=SSR.objects.all()
 		for ssr in ssrs:
-			jsonOut['ssrs'][ssr.name] = {}
-			jsonOut['ssrs'][ssr.name]['pid'] = {}
-			jsonOut['ssrs'][ssr.name]['pid']['cycle_time'] = ssr.pid.cycle_time
-			jsonOut['ssrs'][ssr.name]['pid']['k_param'] = ssr.pid.k_param
-			jsonOut['ssrs'][ssr.name]['pid']['i_param'] = ssr.pid.i_param
-			jsonOut['ssrs'][ssr.name]['pid']['d_param'] = ssr.pid.d_param
+			jsonOut['ssrs'][ssr.pk] = {}
+			jsonOut['ssrs'][ssr.pk]['pid'] = {}
+			jsonOut['ssrs'][ssr.pk]['pid']['cycle_time'] = ssr.pid.cycle_time
+			jsonOut['ssrs'][ssr.pk]['pid']['k_param'] = ssr.pid.k_param
+			jsonOut['ssrs'][ssr.pk]['pid']['i_param'] = ssr.pid.i_param
+			jsonOut['ssrs'][ssr.pk]['pid']['d_param'] = ssr.pid.d_param
 			
-			jsonOut['ssrs'][ssr.name]['pin'] = ssr.pin
+			jsonOut['ssrs'][ssr.pk]['name'] = ssr.name
+			jsonOut['ssrs'][ssr.pk]['pin'] = ssr.pin
+			jsonOut['ssrs'][ssr.pk]['state'] = ssr.state
+			
+		units=GlobalSettings.objects.get_setting('UNITS')
+		jsonOut['config'] = {'units' : units.value}
 		
-		conf=GlobalConfiguration.objects.all()
-		if not conf:
-			conf=GlobalConfiguration()
-			conf.save()
-		else:
-			conf=conf[0];
-		
-		jsonOut['config'] = {'units' : conf.get_units_display(), 'fermentation_mode' : conf.get_mode_display()}
-		
-		jsonOut = json.dumps(jsonOut)
+		jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
 		
 		#print jsonOut	
 		#print status
 		
-		status.status = jsonOut
+		status.status = base64.encodestring(jsonOut)
 		
 		return status
 			

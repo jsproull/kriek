@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block container %}
+
+{% if not fermConfs %}
+	<div class="alert alert-info">You don't have any fermentation configurations defined.</div>
+{% endif %}
+
+{% if fermConfs.count > 1 %}
+	<ul class="nav nav-tabs">
+	{% for conf in fermConfs %}
+		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
+	{% endfor %}
+	</ul>
+{% endif %}
+	
+<!-- Tab panes -->
+<div class="{% if fermConfs.count > 1 %}tab-content{%endif%}">
+{% for conf in fermConfs %}
+	{% if fermConfs.count > 1 %}
+	<div class="{% if fermConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
+	{% endif %}
+		<h3>Current Temperatures</h3>
+		<div class="row">
+			{% for probe in conf.probes.all %}
+				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
+					<h3>{{ probe.name }}</h3>
+					<dl class="dl-horizontal">
+						<dt>Temperature</dt>
+						<dd id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+						<dt>Target</dt>
+						<dd id="probe{{probe.pk}}_target">{{ probe.target_temperature }}</dd>
+						<hr/>
+						{% if probe.ssr_set.all %}
+							{% for ssr in probe.ssr_set.all %}
+							<dt>{{ ssr.name }}</dt>
+							<dd id="ssr{{ssr.pk}}">{% if ssr.state %}On{%else%}Off{%endif%}</dd>
+							{% endfor %}
+						{% endif %}
+						
+					</dl>
+				</div>
+			{% endfor %}
+		</div>
+		
+		<h3>Temperature Chart</h3>
+		<div id="tempChart">
+			<svg id="tempChartSvg"></svg>
+		</div>
+	{% if fermConfs.count > 1 %}
+	</div>
+	{% endif %}
+	
+{% endfor %}
+</div>
+
+
+{% endblock %}

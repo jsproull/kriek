@@ -1,5 +1,6 @@
 
 nv.models.line = function() {
+  "use strict";
   //Default Settings
   var margin = {top: 0, right: 0, bottom: 0, left: 0},
       width = 960,
@@ -15,7 +16,7 @@ nv.models.line = function() {
   var scatter = nv.models.scatter()
                   .id(id)
                   .size(16) // default size
-                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a cstom size accessor
+                  .sizeDomain([16,256]), //set to speed up calculation, needs to be unset if there is a custom size accessor
       //x = scatter.xScale(),
       //y = scatter.yScale(),
       x, y,
@@ -128,8 +129,10 @@ nv.models.line = function() {
 
   chart.dispatch = scatter.dispatch;
 
-  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
+  d3.rebind(chart, scatter, 'interactive', 'size', 'xScale', 'yScale', 'zScale', 'xDomain', 'yDomain', 'xRange', 'yRange', 'sizeDomain', 'forceX', 'forceY', 'forceSize', 'clipVoronoi', 'clipRadius');
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   chart.margin = function(_) {
     if (!arguments.length) return margin;
     margin = _;

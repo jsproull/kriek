@@ -8,6 +8,7 @@ class FermConfiguration(models.Model):
 	name = models.CharField(max_length=30)
 	probes = models.ManyToManyField(Probe)
 	ssrs = models.ManyToManyField(SSR)
+	enabled = models.BooleanField(default=True)
 	
 	FERMENTATION_MODE = (
 		(0, 'Fermentation Regular'),

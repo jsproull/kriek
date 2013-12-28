@@ -1,14 +1,15 @@
 
 var nv = window.nv || {};
 
-nv.version = '0.0.1a';
+
+nv.version = '1.1.15b';
 nv.dev = true //set false when in production
 
 window.nv = nv;
 
-nv.tooltip = {}; // For the tooltip system
-nv.utils = {}; // Utility subsystem
-nv.models = {}; //stores all the possible models/components
+nv.tooltip = nv.tooltip || {}; // For the tooltip system
+nv.utils = nv.utils || {}; // Utility subsystem
+nv.models = nv.models || {}; //stores all the possible models/components
 nv.charts = {}; //stores all the ready to use charts
 nv.graphs = []; //stores all the graphs currently on the page
 nv.logs = {}; //stores some statistics and potential error messages
@@ -34,31 +35,42 @@ if (nv.dev) {
 //  Public Core NV functions
 
 // Logs all arguments, and returns the last so you can test things in place
+// Note: in IE8 console.log is an object not a function, and if modernizr is used
+// then calling Function.prototype.bind with with anything other than a function
+// causes a TypeError to be thrown.
 nv.log = function() {
-  if (nv.dev && console.log && console.log.apply) console.log.apply(console, arguments);
+  if (nv.dev && console.log && console.log.apply)
+    console.log.apply(console, arguments)
+  else if (nv.dev && typeof console.log == "function" && Function.prototype.bind) {
+    var log = Function.prototype.bind.call(console.log, console);
+    log.apply(console, arguments);
+  }
   return arguments[arguments.length - 1];
 };
 
 
 nv.render = function render(step) {
-  step = step || 1; // number of graphs to generate in each timout loop
+  step = step || 1; // number of graphs to generate in each timeout loop
 
-  render.active = true;
+  nv.render.active = true;
   nv.dispatch.render_start();
 
   setTimeout(function() {
-    var chart;
+    var chart, graph;
 
-    for (var i = 0; i < step && (graph = render.queue[i]); i++) {
+    for (var i = 0; i < step && (graph = nv.render.queue[i]); i++) {
       chart = graph.generate();
       if (typeof graph.callback == typeof(Function)) graph.callback(chart);
       nv.graphs.push(chart);
     }
 
-    render.queue.splice(0, i);
+    nv.render.queue.splice(0, i);
 
-    if (render.queue.length) setTimeout(arguments.callee, 0);
-    else { nv.render.active = false; nv.dispatch.render_end(); }
+    if (nv.render.queue.length) setTimeout(arguments.callee, 0);
+    else {
+      nv.dispatch.render_end();
+      nv.render.active = false;
+    }
   }, 0);
 };
 

@@ -15,6 +15,7 @@
 	
 	<!-- third party scripts -->	
 	<script src="/js/thirdparty/moment.min.js"></script>
+	
 	<script src="/js/thirdparty/nvd3/lib/d3.v2.js"></script>
 	<script src="/js/thirdparty/nvd3/nv.d3.js"></script>
 	<script src="/js/thirdparty/nvd3/src/tooltip.js"></script>
@@ -29,6 +30,10 @@
 	
   </head>
   <body>
+  	{% url 'index' as indexUrl %}
+  	{% url 'ferm' as fermUrl %}
+  	{% url 'brew' as brewUrl %}
+  	
 	{% block header %}
     <!-- Fixed navbar -->
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -40,15 +45,15 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Raspbrew</a>
+          <a class="active navbar-brand" href="{% url 'index' %}">Raspbrew</a>
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="active"><a href="#">Brewing</a></li>
-            <li><a href="#about">Fermenting</a></li>
+            <li class="{% ifequal request.path brew %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
+            <li class="{% ifequal request.path ferm %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="">Config</a></li>
+            <li><a href="/admin">Config</a></li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>

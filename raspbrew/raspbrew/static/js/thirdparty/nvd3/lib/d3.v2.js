@@ -6732,7 +6732,6 @@
   var d3_time_days = d3_time_daySymbols, d3_time_dayAbbreviations = d3_time_days.map(d3_time_formatAbbreviate), d3_time_months = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ], d3_time_monthAbbreviations = d3_time_months.map(d3_time_formatAbbreviate);
   d3.time.format = function(template) {
     function format(date) {
-      date = new Date(date);
       var string = [], i = -1, j = 0, c, f;
       while (++i < n) {
         if (template.charCodeAt(i) == 37) {

@@ -3,7 +3,7 @@
 // based on the work of Clint Ivy, Jamie Love, and Jason Davies.
 // http://projects.instantcognition.com/protovis/bulletchart/
 nv.models.bulletChart = function() {
-
+  "use strict";
   //============================================================
   // Public Variables with Default Settings
   //------------------------------------------------------------
@@ -63,9 +63,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
       // Display No Data message if there's nothing to show.
 
-      /*
-      // Disabled until I figure out a better way to check for no data with the bullet chart
-      if (!data || !data.length || !data.filter(function(d) { return d.values.length }).length) {
+      if (!d || !ranges.call(this, d, i)) {
         var noDataText = container.selectAll('.nv-noData').data([noData]);
 
         noDataText.enter().append('text')
@@ -75,14 +73,13 @@ nv.models.bulletChart = function() {
 
         noDataText
           .attr('x', margin.left + availableWidth / 2)
-          .attr('y', margin.top + availableHeight / 2)
+          .attr('y', 18 + margin.top + availableHeight / 2)
           .text(function(d) { return d });
 
         return chart;
       } else {
         container.selectAll('.nv-noData').remove();
       }
-      */
 
       //------------------------------------------------------------
 
@@ -174,7 +171,7 @@ nv.models.bulletChart = function() {
 
       // Update the tick groups.
       var tick = g.selectAll('g.nv-tick')
-          .data(x1.ticks( availableWidth / 100 ), function(d) {
+          .data(x1.ticks( availableWidth / 50 ), function(d) {
             return this.textContent || format(d);
           });
 
@@ -219,7 +216,7 @@ nv.models.bulletChart = function() {
       //------------------------------------------------------------
 
       dispatch.on('tooltipShow', function(e) {
-        e.key = data[0].title;
+        e.key = d.title;
         if (tooltips) showTooltip(e, that.parentNode);
       });
 
@@ -261,6 +258,8 @@ nv.models.bulletChart = function() {
 
   d3.rebind(chart, bullet, 'color');
 
+  chart.options = nv.utils.optionsFunc.bind(chart);
+  
   // left, right, top, bottom
   chart.orient = function(x) {
     if (!arguments.length) return orient;

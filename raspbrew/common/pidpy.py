@@ -84,7 +84,7 @@ class pidpy(object):
         #print "Current temp: " + str(xk) + " Target temp: " + str(tset) + " Diff : " + str(ek)
         #print "self.pid.k_param " + str(self.pid.k_param) + " self.pid.i_param " + str(self.pid.i_param) + " self.pid.d_param " + str(self.pid.d_param) + " self.pid.cycle_time " + str(self.pid.cycle_time)
         #print "pidpy.xk_1 " + str(pidpy.xk_1) + " pidpy.xk_2 " + str(pidpy.xk_2)
-            
+         
         return pidpy.yk
                           
     def calcPID_reg4(self, xk, tset, enable):
@@ -121,7 +121,8 @@ class pidpy(object):
             pidpy.yk = pidpy.GMA_HLIM
         if (pidpy.yk < pidpy.GMA_LLIM):
             pidpy.yk = pidpy.GMA_LLIM
-            
+        
+        
         return pidpy.yk
         
 

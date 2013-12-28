@@ -18,21 +18,22 @@ text {
 }
 
 </style>
-<body>
+<body class='with-3d-shadow with-transitions'>
 
   <div>
     <svg id="chart1"></svg>
   </div>
 
   <div>
-    <svg id="chart2"></svg>
+    <!--<svg id="chart2"></svg>-->
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/utils.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/tooltip.js"></script>
+<script src="../src/interactiveLayer.js"></script>
 <script src="../src/models/legend.js"></script>
 <script src="../src/models/axis.js"></script>
 <script src="../src/models/scatter.js"></script>
@@ -190,12 +191,18 @@ var histcatexpshort = [
 var colors = d3.scale.category20();
 keyColor = function(d, i) {return colors(d.key)};
 
+var chart;
 nv.addGraph(function() {
-  var chart = nv.models.stackedAreaChart()
+  chart = nv.models.stackedAreaChart()
+               // .width(600).height(500)
+                .useInteractiveGuideline(true)
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .color(keyColor)
+                .transitionDuration(300);
                 //.clipEdge(true);
+
+// chart.stacked.scatter.clipVoronoi(false);
 
   chart.xAxis
       .tickFormat(function(d) { return d3.time.format('%x')(new Date(d)) });
@@ -205,9 +212,12 @@ nv.addGraph(function() {
 
   d3.select('#chart1')
     .datum(histcatexplong)
-      .transition().duration(500).call(chart);
+    .transition().duration(0)
+    .call(chart);
 
   nv.utils.windowResize(chart.update);
+
+  chart.dispatch.on('stateChange', function(e) { nv.log('New State:', JSON.stringify(e)); });
 
   return chart;
 });
@@ -217,6 +227,7 @@ nv.addGraph(function() {
                 .x(function(d) { return d[0] })
                 .y(function(d) { return d[1] })
                 .color(keyColor)
+                ;
                 //.clipEdge(true);
 
   chart.xAxis
@@ -227,7 +238,7 @@ nv.addGraph(function() {
 
   d3.select('#chart2')
     .datum(histcatexpshort)
-      .transition().duration(500).call(chart);
+      .call(chart);
 
   nv.utils.windowResize(chart.update);
 

@@ -4,17 +4,20 @@ from django.contrib import admin
 
 from .models import Probe
 from .models import SSR
-from .models import GlobalConfiguration
+from .models import GlobalSettings, Status
 
 class ProbeAdmin(admin.ModelAdmin):
     pass
 admin.site.register(Probe, ProbeAdmin)
 
 class SSRAdmin(admin.ModelAdmin):
-	fields = ('name', 'pin', 'heater_or_chiller', 'probe')
+	fields = ('name', 'enabled', 'pin', 'heater_or_chiller', 'probe')
 admin.site.register(SSR, SSRAdmin)
 
-class GlobalConfigurationAdmin(admin.ModelAdmin):
+class GlobalSettingsAdmin(admin.ModelAdmin):
     pass
-admin.site.register(GlobalConfiguration, GlobalConfigurationAdmin)
+admin.site.register(GlobalSettings, GlobalSettingsAdmin)
 
+class StatusAdmin(admin.ModelAdmin):
+    pass
+admin.site.register(Status, StatusAdmin)

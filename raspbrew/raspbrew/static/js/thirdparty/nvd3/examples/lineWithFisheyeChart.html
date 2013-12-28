@@ -32,11 +32,11 @@ svg {
 </style>
 <body>
 
-  <div id="chart1">
+  <div id="chart1" class='with-3d-shadow with-transitions'>
     <svg style="height: 500px;"></svg>
   </div>
 
-<script src="../lib/d3.v2.js"></script>
+<script src="../lib/d3.v3.js"></script>
 <script src="../lib/fisheye.js"></script>
 <script src="../nv.d3.js"></script>
 <script src="../src/tooltip.js"></script>
@@ -53,7 +53,7 @@ svg {
 nv.addGraph(function() {  
   var chart = nv.models.lineChart();
 
-  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the partent chart, so need to chain separately
+  chart.xAxis // chart sub-models (ie. xAxis, yAxis, etc) when accessed directly, return themselves, not the parent chart, so need to chain separately
       .tickFormat(d3.format(',r'));
 
   chart.yAxis

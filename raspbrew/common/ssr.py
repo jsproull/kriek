@@ -23,7 +23,7 @@ class SSR(Thread):
 		self._On = False
 		
 	def setEnabled(self, enabled):
-		print "Enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
+		#print "Enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
 		self.enabled = enabled
 
 	def isEnabled(self):

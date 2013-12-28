@@ -2,6 +2,10 @@ body {
 	padding-top: 80px !important;
 }
 
+#tempChart svg {
+	height: 500px;
+}
+
 /* Set the fixed height of the footer here */
 #push,
 #footer {
