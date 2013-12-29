@@ -174,6 +174,8 @@ function RaspBrew() {
 	this.quickTime = function(startTime, endTime) {
 		$('#startDateCheckbox').prop('checked', true);
 		$('#endDateCheckbox').prop('checked', true);
+		$('#startDate').prop('disabled', false);
+		$('#endDate').prop('disabled', false);
 		$("#startDate").datetimepicker('setDate', startTime.toDate() );
 		$("#endDate").datetimepicker('setDate', endTime.toDate() );
 	}
