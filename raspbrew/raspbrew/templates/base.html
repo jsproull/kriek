@@ -12,6 +12,8 @@
 	
 	<!-- third party css -->
 	<link href="/js/thirdparty/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css">
+	<link href="//code.jquery.com/ui/jquery-ui-git.css" rel="stylesheet" type="text/css"></link>
+	<link href="/css/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css"></link>
 	
 	<!-- third party scripts -->	
 	<script src="/js/thirdparty/moment.min.js"></script>
@@ -49,8 +51,8 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li class="{% ifequal request.path brew %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
-            <li class="{% ifequal request.path ferm %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
+            <li class="{% ifequal request.path '/brew' %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
+            <li class="{% ifequal request.path '/ferm' %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="/admin">Config</a></li>
@@ -73,9 +75,12 @@
     {% endblock %}
     
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="//code.jquery.com/jquery.js"></script>
+    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="/js/thirdparty/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/js/thirdparty/jquery-ui-timepicker-addon.js"></script>
     <script src="/js/raspbrew.js"></script>
   </body>
 </html>

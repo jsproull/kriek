@@ -19,6 +19,8 @@ urlpatterns = patterns('',
 	url(r'^brew$', views.brew, {'something': 'template1.html'}, name='brew'),
 	
 	url(r'^status/(?P<numberToReturn>\d+)$', views.jsonStatus, {}, name='jsonStatus'),
+	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),
+	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)/(?P<endDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withDate'),
 	#url(r'^status/(?P<numberToReturn>\d+)$', views.brewStatus, {}, name='brewStatus'),
 
     #static content

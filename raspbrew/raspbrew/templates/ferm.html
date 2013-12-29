@@ -28,14 +28,14 @@
 					<h3>{{ probe.name }}</h3>
 					<dl class="dl-horizontal">
 						<dt>Temperature</dt>
-						<dd id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+						<dd class="raspbrew_updateable" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
 						<dt>Target</dt>
-						<dd id="probe{{probe.pk}}_target">{{ probe.target_temperature }}</dd>
+						<dd class="raspbrew_updateable" id="probe{{probe.pk}}_target">{{ probe.target_temperature }}</dd>
 						<hr/>
 						{% if probe.ssr_set.all %}
 							{% for ssr in probe.ssr_set.all %}
 							<dt>{{ ssr.name }}</dt>
-							<dd id="ssr{{ssr.pk}}">{% if ssr.state %}On{%else%}Off{%endif%}</dd>
+							<dd class="raspbrew_updateable" id="ssr{{ssr.pk}}">{% if ssr.state %}On{%else%}Off{%endif%}</dd>
 							{% endfor %}
 						{% endif %}
 						
@@ -48,6 +48,43 @@
 		<div id="tempChart">
 			<svg id="tempChartSvg"></svg>
 		</div>
+		
+		<div class="row">
+		  <div class="col-md-3 col-md-offset-4">
+			<div class="input-group">
+			  <span class="input-group-addon">
+				<input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); ">
+			  </span>
+			  <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
+			</div>
+		  </div>
+		  <div class="col-md-3">
+			<div class="input-group">
+			  <span class="input-group-addon">
+				<input id="endDateCheckBox"type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); $('#startDate').prop('disabled', !this.checked); if (this.checked) $('#startDateCheckbox').prop('checked', this.checked);">
+			  </span>
+			  <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
+			</div>
+		  </div>
+			<div class="col-md-2">
+				<div class="input-group">
+					<ul class="nav nav-pills">
+						<li class="dropdown">
+						<a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
+						<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
+							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
+							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
+							<li role="presentation" class="divider"></li>
+							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
+						</ul>
+						</li>
+					</ul>
+				</div>
+		  </div>
+		</div><!-- /.row -->
+		
+		
 	{% if fermConfs.count > 1 %}
 	</div>
 	{% endif %}
