@@ -21,16 +21,24 @@
 	{% if fermConfs.count > 1 %}
 	<div class="{% if fermConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
 	{% endif %}
-		<h3>Current Temperatures</h3>
+		<h3>Current Temperatures {{csrf_token}}</h3>
+		
 		<div class="row">
 			{% for probe in conf.probes.all %}
 				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
-					<h3>{{ probe.name }}</h3>
+					<h3 class="text-center probecolour c{{forloop.counter0}}">{{ probe.name }}</h3>
 					<dl class="dl-horizontal">
 						<dt>Temperature</dt>
 						<dd class="raspbrew_updateable" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
-						<dt>Target</dt>
-						<dd class="raspbrew_updateable" id="probe{{probe.pk}}_target">{{ probe.target_temperature }}</dd>
+						<dt class="input">Target</dt>
+						<dd>
+							<div class="form-group input-group input-group-sm">
+							  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew_updateable" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
+							  <span class="input-group-btn">
+								<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="glyphicon glyphicon-check"></span></button>
+							  </span>
+							</div>
+						</dd>
 						<hr/>
 						{% if probe.ssr_set.all %}
 							{% for ssr in probe.ssr_set.all %}
@@ -53,7 +61,7 @@
 		  <div class="col-md-3 col-md-offset-4">
 			<div class="input-group">
 			  <span class="input-group-addon">
-				<input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); ">
+				<input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); if (!this.checked) { $('#endDateCheckbox').prop('checked', false); $('#endDate').prop('disabled', true); }">
 			  </span>
 			  <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
 			</div>
@@ -61,7 +69,7 @@
 		  <div class="col-md-3">
 			<div class="input-group">
 			  <span class="input-group-addon">
-				<input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); $('#startDate').prop('disabled', !this.checked); if (this.checked) $('#startDateCheckbox').prop('checked', this.checked);">
+				<input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); if (this.checked) { $('#startDateCheckbox').prop('checked', true); $('#startDate').prop('disabled', false); } ">
 			  </span>
 			  <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
 			</div>

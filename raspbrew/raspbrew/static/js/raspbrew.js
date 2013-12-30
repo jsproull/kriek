@@ -3,25 +3,27 @@ function RaspBrew() {
 	
 	var lastData = null;
 	
+	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
+	
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
 		
 		var url = '/status/50';
 		
-		var startDate = $("#startDate").attr('disabled');
-		var endDate = $("#endDate").attr('disabled')
+		var startDateEnabled = $("#startDate").attr('disabled') !== undefined && !$("#startDate").is(":focus");
+		var endDateEnabled = $("#endDate").attr('disabled') !== undefined && !$("#endDate").is(":focus");
 		
-		if (startDate == undefined || endDate == undefined) {
+		if (startDateEnabled || endDateEnabled) {
 			var sd = null;
 			var ed = (new Date).getTime();
 			
-			startDate = $("#startDate").val();
-			if (startDate) {
+			startDateValue = $("#startDate").val();
+			if (startDateValue) {
 				sd = new Date($("#startDate").datetimepicker('getDate'));
 				url = url + '/' + parseInt(sd.getTime()/1000);
 				
-				endDate = $("#endDate").val();
-				if (endDate) {
+				endDateValue = $("#endDate").val();
+				if (endDateEnabled && endDateValue) {
 					ed = new Date($("#endDate").datetimepicker('getDate'));
 					url = url + '/' + parseInt(ed.getTime()/1000);
 				}
@@ -58,14 +60,24 @@ function RaspBrew() {
 		var latest = data[0];
 		for (var probeid in latest.probes) {
 			var probe = latest.probes[probeid];
-			$('#probe' + probeid + '_temp').html(probe.temp);
-			var tt = (probe.target_temp ? probe.target_temp : '--');
-			$('#probe' + probeid + '_target').html(tt);
+			var tempInput = $('#probe' + probeid + '_temp');
+			var ttempInput = $('#probe' + probeid + '_target');
+			
+			if (! tempInput.is(":focus"))
+				tempInput.html(parseFloat(probe.temp).toFixed(2));
+			if (! ttempInput.is(":focus") && ! ttempInput.parent().hasClass('has-success')) {
+				if (probe.target_temp) {
+					ttempInput.val(parseFloat(probe.target_temp).toFixed(2));
+				} else {
+					ttempInput.val("");
+				}
+			}
 		}
 		
 		for (var ssrid in latest.ssrs) {
 			var ssr = latest.ssrs[ssrid];
-			$('#ssr' + ssrid).html(ssr.state ? "On" : "Off");
+			if (! $('#ssr' + ssrid).is(":focus"))
+				$('#ssr' + ssrid).html(ssr.state ? "On" : "Off");
 		}
 		
 		//update the chart
@@ -116,12 +128,11 @@ function RaspBrew() {
 			}
 		}
 
-		var colours=["#ff7f0e","#2ca02c","#2222ff","#667711"];
 		var datum=[];
 		var d = data[0];
 		var count=0;
 		for (var probeid in dd) {
-			datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:colours[count++] });
+			datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
 		}
 		
 		this.lastData = datum;
@@ -178,6 +189,19 @@ function RaspBrew() {
 		$('#endDate').prop('disabled', false);
 		$("#startDate").datetimepicker('setDate', startTime.toDate() );
 		$("#endDate").datetimepicker('setDate', endTime.toDate() );
+	}
+	
+	//updates the target temperature of the given probe id
+	this.updateTargetTemp = function(input, probeid) {
+		input=$('#'+input)
+		$(input).parent().removeClass('has-success');
+		//{"probes":[{"pk":1, "target_temperature":10}]}
+		
+		var post = { probes: [ { pk: probeid, target_temperature: input.val() } ]  };
+		
+		$.post( "/update", "json=" + JSON.stringify(post) , function( data ) {
+		  console.log( data );
+		}, "json");
 	}
 
 

@@ -19,5 +19,5 @@ class GlobalSettingsAdmin(admin.ModelAdmin):
 admin.site.register(GlobalSettings, GlobalSettingsAdmin)
 
 class StatusAdmin(admin.ModelAdmin):
-    pass
+	fields = ('status', 'date')
 admin.site.register(Status, StatusAdmin)

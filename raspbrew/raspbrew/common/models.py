@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.serializers.json import DjangoJSONEncoder
-import time
+import time, datetime
 import json, base64
 
 # Each Probe.
@@ -50,7 +50,9 @@ class Probe(models.Model):
 		
 		if (self.temperature != temp):
 			self.temperature = temp
-			self.save()
+			probe = Probe.objects.get(pk=self.pk)
+			probe.temperature = temp
+			probe.save()
 		
 		return self.temperature
 	
@@ -174,12 +176,12 @@ class Status(models.Model):
 		
 		#print jsonOut	
 		#print status
-		
+		status.date = datetime.datetime.now()
 		status.status = base64.encodestring(jsonOut)
 		
 		return status
 			
 	#TODO - get as an object i guess? or just use the probe objects directly
 			
-	date = models.DateTimeField(auto_now=True)
+	date = models.DateTimeField()
 	status = models.CharField(max_length=10000)

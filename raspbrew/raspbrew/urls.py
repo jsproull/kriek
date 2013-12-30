@@ -15,8 +15,11 @@ urlpatterns = patterns('',
     url(r'^admin2/', include(admin.site.urls)),
  
     url(r'^$', TemplateView.as_view(template_name='index.html'), name="index"),
-    url(r'^ferm$', views.ferm, {'something': 'template1.html'}, name='ferm'),
-	url(r'^brew$', views.brew, {'something': 'template1.html'}, name='brew'),
+    url(r'^ferm$', views.ferm, {}, name='ferm'),
+	url(r'^brew$', views.brew, {}, name='brew'),
+	
+	#update
+	url(r'^update$', views.update, {}, name='update'),
 	
 	url(r'^status/(?P<numberToReturn>\d+)$', views.jsonStatus, {}, name='jsonStatus'),
 	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),

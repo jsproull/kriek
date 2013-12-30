@@ -127,7 +127,6 @@ class Raspbrew():#threading.Thread):
 		brewConfs = BrewConfiguration.objects.all();
 					
 		for brewConf in brewConfs:
-			print ""
 			for ssr in brewConf.ssrs.all():
 				currentTemp=ssr.probe.getCurrentTemp()
 				targetTemp=ssr.probe.target_temperature

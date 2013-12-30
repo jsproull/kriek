@@ -1,8 +1,8 @@
 #!../env-raspbrew/bin/python
-import os
+import os,datetime, base64, json
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
-from raspbrew.common.models import Probe,Status,SSR,GlobalSettings
+from raspbrew.common.models import Probe,Status,SSR,GlobalSettings,Status
 
 probe=Probe(one_wire_Id='28-00000449e4f6',name='Room',type=4)
 probe.save()
@@ -19,6 +19,14 @@ probe.save()
 
 g=GlobalSettings(key='UNITS', value='metric')
 g.save()
+
+#create some statuseses
+#for i in range(0,1000):
+#  print i
+#  d=datetime.datetime.fromtimestamp(i)
+#  status=Status(date=d,status=base64.encodestring(json.dumps({'probes':[], 'dt': d.strftime('%c')}))) 
+#  status.save()
+  
 
 #probes=Probe.objects.all()
 #current=CurrentStatus.create()
