@@ -10,8 +10,34 @@ dt.input {
 	line-height: 33px;
 }
 
+dt.icon {
+	line-height: 43px;
+}
+
+dd.power {
+	color: yellow;
+	text-shadow:
+   		-1px -1px 2px #000,  
+    	1px -1px 2px #000,
+    	-1px 1px 2px #000,
+     	1px 1px 2px #000;
+}
+
+dd.powerOff {
+	color: #222;
+	text-shadow:
+   		-1px -1px 2px #000,  
+    	1px -1px 2px #000,
+    	-1px 1px 2px #000,
+     	1px 1px 2px #000;
+}
+
 h3 {
 	margin: 5px 0;
+}
+
+.fa-shadow {
+	text-shadow: 2px 2px 0 #1D9D74,5px 6px 0 rgba(0, 0, 0, 0.15);
 }
 
 #tempChart svg {

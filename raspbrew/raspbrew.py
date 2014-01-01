@@ -172,7 +172,6 @@ class Raspbrew():#threading.Thread):
 						continue
 						
 					if fermConf.mode == 0: # regular mode
-				
 						if float(wortTemp) < float(targetTemp):
 							ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
 							ssr_controller.setEnabled(ssr.heater_or_chiller == 0) #Heater
@@ -205,7 +204,10 @@ class Raspbrew():#threading.Thread):
 									ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
 								else:
 									ssr_controller.setEnabled(False);
-									
+					
+					if ssr.state != ssr_controller.isEnabled():
+						ssr.state = ssr_controller.isEnabled()
+						ssr.save()
 
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps

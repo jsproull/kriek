@@ -51,6 +51,11 @@ function RaspBrew() {
 	// Updates the UI as needed
 	this.updateFromData = function(data) {
 	
+		//we are waiting for the server to update the data
+		if (this._writingData) {
+			return;
+		}
+	
 		if (!data || data.length==0) {
 			$('.raspbrew_updateable').html('--');
 			this.emptyChart();
@@ -76,8 +81,14 @@ function RaspBrew() {
 		
 		for (var ssrid in latest.ssrs) {
 			var ssr = latest.ssrs[ssrid];
-			if (! $('#ssr' + ssrid).is(":focus"))
-				$('#ssr' + ssrid).html(ssr.state ? "On" : "Off");
+			if (! $('#ssr' + ssrid).is(":focus")) {
+				$('#ssr' + ssrid).removeClass("powerOff");
+				if (ssr.state) {
+					$('#ssr' + ssrid).addClass("power");
+				} else {
+					$('#ssr' + ssrid).addClass("powerOff");
+				}
+			}
 		}
 		
 		//update the chart
@@ -193,14 +204,28 @@ function RaspBrew() {
 	
 	//updates the target temperature of the given probe id
 	this.updateTargetTemp = function(input, probeid) {
+	
 		input=$('#'+input)
 		$(input).parent().removeClass('has-success');
-		//{"probes":[{"pk":1, "target_temperature":10}]}
+		
+		//todo.. gotta validate the input
+		var val=input.val();
+		var val=parseFloat(val);
+		if (isNaN(val) || val > 999) {
+			input.parent().addClass('has-error');
+			return;
+		} 
+		
+		val=val.toFixed(2);
+		input.val(val);
+		
+		var _this = this;
+		this._writingData = true;
 		
 		var post = { probes: [ { pk: probeid, target_temperature: input.val() } ]  };
 		
 		$.post( "/update", "json=" + JSON.stringify(post) , function( data ) {
-		  console.log( data );
+		  _this._writingData = false;
 		}, "json");
 	}
 

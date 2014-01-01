@@ -9,6 +9,8 @@ from raspbrew.brew.models import BrewConfiguration
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 import json
 
+import subprocess
+
 #
 # returns the ferm.html template
 #
@@ -18,7 +20,7 @@ def ferm(request):
     except Probe.DoesNotExist:
         raise Http404
         
-    return render_to_response('ferm.html', {'fermConfs': p},
+    return render_to_response('ferm.html', {'fermConfs': p, 'status': {'serverrunning': isRaspbrewRunning()} },
         context_instance=RequestContext(request))
 
 #
@@ -35,28 +37,52 @@ def brew(request):
 
 #
 # updates and returns json
-#
+# TODO - remove this below
 @csrf_exempt
 def update(request):
     if request.method == 'POST':
     	try:	
     		#print 'Raw Data: "%s"' % request.body
     		obs = request.POST.get('json', '')
-    		probes=json.loads(obs)
-    			
-    		if 'probes' in probes:
-    			for probe in probes['probes']:
-    				p=Probe.objects.get(pk=probe['pk'])
-    				p.target_temperature=probe['target_temperature']
-    				print p.target_temperature
-    				p.save()
-    				
+    		_json=json.loads(obs)
+    		_updatedAny = False
+    		if 'probes' in _json:
+				for probe in _json['probes']:
+					if 'pk' in probe:
+						edited=False
+						p=Probe.objects.get(pk=probe['pk'])
+						if 'target_temperature' in probe:
+							print "updating temp" + str(probe['target_temperature'])
+							p.target_temperature=probe['target_temperature']
+							edited=True
+						if edited:
+							_updatedAny = True
+							p.save()
+    					
+    		if 'ssrs' in _json:
+    			for ssr in _json['ssrs']:
+    				print ssr
+    				if 'pk' in ssr:
+						edited=False
+						s=SSR.objects.get(pk=ssr['pk'])
+						if 'enabled' in ssr:
+							s.enabed=bool(ssr['enabled'])
+						if edited:
+							_updatedAny = True
+							s.save()
+    						
+						print s
+			
+			#create a status
+    		if _updatedAny:
+    			Status.create().save()		
     	except KeyError as e:	
     		print e
     		
-    	return HttpResponse(json.dumps({"ok":True}), mimetype='application/json')
+    	return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
     else :	
 		return HttpResponse(json.dumps({}), mimetype='application/json')
+		
 #
 # Returns saved status Json objects
 #
@@ -99,4 +125,13 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
 	
 	#debugging	
 	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});	
-	return HttpResponse(json.dumps(j), mimetype='application/json')
+	return HttpResponse(json.dumps(j), content_type='application/json')
+
+
+#returns true if raspbrew.py is running
+def isRaspbrewRunning():
+	output = subprocess.check_output(['ps', '-A'])
+	if 'raspbrew.py' in output:
+		return True
+	else:
+		return False

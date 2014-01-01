@@ -2,6 +2,7 @@ from django.db import models
 from django.core.serializers.json import DjangoJSONEncoder
 import time, datetime
 import json, base64
+from django.utils import timezone
 
 # Each Probe.
 class Probe(models.Model):
@@ -144,8 +145,7 @@ class Status(models.Model):
 	
 	@classmethod
 	def create(cls):
-		status = cls()
-        
+		
 		jsonOut = {'probes': {}, 'ssrs': {}, 'date' : time.time()}
 		
 		probes=Probe.objects.all()
@@ -176,9 +176,15 @@ class Status(models.Model):
 		
 		#print jsonOut	
 		#print status
-		status.date = datetime.datetime.now()
-		status.status = base64.encodestring(jsonOut)
+		_status = base64.encodestring(jsonOut)
+		try:
+			status = Status.objects.get(status=_status)
+			print "already exists"
+		except Status.DoesNotExist:
+			print "created"
+			status = Status(status=_status)
 		
+		status.date = timezone.now()
 		return status
 			
 	#TODO - get as an object i guess? or just use the probe objects directly
