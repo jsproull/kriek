@@ -35,12 +35,12 @@
 						<div class="panel-body">
 							<dl class="dl-horizontal">
 								<dt class="templabel">Temperature (c)</dt>
-								<dd class="raspbrew_updateable" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+								<dd class="raspbrew_updateable temperature" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
 							</dl>
 							<dl class="dl-horizontal">
 								<dt class="templabel input">Target Temp (c)</dt>
-								<dd>
-									<div class="form-group input-group input-group-sm">
+								<dd class="temperatureinput">
+									<div class="form-group input-group">
 									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew_updateable" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
 									  <span class="input-group-btn">
 										<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
@@ -48,15 +48,26 @@
 									</div>
 								</dd>
 							</dl>
+							<div class="raspbrew row">
+							  	<div class="col-md-6 hidden">
+							  		<span class="templabel">Deg/Min (c):</span><span id="probe{{probe.pk}}_dpm">--</span>
+							  	</div>
+								<div class="col-md-5 col-md-offset-1 hidden">
+									<span class="templabel">ETA:</span><span id="probe{{probe.pk}}_eta">--</span>
+							 	 </div>
+							</div>
 							<hr/>
 								{% if probe.ssr_set.all %}
 									{% for ssr in probe.ssr_set.all %}
 									<dl class="dl-horizontal">
 							
-										<dt class="icon"><a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a> {{ ssr.name }}</dt>
-										<dd class="raspbrew_updateable powerOff" id="ssr{{ssr.pk}}"><i id="ssr{{ssr.pk}}_icon" class="fa fa-square-o fa-2x"></i></dd>
+										<dt class="icon"><a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear"></i></a> {{ ssr.name }}</dt>
+										<dd class="raspbrew_updateable powerOff" id="ssr{{ssr.pk}}"><i id="ssr{{ssr.pk}}_icon" class="fa fa-square-o"></i></dd>
 									</dl>
 									{% endfor %}
+								{% else %}
+								<div style="text-align: center;"><span class="text-center label label-default" style="
+    align-content: center;">No SSRs defined for {{ probe.name }}</span></div>
 								{% endif %}
 							</dl>
 						</div>

@@ -5,15 +5,18 @@
 import wiringpi
 import time
 from pprint import pprint
-from threading import Thread
+#from threading import Thread
+import threading
 
-class SSR(Thread):
+class SSR(threading.Thread):
 	def __init__(self, ssr):
 		self.ssr = ssr
 		
-		Thread.__init__(self)
+		threading.Thread.__init__(self)
+		#wiringPiSetupSys
 		#wiringpi.wiringPiSetupGpio()
-		#wiringpi.pinMode(ssr.pin,1) 
+		wiringpi.wiringPiSetupSys()
+		wiringpi.pinMode(ssr.pin,1) 
 		
 		self.daemon = True
 		self.duty_cycle = 0
@@ -22,22 +25,38 @@ class SSR(Thread):
 		self.enabled = False
 		self._On = False
 		
+		self.verbose = False
+		
+		#create an event so we can stop
+		self._stop = threading.Event()
+	
+	def stop(self):
+		self._stop.set()
+
+	def stopped(self):
+		return self._stop.isSet()
+	
 	def setEnabled(self, enabled):
-		#print "Enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
+		if self.verbose:
+			print "Enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
 		self.enabled = enabled
 
 	def isEnabled(self):
 		return self.enabled	
 	
 	def run(self):
-		while True:
+		while not self.stopped():
 			if self.enabled:
 				self.fireSSR()
 			else:
 				self._On = False
-				#wiringpi.digitalWrite(self.ssr.pin,0)
+				wiringpi.digitalWrite(self.ssr.pin,0)
 				time.sleep(2)
-				#print str(self.ssr.pin) + " OFF!!"
+				if self.verbose:
+					print str(self.ssr.pin) + " OFF!!"
+		
+		
+		wiringpi.digitalWrite(self.ssr.pin,0)
 
 	def getonofftime(self, cycle_time, duty_cycle):
 		duty = duty_cycle/100.0
@@ -53,7 +72,8 @@ class SSR(Thread):
 							
 	def fireSSR(self):
 		#self.duty_cycle = duty_cycle;
-		print "Fire: " + str(self.enabled) + " " + str(self.ssr.pin) + " " + str(self.power) + " " + str(self.duty_cycle) + " " + str(self.cycle_time)
+		if self.verbose:
+			print "Fire: " + str(self.enabled) + " " + str(self.ssr.pin) + " " + str(self.power) + " " + str(self.duty_cycle) + " " + str(self.cycle_time)
 		
 		if self.power < 100 or self.duty_cycle < 100:
 			if self.power < 100:
@@ -62,24 +82,28 @@ class SSR(Thread):
 				on_time, off_time = self.getonofftime(self.cycle_time, self.duty_cycle)
 
 			if (on_time > 0):
-				#print str(self.ssr.pin) + " ON for: " + str(on_time)
-				#wiringpi.digitalWrite(self.ssr.pin,1)
+				if self.verbose:
+					print str(self.ssr.pin) + " ON for: " + str(on_time)
+				wiringpi.digitalWrite(self.ssr.pin,1)
 				self._On = True
 				time.sleep(on_time)
-
-			#print str(self.GPIOPin) + " OFF"
-			#wiringpi.digitalWrite(self.ssr.pin,0)
+		
+			if self.verbose:
+				print str(self.GPIOPin) + " OFF"
+			wiringpi.digitalWrite(self.ssr.pin,0)
 			self._On = False
 			time.sleep(off_time)
 		elif self.duty_cycle == 100:
-			#print str(self.ssr.pin) + " ON"
+			if self.verbose:
+				print str(self.ssr.pin) + " ON"
 			self._On = True
-			#wiringpi.digitalWrite(self.ssr.pin,1)
+			wiringpi.digitalWrite(self.ssr.pin,1)
 			time.sleep(self.cycle_time)	
 		else:
-			#print str(self.ssr.pin) + " OFF"
+			if self.verbose:
+				print str(self.ssr.pin) + " OFF"
 			self._On = False
-			#wiringpi.digitalWrite(self.ssr.pin,0)
+			wiringpi.digitalWrite(self.ssr.pin,0)
 			time.sleep(self.cycle_time)			
 
 

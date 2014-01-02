@@ -103,7 +103,8 @@ class Raspbrew():#threading.Thread):
 		except KeyError, e:
 			 	self.ssrControllers[ssr.pk]=ssrController(ssr)
 			 	s=self.ssrControllers[ssr.pk]
-			 	
+			 	s.start()
+		
 		return s
 		
 	#returns a pid controller for a pid by its pk
@@ -175,6 +176,7 @@ class Raspbrew():#threading.Thread):
 						continue
 						
 					if ssr.enabled:
+						#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr_controller.getPower())
 						if fermConf.mode == 0: # regular mode
 							if float(wortTemp) < float(targetTemp):
 								ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
@@ -220,24 +222,33 @@ class Raspbrew():#threading.Thread):
 	#
 	def run(self):
 		while not self.stopped():
-			self.updateTemps()
+			#self.updateTemps()
 			self.checkBrew()
 			self.checkFerm()
-			Status.create().save()
-				
-			time.sleep(1)
+			status=Status.create()
+			status.save()
+			#time.sleep(1)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'
-def main():
-	raspbrew=Raspbrew()
+def main(raspbrew):
 	raspbrew.run()
+	print raspbrew
 	
 if __name__=="__main__":
 	try:
-		main()
+		raspbrew=Raspbrew()
+		main(raspbrew)
 	except KeyboardInterrupt:
-		print "KeyboardInterrupt"
+		print "KeyboardInterrupt.. shutting down. Please wait."
+		for pk in raspbrew.ssrControllers:
+			try:
+				raspbrew.ssrControllers[pk].stop()
+			except AttributeError:
+				pass
+				
+			time.sleep(2)
+		
 	except OperationalError:
 		print "OperationalError"
 		main()

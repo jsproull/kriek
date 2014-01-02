@@ -72,8 +72,7 @@ def update(request):
 			
 			#create a status
     		if _updatedAny:
-    			pass
-    			#Status.create().save()	
+    			Status.create().save()	
     				
     	except KeyError as e:	
     		print e

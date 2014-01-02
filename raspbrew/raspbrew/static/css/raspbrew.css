@@ -6,6 +6,10 @@ hr {
 	margin: 0 0 10px 0;
 }
 
+a:hover, a:focus {
+	color: #005C6C;
+}
+
 dt.input {
 	line-height: 33px;
 }
@@ -14,39 +18,57 @@ dt.icon {
 	line-height: 28px;
 }
 
+.raspbrew.row {
+	margin-bottom: 10px;
+}
+
+.raspbrew .eta {
+	margin-bottom: 10px;
+}
+
+.templabel {
+	margin-right: 5px;
+}
+
 /* override */
 .dl-horizontal {
 	margin-bottom: 10px;
 }
 /* override */
 .dl-horizontal dd {
+	font-size: 1.5em;
 	margin-left: 130px;
 }
 /* override */
 .dl-horizontal dt {
+	line-height: 35px;
 	width: 120px;
 }
 
-dt.templabel {
+dd.temperature {
+	margin-left: 140px;
+}
 
+dd.temperatureinput input {
+	font-size: 1em;
+}
+
+input.raspbrew_updateable {
+	height: 45px;
 }
 
 dd.power {
 	color: yellow;
 	text-shadow:
-   		-1px -1px 2px #000,  
-    	1px -1px 2px #000,
-    	-1px 1px 2px #000,
-     	1px 1px 2px #000;
+   		-1px -1px 1px #000,  
+    	1px -1px 1px #000,
+    	-1px 1px 1px #000,
+     	1px 1px 1px #000;
 }
 
 dd.powerOff {
 	color: #222;
-	text-shadow:
-   		-1px -1px 2px #000,  
-    	1px -1px 2px #000,
-    	-1px 1px 2px #000,
-     	1px 1px 2px #000;
+	text-shadow: none;
 }
 
 h3 {
@@ -95,7 +117,7 @@ h3 {
 
 /* Panel probes */
 .panel-probe {
-	min-height: 250px;
+	min-height: 320px;
 }
 
 /* probe colours - synced with raspbrew.js */

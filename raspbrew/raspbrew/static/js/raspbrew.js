@@ -15,6 +15,7 @@ function RaspBrew() {
 	
 	this.lastChartData = null;
 	this.lastLoadedData = null;
+	this._systemStatus = null;
 	
 	this.updateTime = 2000;
 	this.updateSystemSettingsTime = 20000;
@@ -22,6 +23,16 @@ function RaspBrew() {
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 	this._chartUpdatesEnabled = true;
+	
+	//converts to fahrenheit if necessary
+	//all temps are stored in C on the server and converted here to imperial.
+	this.getTemperature = function(temp) {
+		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
+			return (9.0/5.0)*parseFloat(temp) + 32;
+		} else {
+			return parseFloat(temp);
+		}
+	}
 	
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
@@ -54,8 +65,10 @@ function RaspBrew() {
 			dataType: 'json',
 			success: function(data){ 
 				if (data) {
-					_this.lastLoadedData=data[0];
 					_this.updateFromData(data);
+					
+					//set this after the update so we know what we currently have loaded
+					_this.lastLoadedData=data[0];
 				}
 				
 				setTimeout(_this.updateStatus, _this.updateTime);
@@ -74,6 +87,7 @@ function RaspBrew() {
 			type: 'GET',
 			dataType: 'json',
 			success: function(data){ 
+				_this._systemStatus = data;
 				if (data) {
 					if (data.serverrunning) {
 						$('#serverstatus').addClass('hidden');
@@ -116,20 +130,62 @@ function RaspBrew() {
 		}
 		
 		var latest = data[0];
+		if (latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date)) {
+			//no need to update
+			return;
+		}
+		
 		for (var probeid in latest.probes) {
 			var probe = latest.probes[probeid];
 			var tempInput = $('#probe' + probeid + '_temp');
 			var ttempInput = $('#probe' + probeid + '_target');
 			
+			var temp = parseFloat(probe.temp);
+			var targetTemp = NaN;
+			if (probe.target_temp) {
+				targetTemp = parseFloat(probe.target_temp);
+			}
+			
 			if (! tempInput.is(":focus"))
-				tempInput.html(parseFloat(probe.temp).toFixed(2));
+				tempInput.html(temp.toFixed(2));
 			if (! ttempInput.is(":focus") && ! ttempInput.parent().hasClass('has-success')) {
 				if (probe.target_temp) {
-					ttempInput.val(parseFloat(probe.target_temp).toFixed(2));
+					ttempInput.val(targetTemp.toFixed(2));
 				} else {
 					ttempInput.val("");
 				}
 			}
+			
+			//how close are we to the target temp?
+			if (!isNaN(temp) && !isNaN(targetTemp)) {
+				var percent = Math.min(temp, targetTemp)/Math.max(temp, targetTemp);
+				var color=jQuery.Color().hsla(120, 1, percent/2, 1);
+				tempInput.animate({
+				  color: color
+			  	}, 1500 );
+			}
+			
+			//set the eta and degrees per hour
+			if (probe.eta) {
+				var eta=probe.eta*1000;
+				$('#probe' + probeid + '_eta').parent().removeClass("hidden");
+				var eta=new Date(eta);
+				console.log( eta );
+				
+				eta=moment(eta).fromNow(true);
+				$('#probe' + probeid + '_eta').html(eta);
+			} else {
+				$('#probe' + probeid + '_eta').parent().addClass("hidden");
+			}
+			
+			if (probe.dpm) {
+				var dpm = parseFloat(probe.dpm).toFixed(2);
+				$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
+				$('#probe' + probeid + '_dpm').html(dpm);
+			} else {
+				$('#probe' + probeid + '_dpm').parent().addClass("hidden");
+			}
+			
 		}
 		
 		for (var ssrid in latest.ssrs) {
@@ -160,7 +216,7 @@ function RaspBrew() {
 	// Clears out the chart if there's no data
 	this.emptyChart = function() {
 		if (this.chart) {
-			var datum = this.lastData;
+			var datum = _this.lastLoadedData;
 			if (datum) {
 				for (var i=0;i<datum.length;i++) {
 					datum[i].values = [{x:0,y:0}];
@@ -195,9 +251,12 @@ function RaspBrew() {
 				if (!dd[probeid]) {
 					dd[probeid] = []
 				}
-				var date = new Date(parseInt(d.date)*1000)
-	
-				dd[probeid].push({x: date, y: probe.temp});
+				var date = new Date(parseInt(d.date)*1000);
+				var temp = probe.temp;
+				
+				temp=_this.getTemperature(probe.temp)
+				
+				dd[probeid].push({x: date, y: temp});
 			}
 		}
 
@@ -205,7 +264,9 @@ function RaspBrew() {
 		var d = data[0];
 		var count=0;
 		for (var probeid in dd) {
-			datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
+			if (d.probes && d.probes[probeid]) {
+				datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
+			}
 		}
 		
 		this.lastChartData = datum;
@@ -269,22 +330,24 @@ function RaspBrew() {
 		input=$('#'+input)
 		$(input).parent().removeClass('has-success');
 		
-		//todo.. gotta validate the input
+		//validate the input
 		var val=input.val();
-		var val=parseFloat(val);
-		if (isNaN(val) || val > 999) {
-			input.parent().addClass('has-error');
-			return;
-		} 
-		
-		val=val.toFixed(2);
-		input.val(val);
+		if (val == "") {
+			val = null;
+		} else {
+			var val=parseFloat(val);
+			if (isNaN(val) || val > 999) {
+				input.parent().addClass('has-error');
+				return;
+			} 
+			input.val(val.toFixed(2));
+		}		
 		
 		$('.raspbrew_updateable').attr('disabled', true);
 		
 		this._writingData = true;
 		
-		var post = { probes: [ { pk: probeid, target_temperature: input.val() } ]  };
+		var post = { probes: [ { pk: probeid, target_temperature: val } ]  };
 		$.ajax({
 			url: "/update",
 			type: 'POST',
@@ -292,7 +355,7 @@ function RaspBrew() {
 			data: JSON.stringify(post),
 			success: function(data){ 
 				$('.raspbrew_updateable').attr('disabled', false);
-				_this._writingData = false;
+				setTimeout(function(){_this._writingData = false;}, 10000);
 			},
 			error: function() {
 				$('.raspbrew_updateable').attr('disabled', false);
@@ -342,7 +405,7 @@ function RaspBrew() {
 			data:  JSON.stringify(post),
 			success: function(data){ 
 				$('.raspbrew_updateable').attr('disabled', false);
-				_this._writingData = false;
+				setTimeout(function(){_this._writingData = false;}, 10000);
 			},
 			error: function() {
 				$('.raspbrew_updateable').attr('disabled', false);
