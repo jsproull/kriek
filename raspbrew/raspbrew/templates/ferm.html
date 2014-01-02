@@ -7,7 +7,7 @@
 	<div class="alert alert-danger">You don't have any fermentation configurations defined.</div>
 {% endif %}
 
-<div id="serverstatus" class="{% if not status.serverrunning %}hidden{%endif%} alert alert-danger">The RaspBrew server is not running on the Raspberry Pi. These readings may be out of date. Please restart the server by rebooting the pi.</div>
+<div id="serverstatus" class="{% if status.serverrunning %}hidden{%endif%} alert alert-danger">The RaspBrew server is not running on the Raspberry Pi. These readings may be out of date. Please restart the server by rebooting the pi.</div>
 
 {% if fermConfs.count > 1 %}
 	<ul class="nav nav-tabs">
@@ -23,40 +23,69 @@
 	{% if fermConfs.count > 1 %}
 	<div class="{% if fermConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
 	{% endif %}
-		<h3>Current Temperatures {{csrf_token}}</h3>
+		<h3>Current Temperatures</h3>
 		
 		<div class="row">
 			{% for probe in conf.probes.all %}
 				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
-					<h3 class="text-center probecolour c{{forloop.counter0}}">{{ probe.name }}</h3>
-					<dl class="dl-horizontal">
-						<dt>Temperature</dt>
-						<dd class="raspbrew_updateable" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
-						<dt class="input">Target</dt>
-						<dd>
-							<div class="form-group input-group input-group-sm">
-							  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew_updateable" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
-							  <span class="input-group-btn">
-								<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
-							  </span>
-							</div>
-						</dd>
-						<hr/>
-						{% if probe.ssr_set.all %}
-							{% for ssr in probe.ssr_set.all %}
-							<dt class="icon">{{ ssr.name }}</dt>
-							<dd class="raspbrew_updateable powerOff" id="ssr{{ssr.pk}}"><i id="ssr{{ssr.pk}}_icon" class="fa fa-circle fa-3x"></i></dd>
-							{% endfor %}
-						{% endif %}
-						
-					</dl>
+					<div class="panel panel-default panel-probe">
+ 						<div class="panel-heading c{{forloop.counter0}}">
+							<h3 class="panel-title text-center">{{ probe.name }}</h3>
+						</div>
+						<div class="panel-body">
+							<dl class="dl-horizontal">
+								<dt class="templabel">Temperature (c)</dt>
+								<dd class="raspbrew_updateable" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+							</dl>
+							<dl class="dl-horizontal">
+								<dt class="templabel input">Target Temp (c)</dt>
+								<dd>
+									<div class="form-group input-group input-group-sm">
+									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew_updateable" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
+									  <span class="input-group-btn">
+										<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
+									  </span>
+									</div>
+								</dd>
+							</dl>
+							<hr/>
+								{% if probe.ssr_set.all %}
+									{% for ssr in probe.ssr_set.all %}
+									<dl class="dl-horizontal">
+							
+										<dt class="icon"><a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a> {{ ssr.name }}</dt>
+										<dd class="raspbrew_updateable powerOff" id="ssr{{ssr.pk}}"><i id="ssr{{ssr.pk}}_icon" class="fa fa-square-o fa-2x"></i></dd>
+									</dl>
+									{% endfor %}
+								{% endif %}
+							</dl>
+						</div>
+					</div>
 				</div>
 			{% endfor %}
 		</div>
 		
-		<h3>Temperature Chart</h3>
-		<div id="tempChart">
-			<svg id="tempChartSvg"></svg>
+		<div>
+			<h3 class="pull-left">Temperature Chart</h3>
+			<div class="input-group pull-right">
+					<ul class="nav nav-pills">
+						<li class="dropdown">
+						<a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#"><span id="chartUpdates">Chart Updates Enabled</span> <b class="caret"></b></a>
+						<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(true); return false;">Updates Enabled</a></li>
+							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(false); return false;">Updates Disabled</a></li>
+			  			</ul>
+			  		</ul>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="panel panel-default">
+ 			<div class="panel-body">		
+				<div id="tempChart">
+					<svg id="tempChartSvg"></svg>
+				</div>
+			</div>
 		</div>
 		
 		<div class="row">
@@ -80,14 +109,14 @@
 				<div class="input-group">
 					<ul class="nav nav-pills">
 						<li class="dropdown">
-						<a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
-						<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
-							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
-							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
-							<li role="presentation" class="divider"></li>
-							<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
-						</ul>
+							<a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
+							<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
+								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
+								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
+								<li role="presentation" class="divider"></li>
+								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
+							</ul>
 						</li>
 					</ul>
 				</div>

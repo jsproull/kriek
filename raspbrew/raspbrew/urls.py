@@ -21,11 +21,14 @@ urlpatterns = patterns('',
 	#update
 	url(r'^update$', views.update, {}, name='update'),
 	
+	#temp statuses
 	url(r'^status/(?P<numberToReturn>\d+)$', views.jsonStatus, {}, name='jsonStatus'),
 	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),
 	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)/(?P<endDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withDate'),
-	#url(r'^status/(?P<numberToReturn>\d+)$', views.brewStatus, {}, name='brewStatus'),
-
+	
+	#system conf
+	url(r'^status/system$', views.systemStatus, {}, name='systemStatus'),
+	
     #static content
     url(r'^js/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.STATIC_URL + '/js'}),
     url(r'^css/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.STATIC_URL + '/css'}),

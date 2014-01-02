@@ -27,7 +27,7 @@ class Probe(models.Model):
 		try:
 			f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
 		except IOError as e:
-			print "Error: File " + self.tempDir + self.fileName + "/w1_slave" + " does not exist.";	
+			print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";	
 			return -999; 
 
 		lines=f.readlines()
@@ -168,6 +168,7 @@ class Status(models.Model):
 			jsonOut['ssrs'][ssr.pk]['name'] = ssr.name
 			jsonOut['ssrs'][ssr.pk]['pin'] = ssr.pin
 			jsonOut['ssrs'][ssr.pk]['state'] = ssr.state
+			jsonOut['ssrs'][ssr.pk]['enabled'] = ssr.enabled
 			
 		units=GlobalSettings.objects.get_setting('UNITS')
 		jsonOut['config'] = {'units' : units.value}
@@ -181,7 +182,6 @@ class Status(models.Model):
 			status = Status.objects.get(status=_status)
 			print "already exists"
 		except Status.DoesNotExist:
-			print "created"
 			status = Status(status=_status)
 		
 		status.date = timezone.now()

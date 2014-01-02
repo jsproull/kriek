@@ -3,7 +3,7 @@ body {
 }
 
 hr {
-	margin: 5px 0;
+	margin: 0 0 10px 0;
 }
 
 dt.input {
@@ -11,7 +11,24 @@ dt.input {
 }
 
 dt.icon {
-	line-height: 43px;
+	line-height: 28px;
+}
+
+/* override */
+.dl-horizontal {
+	margin-bottom: 10px;
+}
+/* override */
+.dl-horizontal dd {
+	margin-left: 130px;
+}
+/* override */
+.dl-horizontal dt {
+	width: 120px;
+}
+
+dt.templabel {
+
 }
 
 dd.power {
@@ -40,8 +57,14 @@ h3 {
 	text-shadow: 2px 2px 0 #1D9D74,5px 6px 0 rgba(0, 0, 0, 0.15);
 }
 
+/* Chart */
 #tempChart svg {
 	height: 300px;
+}
+
+
+.nvd3.nv-line .nvd3.nv-scatter .nv-groups .nv-point {
+	fill-opacity: 1;
 }
 
 /* Set the fixed height of the footer here */
@@ -70,7 +93,45 @@ h3 {
 	margin-bottom: 0;
 }
 
+/* Panel probes */
+.panel-probe {
+	min-height: 250px;
+}
+
 /* probe colours - synced with raspbrew.js */
+.panel-probe > .panel-heading {
+}
+
+.panel-probe > .panel-heading > .panel-title {
+	color:white;
+	font-size: 2em;
+}
+
+.panel-probe > .panel-heading.c0 {
+	background: #DD6E2F;
+}
+.panel-probe > .panel-heading.c1 {
+	background: #DD992F;
+}
+.panel-probe > .panel-heading.c2 {
+	background: #285890;
+}
+.panel-probe > .panel-heading.c3 {
+	background: #1F9171;
+}
+.panel-probe > .panel-heading.c4 {
+	background: #7A320A;
+}
+.panel-probe > .panel-heading.c5 {
+	background: #7A4F0A;
+}
+.panel-probe > .panel-heading.c6 {
+	background: #082950;
+}
+.panel-probe > .panel-heading.c7 {
+	background: #06503C;
+}
+
 h3.probecolour.c0 {
 	color: #DD6E2F;
 }

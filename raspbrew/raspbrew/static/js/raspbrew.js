@@ -1,17 +1,35 @@
+//                      _                       
+//                     | |                      
+//  _ __ __ _ ___ _ __ | |__  _ __ _____      __
+// | '__/ _` / __| '_ \| '_ \| '__/ _ \ \ /\ / /
+// | | | (_| \__ \ |_) | |_) | | |  __/\ V  V / 
+// |_|  \__,_|___/ .__/|_.__/|_|  \___| \_/\_/  
+//               | |                            
+//               |_|                            
+//
+//  RaspBrew v3.0
+//
+
 function RaspBrew() {
 	var _this = this;
 	
-	var lastData = null;
+	this.lastChartData = null;
+	this.lastLoadedData = null;
+	
+	this.updateTime = 2000;
+	this.updateSystemSettingsTime = 20000;
+	this.chartPoints = 50;
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
+	this._chartUpdatesEnabled = true;
 	
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
 		
-		var url = '/status/50';
+		var url = '/status/' + _this.chartPoints;
 		
-		var startDateEnabled = $("#startDate").attr('disabled') !== undefined && !$("#startDate").is(":focus");
-		var endDateEnabled = $("#endDate").attr('disabled') !== undefined && !$("#endDate").is(":focus");
+		var startDateEnabled = $("#startDate").attr('disabled') === undefined && !$("#startDate").is(":focus");
+		var endDateEnabled = $("#endDate").attr('disabled') === undefined && !$("#endDate").is(":focus");
 		
 		if (startDateEnabled || endDateEnabled) {
 			var sd = null;
@@ -36,14 +54,49 @@ function RaspBrew() {
 			dataType: 'json',
 			success: function(data){ 
 				if (data) {
+					_this.lastLoadedData=data[0];
 					_this.updateFromData(data);
 				}
 				
-				setTimeout(_this.updateStatus, 1000);
+				setTimeout(_this.updateStatus, _this.updateTime);
 			},
 			error: function(data) {
 				//alert('woops!'); //or whatever
-				setTimeout(_this.updateStatus, 1000);
+				setTimeout(_this.updateStatus, _this.upateTime);
+			}
+		});
+	};
+	
+	// This is called to update the system status.
+	this.updateSystemStatus = function() {
+		$.ajax({
+			url: "/status/system",
+			type: 'GET',
+			dataType: 'json',
+			success: function(data){ 
+				if (data) {
+					if (data.serverrunning) {
+						$('#serverstatus').addClass('hidden');
+					} else {
+						$('#serverstatus').removeClass('hidden');
+					}
+				}
+				
+				if (data.units) {
+					//update all the temp labels
+					$('.templabel').each(function(index, item) { 
+						var h = $(item).html();
+						var fc = data.units == "metric" ? "c" : "f";
+						xh = h.replace(/\(.*\)/g, "(" + fc + ")");
+						$(item).html(xh);
+					});
+				}
+				
+				setTimeout(_this.updateSystemStatus, _this.updateSystemSettingsTime);
+			},
+			error: function(data) {
+				//alert('woops!'); //or whatever
+				setTimeout(_this.updateSystemStatus, _this.updateSystemSettingsTime);
 			}
 		});
 	};
@@ -82,17 +135,26 @@ function RaspBrew() {
 		for (var ssrid in latest.ssrs) {
 			var ssr = latest.ssrs[ssrid];
 			if (! $('#ssr' + ssrid).is(":focus")) {
+				
+				$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
+				$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
 				$('#ssr' + ssrid).removeClass("powerOff");
+				$('#ssr' + ssrid).removeClass("power");
+				
 				if (ssr.state) {
+					$('#ssr' + ssrid + "_icon").addClass("fa-check-square-o");
 					$('#ssr' + ssrid).addClass("power");
 				} else {
+					$('#ssr' + ssrid + "_icon").addClass("fa-square-o");
 					$('#ssr' + ssrid).addClass("powerOff");
 				}
 			}
 		}
 		
 		//update the chart
-		_this.updateChart(data);
+		if (this._chartUpdatesEnabled) {
+			_this.updateChart(data);
+		}
 	}
 	
 	// Clears out the chart if there's no data
@@ -146,7 +208,7 @@ function RaspBrew() {
 			datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
 		}
 		
-		this.lastData = datum;
+		this.lastChartData = datum;
 		
 		if (this.chart) {
 			//update the chart
@@ -160,7 +222,6 @@ function RaspBrew() {
 	
 	//create the chart
 	this.createChart = function() {
-		var _this = this;
 		  
 		nv.addGraph(function() {
 		  _this.chart = nv.models.lineChart()
@@ -219,21 +280,83 @@ function RaspBrew() {
 		val=val.toFixed(2);
 		input.val(val);
 		
-		var _this = this;
+		$('.raspbrew_updateable').attr('disabled', true);
+		
 		this._writingData = true;
 		
 		var post = { probes: [ { pk: probeid, target_temperature: input.val() } ]  };
+		$.ajax({
+			url: "/update",
+			type: 'POST',
+			dataType: 'json',
+			data: JSON.stringify(post),
+			success: function(data){ 
+				$('.raspbrew_updateable').attr('disabled', false);
+				_this._writingData = false;
+			},
+			error: function() {
+				$('.raspbrew_updateable').attr('disabled', false);
+				_this._writingData = false;			
+			}
+		});
+	}
+	
+	//this sets wether or not we should be updating the char
+	this.setChartUpdatesEnabled = function(enabled) {
+		this._chartUpdatesEnabled = enabled;
+		if (enabled) {
+			$('#chartUpdates').html('Chart Updates Enabled');
+		} else {
+			$('#chartUpdates').html('Chart Updates Disabled');
+		}
+	}
+	
+	//shows a configuration dialog for a given ssr
+	this.configureSSR = function(ssrid, ssrname) {
 		
-		$.post( "/update", "json=" + JSON.stringify(post) , function( data ) {
-		  _this._writingData = false;
-		}, "json");
+		var data = _this.lastLoadedData;
+		
+		if (data) {
+			_this._editingSSR = data.ssrs[ssrid];
+			_this._editingSSR.id = ssrid;
+			
+			$('#ssrEnabled').prop('checked')
+			$('#ssrEnabled').prop('checked', this._editingSSR.enabled)
+			$('#ssrModalTitle').html(_this._editingSSR.name);
+			$('#ssrModal').modal({});
+		}
 	}
 
+	//saves the ssr from the modal dialog
+	this.saveSSRConfig = function() {
+		if (!_this._editingSSR) {
+			return;
+		}
+		
+		var post = { ssrs: [ { pk: _this._editingSSR.id, enabled: $('#ssrEnabled').prop('checked') ? 1 : 0 } ]  };
+		
+		$.ajax({
+			url: "/update",
+			type: 'POST',
+			dataType: 'json',
+			data:  JSON.stringify(post),
+			success: function(data){ 
+				$('.raspbrew_updateable').attr('disabled', false);
+				_this._writingData = false;
+			},
+			error: function() {
+				$('.raspbrew_updateable').attr('disabled', false);
+				_this._writingData = false;			
+			}
+		});	
+		
+		$('#ssrModal').modal('hide');
+	}
 
 	$( document ).ready(function() {
 		_this.createChart();
 		_this.updateStatus();
-		
+		_this.updateSystemStatus();
 		$("#startDate").datetimepicker();
 		$("#endDate").datetimepicker();
 	});

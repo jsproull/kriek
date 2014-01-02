@@ -3,7 +3,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 import base64, time, datetime
 
-from raspbrew.common.models import Probe,Status,SSR
+from raspbrew.common.models import Probe,Status,SSR,GlobalSettings
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
@@ -42,9 +42,7 @@ def brew(request):
 def update(request):
     if request.method == 'POST':
     	try:	
-    		#print 'Raw Data: "%s"' % request.body
-    		obs = request.POST.get('json', '')
-    		_json=json.loads(obs)
+    		_json=json.loads(request.body)
     		_updatedAny = False
     		if 'probes' in _json:
 				for probe in _json['probes']:
@@ -52,7 +50,6 @@ def update(request):
 						edited=False
 						p=Probe.objects.get(pk=probe['pk'])
 						if 'target_temperature' in probe:
-							print "updating temp" + str(probe['target_temperature'])
 							p.target_temperature=probe['target_temperature']
 							edited=True
 						if edited:
@@ -61,21 +58,23 @@ def update(request):
     					
     		if 'ssrs' in _json:
     			for ssr in _json['ssrs']:
-    				print ssr
     				if 'pk' in ssr:
 						edited=False
 						s=SSR.objects.get(pk=ssr['pk'])
 						if 'enabled' in ssr:
-							s.enabed=bool(ssr['enabled'])
+							s.enabled=bool(ssr['enabled'])
+							print s.enabled
+							edited=True
+							
 						if edited:
 							_updatedAny = True
 							s.save()
-    						
-						print s
 			
 			#create a status
     		if _updatedAny:
-    			Status.create().save()		
+    			pass
+    			#Status.create().save()	
+    				
     	except KeyError as e:	
     		print e
     		
@@ -92,7 +91,10 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
 	
 	startDate=float(startDate)
 	endDate=float(endDate)
-	
+	numberToReturn = int(numberToReturn)
+		
+	j=[]
+		
 	if numberToReturn > 1 and total > 0:
 		step=1
 		numberToReturn = int(numberToReturn)-1
@@ -118,10 +120,14 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
 			if len(statuses) > 1:
 				allStatuses.insert(0, statuses[0])
 				allStatuses.append(statuses[len(statuses)-1])
+		
+		for status in reversed(allStatuses):
+			j.append(json.loads(base64.decodestring(status.status)))
 	
-	j=[]
-	for status in reversed(allStatuses):
+	elif numberToReturn == 1 and total > 0:
+		status = Status.objects.order_by('-date')[0]
 		j.append(json.loads(base64.decodestring(status.status)))
+		
 	
 	#debugging	
 	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});	
@@ -135,3 +141,13 @@ def isRaspbrewRunning():
 		return True
 	else:
 		return False
+		
+#
+# returns the system status via json
+#
+def systemStatus(request):
+	j={}
+	units=GlobalSettings.objects.get_setting('UNITS')
+	j['units'] = units.value
+	j['serverrunning'] = isRaspbrewRunning()
+	return HttpResponse(json.dumps(j), content_type='application/json')

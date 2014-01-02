@@ -7,9 +7,6 @@
     <!-- Bootstrap -->
     <link href="/js/thirdparty/bootstrap/css/bootstrap_flatly.css" rel="stylesheet">
 
-	<!-- custom css -->
-	<link href="/css/raspbrew.css" rel="stylesheet">
-	
 	<!-- third party css -->
 	<link href="/js/thirdparty/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css">
 	<link href="//code.jquery.com/ui/jquery-ui-git.css" rel="stylesheet" type="text/css"></link>
@@ -28,6 +25,9 @@
 	<script src="/js/thirdparty/nvd3/src/models/scatter.js"></script>
 	<script src="/js/thirdparty/nvd3/src/models/line.js"></script>
 	<script src="/js/thirdparty/nvd3/src/models/lineChart.js"></script>
+	
+	<!-- custom css -->
+	<link href="/css/raspbrew.css" rel="stylesheet">
 	
 	{% block script %}{% endblock %}
 	
@@ -74,6 +74,27 @@
       </div>
     </div>
     {% endblock %}
+    
+    <!-- SSR configuration modal -->
+    <div class="modal fade" id="ssrModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title" id="ssrModalTitle"></h4>
+				</div>
+				<div class="modal-body">
+					<label class="checkbox-inline">
+					  <input type="checkbox" id="ssrEnabled" value=""> Enabled
+					</label>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					<button type="button" class="btn btn-primary" onclick="raspbrew.saveSSRConfig();">Save changes</button>
+				</div>
+			</div><!-- /.modal-content -->
+		</div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
     
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="//code.jquery.com/jquery.js"></script>
