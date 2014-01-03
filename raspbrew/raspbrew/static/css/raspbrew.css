@@ -4,7 +4,7 @@ body {
 }
 
 hr {
-	margin: 0 0 10px 0;
+	margin: 0 0 15px 0;
 }
 
 a:hover, a:focus {
@@ -27,6 +27,11 @@ dt.input {
 
 dt.icon {
 	line-height: 28px;
+}
+
+dd.small {
+	line-height: 30px;
+	font-size: 12px !important;
 }
 
 .raspbrew.row {
@@ -57,7 +62,7 @@ dt.icon {
 
 /* override */
 .dl-horizontal {
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 }
 /* override */
 .dl-horizontal dd {
@@ -173,7 +178,7 @@ dd.powerOff {
 	line-height: 29px;
 }
 .panel.panel-small > .panel-body > .dl-horizontal > dd {
-	margin-left: 55%;
+	margin-left: 53%;
 }
 
 .list-group-item {

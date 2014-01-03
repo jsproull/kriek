@@ -141,7 +141,7 @@ class SSR(models.Model):
 				for status in statuses:
 					try:
 						j=json.loads(base64.decodestring(status.status))
-						t=j['probes'][str(self.id)]
+						t=j['probes'][str(self.probe.id)]
 					
 						if count==0:
 							startTemp=float(t['temp'])
@@ -157,8 +157,9 @@ class SSR(models.Model):
 			
 				if startTemp and currentTemp:
 					tempDiffThisHour=currentTemp-startTemp
-					#print "%f %f %f" % (float(tempDiffThisHour), float(startTemp), float(currentTemp));
 					degreesPerMinute=tempDiffThisHour/60
+					#print "%d : target: %f tempdiff: %f start temp: %f current temp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiffThisHour), float(startTemp), float(currentTemp), float(degreesPerMinute));
+
 
 				if currentTemp and self.probe.target_temperature and degreesPerMinute and degreesPerMinute > 0:
 					diff=float(self.probe.target_temperature)-currentTemp
@@ -260,10 +261,9 @@ class Status(models.Model):
 			#TODO - this is for regular mode.. add coolbot mode and brewing mode
 			if ssr.enabled and probe.target_temperature and currentTemp:
 				eta, degreesPerMinute = ssr.getETA()
-				print "--------"
-				print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
+				#print "--------"
+				#print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
 				if (ssr.heater_or_chiller == 0 and probe.target_temperature > currentTemp) or (ssr.heater_or_chiller == 1 and probe.target_temperature < currentTemp):
-					print "gogo"
 					if eta:
 						jsonOut['ssrs'][ssr.pk]['eta'] = eta
 					if degreesPerMinute:

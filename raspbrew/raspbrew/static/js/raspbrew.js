@@ -172,9 +172,9 @@ function RaspBrew() {
 			var ssr = latest.ssrs[ssrid];
 			
 			//only update if something has changed in this ssr
-			if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
-				continue;
-			}
+			//if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
+			//	continue;
+			//}
 			
 				
 			$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
