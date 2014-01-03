@@ -48,14 +48,16 @@
 									</div>
 								</dd>
 							</dl>
+							{% if probe.ssr_set.all %}
 							<div class="raspbrew row">
-							  	<div class="col-md-6 hidden">
+							  	<div class="col-md-6">
 							  		<span class="templabel">Deg/Min (c):</span><span id="probe{{probe.pk}}_dpm">--</span>
 							  	</div>
-								<div class="col-md-5 col-md-offset-1 hidden">
+								<div class="col-md-5 col-md-offset-1">
 									<span class="templabel">ETA:</span><span id="probe{{probe.pk}}_eta">--</span>
 							 	 </div>
 							</div>
+							{% endif %}
 							<hr/>
 								{% if probe.ssr_set.all %}
 									{% for ssr in probe.ssr_set.all %}

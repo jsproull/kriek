@@ -4,7 +4,7 @@ import time, datetime
 import json, base64
 from django.utils import timezone
 from datetime import datetime, timedelta
-import numpy as np
+#import numpy as np
 
 def unix_time(dt):
 	dt=dt.replace(tzinfo=None)
@@ -43,6 +43,8 @@ class Probe(models.Model):
 			#get the temps for this probe for the last 60 minutes
 			now = timezone.now()
 			startDate = now + timedelta(hours=-1)
+			
+			#todo - should just filter this by when the ssr state is true
 			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
 			if statuses and len(statuses) >= 2:
 				
@@ -73,18 +75,21 @@ class Probe(models.Model):
 			
 				if startTemp and currentTemp:
 					tempDiffThisHour=currentTemp-startTemp
-					print "%f %f %f" % (float(tempDiffThisHour), float(startTemp), float(currentTemp));
+					#print "%f %f %f" % (float(tempDiffThisHour), float(startTemp), float(currentTemp));
 					degreesPerMinute=tempDiffThisHour/60
 
-				if currentTemp and self.target_temperature:
+				if currentTemp and self.target_temperature and degreesPerMinute and degreesPerMinute > 0:
 					diff=float(self.target_temperature)-currentTemp
-					print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
+					#print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
 					eta=abs(diff/degreesPerMinute)
-					print "minutes: " + str(eta)
+					#print "minutes: " + str(eta)
+					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
+					#print "eta: " + str(eta)
 					eta = time.mktime(eta.timetuple())
+					#print "tuple: " + str(eta)
 
-				# test for y = mx + c
+#				# test for y = mx + c
 # 				x = np.array(_x)
 # 				y = np.array(_y)
 # 			
@@ -93,7 +98,6 @@ class Probe(models.Model):
 # 			
 # 				# test for x = y/m - c
 # 				eta = float(self.target_temperature)/m - c
-				print str(eta)
 			
 		return eta, degreesPerMinute
 			
@@ -232,13 +236,7 @@ class Status(models.Model):
 			if probe.getCurrentTemp() > -999:
 				jsonOut['probes'][probe.pk]['temp'] = probe.getCurrentTemp()
 			jsonOut['probes'][probe.pk]['target_temp'] = probe.target_temperature
-			eta, degreesPerMinute = probe.getETA()
-			if eta:
-				jsonOut['probes'][probe.pk]['eta'] = eta
-			if degreesPerMinute:
-				jsonOut['probes'][probe.pk]['dpm'] = degreesPerMinute
 			
-		
 		ssrs=SSR.objects.all()
 		for ssr in ssrs:
 			jsonOut['ssrs'][ssr.pk] = {}
@@ -252,6 +250,22 @@ class Status(models.Model):
 			jsonOut['ssrs'][ssr.pk]['pin'] = ssr.pin
 			jsonOut['ssrs'][ssr.pk]['state'] = ssr.state
 			jsonOut['ssrs'][ssr.pk]['enabled'] = ssr.enabled
+			
+			#add the eta if we're heating or chilling
+			probe = ssr.probe
+			currentTemp = probe.getCurrentTemp()
+			
+			#TODO - this is for regular mode.. add coolbot mode and brewing mode
+			if ssr.enabled and probe.target_temperature and currentTemp:
+				eta, degreesPerMinute = probe.getETA()
+				print "--------"
+				print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
+				if (ssr.heater_or_chiller == 0 and probe.target_temperature > currentTemp) or (ssr.heater_or_chiller == 1 and probe.target_temperature < currentTemp):
+					print "gogo"
+					if eta:
+						jsonOut['probes'][probe.pk]['eta'] = eta
+					if degreesPerMinute:
+						jsonOut['probes'][probe.pk]['dpm'] = degreesPerMinute
 			
 		units=GlobalSettings.objects.get_setting('UNITS')
 		jsonOut['config'] = {'units' : units.value}

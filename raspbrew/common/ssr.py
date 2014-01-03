@@ -7,6 +7,7 @@ import time
 from pprint import pprint
 #from threading import Thread
 import threading
+from subprocess import call
 
 class SSR(threading.Thread):
 	def __init__(self, ssr):
@@ -15,8 +16,11 @@ class SSR(threading.Thread):
 		threading.Thread.__init__(self)
 		#wiringPiSetupSys
 		#wiringpi.wiringPiSetupGpio()
+		
+		# set up the pin in out mode
+		call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
 		wiringpi.wiringPiSetupSys()
-		wiringpi.pinMode(ssr.pin,1) 
+		wiringpi.pinMode(ssr.pin,1)
 		
 		self.daemon = True
 		self.duty_cycle = 0

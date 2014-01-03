@@ -168,22 +168,20 @@ function RaspBrew() {
 			//set the eta and degrees per hour
 			if (probe.eta) {
 				var eta=probe.eta*1000;
-				$('#probe' + probeid + '_eta').parent().removeClass("hidden");
 				var eta=new Date(eta);
-				console.log( eta );
-				
 				eta=moment(eta).fromNow(true);
 				$('#probe' + probeid + '_eta').html(eta);
 			} else {
-				$('#probe' + probeid + '_eta').parent().addClass("hidden");
+				$('#probe' + probeid + '_eta').html('--');
 			}
 			
 			if (probe.dpm) {
-				var dpm = parseFloat(probe.dpm).toFixed(2);
-				$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
+				var dpm = parseFloat(probe.dpm).toFixed(3);
+				//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
 				$('#probe' + probeid + '_dpm').html(dpm);
 			} else {
-				$('#probe' + probeid + '_dpm').parent().addClass("hidden");
+				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
+				$('#probe' + probeid + '_dpm').html('--');
 			}
 			
 		}
