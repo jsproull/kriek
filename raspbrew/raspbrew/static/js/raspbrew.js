@@ -137,6 +137,7 @@ function RaspBrew() {
 		
 		for (var probeid in latest.probes) {
 			var probe = latest.probes[probeid];
+			
 			var tempInput = $('#probe' + probeid + '_temp');
 			var ttempInput = $('#probe' + probeid + '_target');
 			
@@ -165,43 +166,73 @@ function RaspBrew() {
 			  	}, 1500 );
 			}
 			
-			//set the eta and degrees per hour
-			if (probe.eta) {
-				var eta=probe.eta*1000;
-				var eta=new Date(eta);
-				eta=moment(eta).fromNow(true);
-				$('#probe' + probeid + '_eta').html(eta);
-			} else {
-				$('#probe' + probeid + '_eta').html('--');
-			}
-			
-			if (probe.dpm) {
-				var dpm = parseFloat(probe.dpm).toFixed(3);
-				//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
-				$('#probe' + probeid + '_dpm').html(dpm);
-			} else {
-				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
-				$('#probe' + probeid + '_dpm').html('--');
-			}
-			
 		}
 		
 		for (var ssrid in latest.ssrs) {
 			var ssr = latest.ssrs[ssrid];
-			if (! $('#ssr' + ssrid).is(":focus")) {
+			
+			//only update if something has changed in this ssr
+			if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
+				continue;
+			}
+			
 				
-				$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
-				$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
-				$('#ssr' + ssrid).removeClass("powerOff");
-				$('#ssr' + ssrid).removeClass("power");
-				
-				if (ssr.state) {
-					$('#ssr' + ssrid + "_icon").addClass("fa-check-square-o");
-					$('#ssr' + ssrid).addClass("power");
-				} else {
-					$('#ssr' + ssrid + "_icon").addClass("fa-square-o");
-					$('#ssr' + ssrid).addClass("powerOff");
-				}
+			$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
+			$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
+			$('#ssr' + ssrid).removeClass("powerOff");
+			$('#ssr' + ssrid).removeClass("power");
+			
+			if (ssr.state) {
+				$('#ssr' + ssrid + "_icon").addClass("fa-check-square-o");
+				$('#ssr' + ssrid).addClass("power");
+			} else {
+				$('#ssr' + ssrid + "_icon").addClass("fa-square-o");
+				$('#ssr' + ssrid).addClass("powerOff");
+			}
+			
+			//state
+			$('#ssr' + ssrid + "_state").removeClass("label-on");
+			$('#ssr' + ssrid + "_state").removeClass("label-off");
+			
+			if (ssr.state) {
+				$('#ssr' + ssrid + "_state").addClass("label-on");
+				$('#ssr' + ssrid + "_state").html("On");
+			} else {
+				$('#ssr' + ssrid + "_state").addClass("label-off");
+				$('#ssr' + ssrid + "_state").html("Off");
+			}
+			//enabled
+			$('#ssr' + ssrid + "_panel").removeClass("disabled");
+			$('#ssr' + ssrid + "_enabled").removeClass("label-enabled");
+			$('#ssr' + ssrid + "_enabled").removeClass("label-disabled");
+			
+			if (ssr.enabled) {
+				$('#ssr' + ssrid + "_panel").addClass("disabled");
+				$('#ssr' + ssrid + "_enabled").addClass("label-enabled");
+				$('#ssr' + ssrid + "_enabled").html("Yes");
+			} else {
+				$('#ssr' + ssrid + "_panel").addClass("disabled");
+				$('#ssr' + ssrid + "_enabled").addClass("label-disabled");
+				$('#ssr' + ssrid + "_enabled").html("No");
+			}
+			
+			//set the eta and degrees per hour
+			if (ssr.eta) {
+				var eta=ssr.eta*1000;
+				var eta=new Date(eta);
+				eta=moment(eta).fromNow(true);
+				$('#ssr' + ssrid + '_eta').html(eta);
+			} else {
+				$('#ssr' + ssrid + '_eta').html('--');
+			}
+			
+			if (ssr.dpm) {
+				var dpm = parseFloat(ssr.dpm).toFixed(3);
+				//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
+				$('#ssr' + ssrid + '_dpm').html(dpm);
+			} else {
+				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
+				$('#ssr' + ssrid + '_dpm').html('--');
 			}
 		}
 		
@@ -325,6 +356,11 @@ function RaspBrew() {
 	//updates the target temperature of the given probe id
 	this.updateTargetTemp = function(input, probeid) {
 	
+		//if we don't have the probeid, get it from the input
+		if (!probeid) {
+			probeid = parseInt(input.replace(/[^\d]/g,""));
+		}
+		
 		input=$('#'+input)
 		$(input).parent().removeClass('has-success');
 		
@@ -341,7 +377,7 @@ function RaspBrew() {
 			input.val(val.toFixed(2));
 		}		
 		
-		$('.raspbrew_updateable').attr('disabled', true);
+		$('.raspbrew-updateable').attr('disabled', true);
 		
 		this._writingData = true;
 		
@@ -352,11 +388,11 @@ function RaspBrew() {
 			dataType: 'json',
 			data: JSON.stringify(post),
 			success: function(data){ 
-				$('.raspbrew_updateable').attr('disabled', false);
+				$('.raspbrew-updateable').attr('disabled', false);
 				setTimeout(function(){_this._writingData = false;}, 10000);
 			},
 			error: function() {
-				$('.raspbrew_updateable').attr('disabled', false);
+				$('.raspbrew-updateable').attr('disabled', false);
 				_this._writingData = false;			
 			}
 		});
@@ -402,11 +438,11 @@ function RaspBrew() {
 			dataType: 'json',
 			data:  JSON.stringify(post),
 			success: function(data){ 
-				$('.raspbrew_updateable').attr('disabled', false);
+				$('.raspbrew-updateable').attr('disabled', false);
 				setTimeout(function(){_this._writingData = false;}, 10000);
 			},
 			error: function() {
-				$('.raspbrew_updateable').attr('disabled', false);
+				$('.raspbrew-updateable').attr('disabled', false);
 				_this._writingData = false;			
 			}
 		});	
@@ -420,6 +456,15 @@ function RaspBrew() {
 		_this.updateSystemStatus();
 		$("#startDate").datetimepicker();
 		$("#endDate").datetimepicker();
+		
+		//set up our enter key submit
+		$('.target-temp').on("keypress", function(e) {
+        if (e.keyCode == 13) {
+        	debugger;
+            _this.updateTargetTemp(this.id);
+            return false; // prevent the button click from happening
+        }
+});
 	});
 	
 	return this;

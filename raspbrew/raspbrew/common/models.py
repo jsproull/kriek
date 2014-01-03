@@ -33,74 +33,6 @@ class Probe(models.Model):
 	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
 	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
 	
-	#returns a tuple of the ETA epoch of the current target temp
-	# as well as the degrees per minute
-	def getETA(self):
-		eta=None
-		degreesPerMinute=None
-		
-		if self.target_temperature:
-			#get the temps for this probe for the last 60 minutes
-			now = timezone.now()
-			startDate = now + timedelta(hours=-1)
-			
-			#todo - should just filter this by when the ssr state is true
-			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
-			if statuses and len(statuses) >= 2:
-				
-				_x=[]
-				_y=[]
-			
-				currentTemp=None
-				startTemp=None
-				
-				count=0
-			
-				for status in statuses:
-					try:
-						j=json.loads(base64.decodestring(status.status))
-						t=j['probes'][str(self.id)]
-					
-						if count==0:
-							startTemp=float(t['temp'])
-						elif count==len(statuses)-1:
-							currentTemp=float(t['temp'])
-							
-						count=count+1
-						
-						_y.append(t['temp'])
-						_x.append(unix_time_millis(status.date))
-					except KeyError:
-						pass
-			
-				if startTemp and currentTemp:
-					tempDiffThisHour=currentTemp-startTemp
-					#print "%f %f %f" % (float(tempDiffThisHour), float(startTemp), float(currentTemp));
-					degreesPerMinute=tempDiffThisHour/60
-
-				if currentTemp and self.target_temperature and degreesPerMinute and degreesPerMinute > 0:
-					diff=float(self.target_temperature)-currentTemp
-					#print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
-					eta=abs(diff/degreesPerMinute)
-					#print "minutes: " + str(eta)
-					#print "now: " + str(now)
-					eta = now + timedelta(minutes=eta)
-					#print "eta: " + str(eta)
-					eta = time.mktime(eta.timetuple())
-					#print "tuple: " + str(eta)
-
-#				# test for y = mx + c
-# 				x = np.array(_x)
-# 				y = np.array(_y)
-# 			
-# 				A = np.vstack([x, np.ones(len(x))]).T
-# 				m, c = np.linalg.lstsq(A, y)[0]
-# 			
-# 				# test for x = y/m - c
-# 				eta = float(self.target_temperature)/m - c
-			
-		return eta, degreesPerMinute
-			
 	def getCurrentTemp(self):
 		units=GlobalSettings.objects.get_setting('UNITS')
 		try:
@@ -183,6 +115,76 @@ class SSR(models.Model):
 		verbose_name = "SSR"
 		verbose_name_plural = "SSRs"
 
+	#returns a tuple of the ETA epoch of the current target temp
+	# as well as the degrees per minute
+	def getETA(self):
+		eta=None
+		degreesPerMinute=None
+		
+		if self.probe.target_temperature:
+			#get the temps for this probe for the last 60 minutes
+			now = timezone.now()
+			startDate = now + timedelta(hours=-1)
+			
+			#todo - should just filter this by when the ssr state is true
+			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
+			if statuses and len(statuses) >= 2:
+				
+				_x=[]
+				_y=[]
+			
+				currentTemp=None
+				startTemp=None
+				
+				count=0
+			
+				for status in statuses:
+					try:
+						j=json.loads(base64.decodestring(status.status))
+						t=j['probes'][str(self.id)]
+					
+						if count==0:
+							startTemp=float(t['temp'])
+						elif count==len(statuses)-1:
+							currentTemp=float(t['temp'])
+							
+						count=count+1
+						
+						_y.append(t['temp'])
+						_x.append(unix_time_millis(status.date))
+					except KeyError:
+						pass
+			
+				if startTemp and currentTemp:
+					tempDiffThisHour=currentTemp-startTemp
+					#print "%f %f %f" % (float(tempDiffThisHour), float(startTemp), float(currentTemp));
+					degreesPerMinute=tempDiffThisHour/60
+
+				if currentTemp and self.probe.target_temperature and degreesPerMinute and degreesPerMinute > 0:
+					diff=float(self.probe.target_temperature)-currentTemp
+					#print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
+					eta=abs(diff/degreesPerMinute)
+					#print "minutes: " + str(eta)
+					#print "now: " + str(now)
+					eta = now + timedelta(minutes=eta)
+					#print "eta: " + str(eta)
+					eta = time.mktime(eta.timetuple())
+					#print "tuple: " + str(eta)
+
+#				# test for y = mx + c
+# 				x = np.array(_x)
+# 				y = np.array(_y)
+# 			
+# 				A = np.vstack([x, np.ones(len(x))]).T
+# 				m, c = np.linalg.lstsq(A, y)[0]
+# 			
+# 				# test for x = y/m - c
+# 				eta = float(self.target_temperature)/m - c
+			
+		return eta, degreesPerMinute
+			
+
+
 # This should be a singleton that contains global configuration	
 # class GlobalConfiguration(models.Model):
 # 	UNITS = (
@@ -257,15 +259,15 @@ class Status(models.Model):
 			
 			#TODO - this is for regular mode.. add coolbot mode and brewing mode
 			if ssr.enabled and probe.target_temperature and currentTemp:
-				eta, degreesPerMinute = probe.getETA()
+				eta, degreesPerMinute = ssr.getETA()
 				print "--------"
 				print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
 				if (ssr.heater_or_chiller == 0 and probe.target_temperature > currentTemp) or (ssr.heater_or_chiller == 1 and probe.target_temperature < currentTemp):
 					print "gogo"
 					if eta:
-						jsonOut['probes'][probe.pk]['eta'] = eta
+						jsonOut['ssrs'][ssr.pk]['eta'] = eta
 					if degreesPerMinute:
-						jsonOut['probes'][probe.pk]['dpm'] = degreesPerMinute
+						jsonOut['ssrs'][ssr.pk]['dpm'] = degreesPerMinute
 			
 		units=GlobalSettings.objects.get_setting('UNITS')
 		jsonOut['config'] = {'units' : units.value}

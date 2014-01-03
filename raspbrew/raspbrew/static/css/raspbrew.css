@@ -1,3 +1,4 @@
+/* dom overrides */
 body {
 	padding-top: 80px !important;
 }
@@ -9,6 +10,16 @@ hr {
 a:hover, a:focus {
 	color: #005C6C;
 }
+
+h3 {
+	margin: 5px 0;
+}
+
+h4 {
+	margin: 5px 0;
+}
+
+/* dts */
 
 dt.input {
 	line-height: 33px;
@@ -28,6 +39,20 @@ dt.icon {
 
 .templabel {
 	margin-right: 5px;
+}
+
+/* custom labels */
+.label-enabled {
+	background-color: #18BC9C;
+}
+.label-disabled {
+	background-color: #95A5A6;
+}
+.label-on {
+	background-color: #FFBB47;
+}
+.label-off {
+	background-color: #E74C3C;
 }
 
 /* override */
@@ -71,12 +96,20 @@ dd.powerOff {
 	text-shadow: none;
 }
 
-h3 {
-	margin: 5px 0;
-}
 
 .fa-shadow {
 	text-shadow: 2px 2px 0 #1D9D74,5px 6px 0 rgba(0, 0, 0, 0.15);
+}
+
+.disabled {
+
+}
+
+.config {
+	color: #C0C0C0;
+	top: 8px;
+	position: absolute;
+	right: 23px;
 }
 
 /* Chart */
@@ -110,9 +143,48 @@ h3 {
 	margin-bottom: 1em;
 }
 
+
 /* override */
 .thumbnail {
 	margin-bottom: 0;
+}
+
+/* small panel heading */
+.panel.panel-small {
+	font-size: 90%;
+}
+.panel.panel-small > .panel-body {
+	padding: 3px;
+}
+.panel.panel-small > .panel-heading {
+	padding: 2px 24px 2px 15px;
+}
+.panel.panel-small >.panel-heading a:hover, .panel-heading  a:focus {
+	color: #white;
+}
+.panel.panel-small > .panel-body {
+	padding: 5px 2px;
+}
+.panel.panel-small > .panel-body > .dl-horizontal {
+	margin: 0;
+}
+.panel.panel-small > .panel-body > .dl-horizontal > dt {
+	width: 50%;
+	line-height: 29px;
+}
+.panel.panel-small > .panel-body > .dl-horizontal > dd {
+	margin-left: 55%;
+}
+
+.list-group-item {
+	padding: 2px;
+}
+
+.list-group-item > .title {
+	font-weight: bold;
+}
+.list-group-item > .label {
+	float: right;
 }
 
 /* Panel probes */
