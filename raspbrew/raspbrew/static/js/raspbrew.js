@@ -39,22 +39,28 @@ function RaspBrew() {
 		
 		var url = '/status/' + _this.chartPoints;
 		
-		var startDateEnabled = $("#startDate").attr('disabled') === undefined && !$("#startDate").is(":focus");
-		var endDateEnabled = $("#endDate").attr('disabled') === undefined && !$("#endDate").is(":focus");
+		if ($("#startDate").is(":focus") || $("#endDate").is(":focus")) {
+			console.log('returning cause of focus');
+			setTimeout(_this.updateStatus, _this.updateTime);
+			return;
+		}
 		
+		var startDateEnabled = $("#startDate").attr('disabled') === undefined;
+		var endDateEnabled = $("#endDate").attr('disabled') === undefined;
+	
 		if (startDateEnabled || endDateEnabled) {
 			var sd = null;
 			var ed = (new Date).getTime();
-			
+		
 			startDateValue = $("#startDate").val();
 			if (startDateValue) {
 				sd = new Date($("#startDate").datetimepicker('getDate'));
-				url = url + '/' + parseInt(sd.getTime()/1000);
-				
+				url = url + '/' + parseFloat(sd.getTime());
+			
 				endDateValue = $("#endDate").val();
 				if (endDateEnabled && endDateValue) {
 					ed = new Date($("#endDate").datetimepicker('getDate'));
-					url = url + '/' + parseInt(ed.getTime()/1000);
+					url = url + '/' + parseFloat(ed.getTime());
 				}
 			}
 		}
@@ -218,7 +224,7 @@ function RaspBrew() {
 			
 			//set the eta and degrees per hour
 			if (ssr.eta) {
-				var eta=ssr.eta*1000;
+				var eta=ssr.eta;
 				var eta=new Date(eta);
 				eta=moment(eta).fromNow(true);
 				$('#ssr' + ssrid + '_eta').html(eta);
@@ -244,6 +250,7 @@ function RaspBrew() {
 	
 	// Clears out the chart if there's no data
 	this.emptyChart = function() {
+		
 		if (this.chart) {
 			var datum = _this.lastLoadedData;
 			if (datum) {
@@ -269,7 +276,7 @@ function RaspBrew() {
 	
 	// Updates the chart with the current data set
 	this.updateChart = function(data) {
-		  
+		
 		var dd = {};
 		var values = [];
 
@@ -280,12 +287,13 @@ function RaspBrew() {
 				if (!dd[probeid]) {
 					dd[probeid] = []
 				}
-				var date = new Date(parseInt(d.date)*1000);
+				var date = new Date(parseFloat(d.date));
 				var temp = probe.temp;
-				
-				temp=_this.getTemperature(probe.temp)
-				
-				dd[probeid].push({x: date, y: temp});
+				if (temp) {
+					temp=_this.getTemperature(probe.temp)
+					dd[probeid].push({x: date, y: temp});
+					console.log(date)
+				}
 			}
 		}
 
@@ -454,8 +462,8 @@ function RaspBrew() {
 		_this.createChart();
 		_this.updateStatus();
 		_this.updateSystemStatus();
-		$("#startDate").datetimepicker();
-		$("#endDate").datetimepicker();
+		$("#startDate").datetimepicker({timeFormat: "HH:mm:ss"});
+		$("#endDate").datetimepicker({timeFormat: "HH:mm:ss"});
 		
 		//set up our enter key submit
 		$('.target-temp').on("keypress", function(e) {

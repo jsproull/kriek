@@ -1,19 +1,36 @@
 from django.db import models
 from raspbrew import settings
-from raspbrew.common.models import Probe, SSR, PID, GlobalSettings
+#from raspbrew.common.models import Probe, SSR, PID
+from raspbrew.globalsettings.models import GlobalSettings
 from copy import deepcopy
 from django.core.serializers.json import DjangoJSONEncoder 
-import os, time, json, datetime, time
+import os, time, json, time
+from datetime import datetime
 from django.utils import timezone
 
+def unix_time(dt):
+	dt=dt.replace(tzinfo=None)
+	epoch = datetime.fromtimestamp(0)
+	delta = dt - epoch
+	return delta.total_seconds()
+
+def unix_time_millis(dt):
+	return unix_time(dt) * 1000.0
+	
 #this class stores the current status
 class ProbeStatus(models.Model):
 	one_wire_Id = models.CharField(null=True, blank=True, max_length=30)
 	name = models.CharField(max_length=30)
 	type = models.IntegerField(default=0)
-	temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current temperature. Returns c or f depending on the global units
-	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
-	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
+	
+	#the probe's current temperature. Returns c or f depending on the global units
+	temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  
+	
+	#the probe's current target temperature. Returns c or f depending on the global units
+	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  
+	
+	#a correction factor to apply (if any)
+	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) 
 	
 	#the original Probe
 	probe = models.ForeignKey('common.Probe', null=True)
@@ -44,6 +61,7 @@ class PIDStatus(models.Model):
 	k_param = models.FloatField(default=70.0)
 	i_param = models.FloatField(default=80.0)
 	d_param = models.FloatField(default=4.0)
+	power = models.IntegerField(default=100)
 	
 	#the original pid
 	pid = models.ForeignKey('common.PID', null=True)
@@ -107,36 +125,48 @@ class Status(models.Model):
 	
 	#override save
 	def save(self, *args, **kwargs):
-		# save this as json
-		#if self.probes.all():
 		
 		#have to save this here so we can use the m2m associations
 		super(Status, self).save(*args, **kwargs)
 		
-		status = self.toJson(True)
-		if (len(status) < 10000):
+		status = self.toJson(forceUpdate=True)
+		if (status and len(status) < 10000):
 			self.status = status
 			super(Status, self).save(*args, **kwargs)
 			
 		
 	#returns json for this status
-	def getJsonObject(self):
+	def getJsonObject(self, addEta=True):
+		
 		fermpk=None
 		brewpk=None
 		if self.fermconfig:
 			fermpk = self.fermconfig.pk
 		if self.brewconfig:
 			brewpk = self.brewconfig.pk
-		jsonOut = {'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : time.mktime(self.date.timetuple())}
+			
+		jsonOut = {'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : unix_time_millis(self.date)}
 		
 		probes=self.probes.all() #Probe.objects.all()
+		
+		if not probes:
+			return None
+			
 		for probe in probes:
+			
+			#if we don't have a temp just return None
+			if not probe.temperature:
+				return None
+				
 			id=probe.probe.pk
 			jsonOut['probes'][id] = {}
 			jsonOut['probes'][id]['name'] = probe.name
 			jsonOut['probes'][id]['id'] = probe.one_wire_Id
-			if probe.temperature > -999:
-				jsonOut['probes'][id]['temp'] = probe.temperature
+			
+			currentTemp = probe.temperature
+			if currentTemp > -999:
+				jsonOut['probes'][id]['temp'] = currentTemp
+			
 			jsonOut['probes'][id]['target_temp'] = probe.target_temperature
 			
 			#ssrs=SSR.objects.all()
@@ -149,52 +179,43 @@ class Status(models.Model):
 				jsonOut['ssrs'][ssrid]['pid']['k_param'] = ssr.pid.k_param
 				jsonOut['ssrs'][ssrid]['pid']['i_param'] = ssr.pid.i_param
 				jsonOut['ssrs'][ssrid]['pid']['d_param'] = ssr.pid.d_param
+				jsonOut['ssrs'][ssrid]['pid']['power'] = ssr.pid.power
 			
 				jsonOut['ssrs'][ssrid]['name'] = ssr.name
 				jsonOut['ssrs'][ssrid]['pin'] = ssr.pin
-				jsonOut['ssrs'][ssrid]['state'] = ssr.state
-				jsonOut['ssrs'][ssrid]['enabled'] = ssr.enabled
-			
+				jsonOut['ssrs'][ssrid]['heater_or_chiller'] = ssr.heater_or_chiller
+				
+				#update the state and enabled from the actual ssr
+				jsonOut['ssrs'][ssrid]['state'] = ssr.ssr.state
+				jsonOut['ssrs'][ssrid]['enabled'] = ssr.ssr.enabled
+				
 				#add the eta if we're heating or chilling
-				probe = ssr.probe
-				currentTemp = probe.temperature #getCurrentTemp()
-			
-				#TODO - this is for regular mode.. add coolbot mode and brewing mode
-				if ssr.enabled and probe.target_temperature and currentTemp:
-					eta, degreesPerMinute = ssr.ssr.getETA()
-					#print "--------"
-					#print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
-					if (ssr.heater_or_chiller == 0 and probe.target_temperature > currentTemp) or (ssr.heater_or_chiller == 1 and probe.target_temperature < currentTemp):
-						if eta:
+				if addEta:
+					probe = ssr.ssr.probe
+					currentTemp = probe.temperature
+					
+					#TODO - this is for regular mode.. add coolbot mode and brewing mode
+					if ssr.ssr.state and ssr.ssr.enabled and probe.target_temperature and currentTemp:
+						eta, degreesPerMinute = ssr.ssr.getETA()
+						if eta and degreesPerMinute:
 							jsonOut['ssrs'][ssrid]['eta'] = eta
-						if degreesPerMinute:
 							jsonOut['ssrs'][ssrid]['dpm'] = degreesPerMinute
-		
+								
 		units=GlobalSettings.objects.get_setting('UNITS')
 		jsonOut['config'] = {'units' : units.value}
 		
 		return jsonOut
 	
-	def toJson(self, forceUpdate=False):
+	def toJson(self, forceUpdate=False, addEta=True):
 	
 		if self.status and not forceUpdate:
 			return self.status
 		else:
-			jsonOut=self.getJsonObject()
+			jsonOut=self.getJsonObject(addEta=True)
+		
+		if jsonOut:
+			jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
 			
-		jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
-		#print jsonOut	
-		#print status
-		#_status = base64.encodestring(jsonOut)
-		#try:
-		#	status = Status.objects.get(status=_status)
-		#	print "already exists"
-		#except Status.DoesNotExist:
-		#	status = Status(status=_status)
-		
-		# status.date = timezone.now()
-		
-		#print base64.decodestring(status.status)
 		return jsonOut
 
 	

@@ -8,7 +8,8 @@ from django.utils import timezone
 
 import base64, time, datetime
 
-from raspbrew.common.models import Probe,SSR,GlobalSettings
+from raspbrew.common.models import Probe,SSR
+from raspbrew.globalsettings.models import GlobalSettings
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import Status
@@ -85,7 +86,6 @@ def update(request):
 # Returns saved status Json objects for the given FermConfiguration id
 #
 def jsonFermStatus(request, fermConfId, numberToReturn=50, startDate=-1, endDate=-1):
-	print str(fermConfId)
 	return jsonStatus(request, numberToReturn, startDate, endDate, Q(fermconfig__pk=fermConfId))
 
 #
@@ -100,12 +100,11 @@ def jsonBrewStatus(request, brewConfId, numberToReturn=50, startDate=-1, endDate
 def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 	total=Status.objects.count()
 	allStatuses = []
-	startDate=float(startDate)
-	endDate=float(endDate)
+	startDate=float(startDate)/1000
+	endDate=float(endDate)/1000
 	numberToReturn = int(numberToReturn)
 		
 	j=[]
-		
 	if numberToReturn > 1 and total > 0:
 		step=1
 		numberToReturn = int(numberToReturn)-1
@@ -113,9 +112,8 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 		q=None
 		
 		#default to All
-		statuses = Status.objects.all()
-			
-		if startDate > -1 and endDate > -1:
+		statuses = Status.objects.all().order_by('date')
+		if startDate >= 0 and endDate >= 0:
 			startDate = datetime.datetime.fromtimestamp(startDate)
 			endDate = datetime.datetime.fromtimestamp(endDate)
 			q = Q(date__gte=startDate) & Q(date__lte=endDate)
@@ -145,15 +143,26 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 				allStatuses.insert(0, statuses[0])
 				allStatuses.append(statuses[len(statuses)-1])
 		
+		
+		count=0
 		for status in reversed(allStatuses):
-			j.append(json.loads(status.toJson())) #json.loads(base64.decodestring(status.status)))
+			addEta=False
+			
+			if count == 0:
+				addEta=True
+			_json = status.toJson()
+				
+			if _json:
+				j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
+				count=count+1
 		
 		
 	elif numberToReturn == 1 and total > 0:
 		status = Status.objects.order_by('-date')[0]
-		j.append(json.loads(status.toJson())) #json.loads(base64.decodestring(status.status)))
+		_json = status.toJson()
+		if _json:
+			j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
 		
-	
 	#debugging	
 	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});	
 	return HttpResponse(json.dumps(j, cls=DjangoJSONEncoder), content_type='application/json')

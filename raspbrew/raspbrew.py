@@ -33,7 +33,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 from raspbrew.common.models import Probe,SSR
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
-from raspbrew.status.models import Status, ProbeStatus
+from raspbrew.status.models import ProbeStatus, Status
 
 #pyro for remote 
 #import Pyro4
@@ -54,8 +54,6 @@ class Raspbrew():#threading.Thread):
 		
 		#threading.Thread.__init__(self)
 		#self.daemon = True
-		
-		self.power_cycle_time=5.0
 		
 		#a dictionary of ssr controllers
 		self.ssrControllers = {}
@@ -144,14 +142,14 @@ class Raspbrew():#threading.Thread):
 				pid_controller=self.getPidController(ssr.pid)
 				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
-					#print "current " + str(currentTemp) + " : " + str(targetTemp) + " " + str(ssr_controller.getPower())
+					#print "current " + str(currentTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
 					ssr_controller.setEnabled(currentTemp < targetTemp)
-					if ssr_controller.getPower() < 100:
+					if ssr.pid.power < 100:
 						if currentTemp < targetTemp:
-							ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
+							ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 					else:
 						duty_cycle = pid_controller.calcPID_reg4(float(currentTemp), float(targetTemp), True)
-						ssr_controller.updateSSR(duty_cycle, self.power_cycle_time)
+						ssr_controller.updateSSR(duty_cycle, ssr.pid.cycle_time)
 				else:
 					ssr_controller.setEnabled(False)
 			
@@ -188,13 +186,13 @@ class Raspbrew():#threading.Thread):
 						continue
 						
 					if ssr.enabled:
-						#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr_controller.getPower())
+						#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
 						if fermConf.mode == 0: # regular mode
 							if float(wortTemp) < float(targetTemp):
-								ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
+								ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 								ssr_controller.setEnabled(ssr.heater_or_chiller == 0) #Heater
 							elif float(wortTemp) > float(targetTemp):
-								ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
+								ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 								ssr_controller.setEnabled(ssr.heater_or_chiller == 1) #chiller
 							else:
 								ssr_controller.setEnabled(False);
@@ -212,7 +210,7 @@ class Raspbrew():#threading.Thread):
 								if ssr.heater_or_chiller == 0: #heater
 									if float(wortTemp) > float(targetTemp):
 										ssr_controller.setEnabled(True) # enable all ssrs (heater and chiller side)
-										ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
+										ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 									elif float(wortTemp) < float(targetTemp):
 										ssr_controller.setEnabled(False);
 						
@@ -220,7 +218,7 @@ class Raspbrew():#threading.Thread):
 									#if the fan coils are too cold, disable the heater side.
 									if float(fanTemp) > float(fanProbe.target_temperature) and float(wortTemp) > float(targetTemp):
 										ssr_controller.setEnabled(True);
-										ssr_controller.updateSSR(ssr_controller.getPower(), self.power_cycle_time)
+										ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 									else:
 										ssr_controller.setEnabled(False);
 					else:
@@ -231,12 +229,13 @@ class Raspbrew():#threading.Thread):
 						ssr.save()
 				
 				
-			#add a status	
+			#add a status
 			status=Status(fermconfig=fermConf, date=timezone.now())
 			status.save()
 			for probe in fermConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
 			status.save()
+			
 				
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps
@@ -247,7 +246,7 @@ class Raspbrew():#threading.Thread):
 			self.updateTemps()
 			self.checkBrew()
 			self.checkFerm()
-			#time.sleep(1)
+			time.sleep(5)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'

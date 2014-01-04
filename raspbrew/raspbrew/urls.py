@@ -23,18 +23,18 @@ urlpatterns = patterns('',
 	
 	#all temp statuses
 	url(r'^status/(?P<numberToReturn>\d+)$', views.jsonStatus, {}, name='jsonStatus'),
-	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),
-	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>\d+)/(?P<endDate>\d+)$', views.jsonStatus, {}, name='jsonStatus_withDate'),
+	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>[0-9.]+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),
+	url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonStatus, {}, name='jsonStatus_withDate'),
 	
 	#ferm temp status
-	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>\d+)$', views.jsonFermStatus, {}, name='jsonFermStatus'),
-	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withStartDate'),
-	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>\d+)/(?P<startDate>\d+)/(?P<endDate>\d+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withDate'),
+	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus'),
+	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withStartDate'),
+	url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withDate'),
 	
 	#brew temp status
-	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>\d+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus'),
-	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>\d+)/(?P<startDate>\d+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withStartDate'),
-	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>\d+)/(?P<startDate>\d+)/(?P<endDate>\d+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withDate'),
+	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus'),
+	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withStartDate'),
+	url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withDate'),
 	
 	#system conf
 	url(r'^status/system$', views.systemStatus, {}, name='systemStatus'),

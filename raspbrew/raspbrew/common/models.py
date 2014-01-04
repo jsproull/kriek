@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
+from raspbrew.globalsettings.models import GlobalSettings
+from raspbrew.status.models import Status, ProbeStatus
 
 #import numpy as np
 
@@ -33,32 +35,60 @@ class Probe(models.Model):
 	one_wire_Id = models.CharField(null=True, blank=True, max_length=30)
 	name = models.CharField(max_length=30)
 	type = models.IntegerField(default=0, choices=PROBE_TYPE)
-	temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current temperature. Returns c or f depending on the global units
-	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
+	
+	#the probe's current temperature in c
+	temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)
+	
+	#the probe's current target temperature. Returns c or f depending on the global units
+	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  
+	
+	#the correction factor if neeced
 	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
 	
+	#the date of the last good reading for self.temperature
+	last_temp_date = models.DateTimeField(null=True, blank=True) #time of this status
+	
 	#returns the current temperature of this probe.
-	def getCurrentTemp(self):
+	def getCurrentTemp(self,returnlatest=False):
 		units=GlobalSettings.objects.get_setting('UNITS')
-		try:
-			f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
-		except IOError as e:
-			print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";	
-			return -999; 
-
-		lines=f.readlines()
-		crcLine=lines[0]
-		tempLine=lines[1]
-		result_list = tempLine.split("=")
-			
-		temp = float(result_list[-1])/1000 # temp in Celcius
-
-		if self.correction_factor != None:
-			temp = temp + float(self.correction_factor) # correction factor
-				
-		if crcLine.find("NO") > -1:
-			temp = self.temperature
 		
+		if returnlatest and self.temperature:
+			return self.temperature
+		
+		updateNeeded = True
+		# we only update every 10 seconds. maybe this could be a global conf
+		if self.last_temp_date and self.temperature:
+			now = timezone.now()
+			if now < self.last_temp_date + timedelta(seconds=10):
+				updateNeeded=False
+		
+		if not updateNeeded:
+			return self.temperature
+		
+		temp = None
+		count = 0
+		
+		#wait 10 times to see if we get a good reading
+		while count < 10 and not temp:
+		
+			try:
+				f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
+			except IOError as e:
+				print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";	
+				return -999; 
+
+			lines=f.readlines()
+			crcLine=lines[0]
+			tempLine=lines[1]
+			result_list = tempLine.split("=")
+			
+			count = count + 1
+			if crcLine.find("YES") > -1:
+				temp = float(result_list[-1])/1000 # temp in Celcius
+				
+				if self.correction_factor != None:
+					temp = temp + float(self.correction_factor) # correction factor
+						
 		if not temp:
 			return -999
 		
@@ -68,10 +98,10 @@ class Probe(models.Model):
 		
 		if (self.temperature != temp):
 			self.temperature = temp
-			probe = Probe.objects.get(pk=self.pk)
-			probe.temperature = temp
-			probe.save()
-		
+			self.last_temp_date = timezone.now()
+			self.temperature = temp
+			self.save()
+			
 		return self.temperature
 	
 	def __unicode__(self):
@@ -86,7 +116,8 @@ class PID(models.Model):
 	cycle_time = models.FloatField(default=2.0)
 	k_param = models.FloatField(default=70.0)
 	i_param = models.FloatField(default=80.0)
-	d_param = models.FloatField(default=4.0)
+	d_param = models.FloatField(default=4.0)	
+	power = models.IntegerField(default=100)
 
 # An SSR has probe and PID information
 class SSR(models.Model):
@@ -125,95 +156,50 @@ class SSR(models.Model):
 	def getETA(self):
 		eta=None
 		degreesPerMinute=None
+		#print str(self.pk) + " " + str(self.state)
+		#print str(self.probe.target_temperature)
+		#print str(self.probe.temperature)
 		
-		if self.probe.target_temperature:
+		if self.state and self.probe.target_temperature and self.probe.temperature:
 			#get the temps for this probe for the last 60 minutes
 			now = timezone.now()
 			startDate = now + timedelta(hours=-1)
 			
+			currentTemp=self.probe.temperature
+			currentTemp=float(currentTemp)
+				
 			#todo - should just filter this by when the ssr state is true
 			
-			#start here tomorrow. ugh
-			
-			
 			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
+			
 			if statuses and len(statuses) >= 2:
 				
-				_x=[]
-				_y=[]
-			
-				currentTemp=None
 				startTemp=None
-				
-				count=0
-			
+								
 				for status in statuses:
-					try:
-						j=json.loads(base64.decodestring(status.status))
-						t=j['probes'][str(self.probe.id)]
-					
-						if count==0:
-							startTemp=float(t['temp'])
-						elif count==len(statuses)-1:
-							currentTemp=float(t['temp'])
+					if status.probes:
+						try:
+							pp = status.probes.get(probe__id=self.probe.id)
+						except ProbeStatus.DoesNotExist:
+							continue
 							
-						count=count+1
-						
-						_y.append(t['temp'])
-						_x.append(unix_time_millis(status.date))
-					except KeyError:
-						pass
-			
+					if not startTemp and pp.temperature:
+						startTemp=float(pp.temperature) #t['temp'])
+						break
+				
 				if startTemp and currentTemp:
 					tempDiffThisHour=currentTemp-startTemp
 					degreesPerMinute=tempDiffThisHour/60
 					#print "%d : target: %f tempdiff: %f start temp: %f current temp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiffThisHour), float(startTemp), float(currentTemp), float(degreesPerMinute));
 
-
-				if currentTemp and self.probe.target_temperature and degreesPerMinute and degreesPerMinute > 0:
+				if currentTemp and self.probe.target_temperature and degreesPerMinute:
 					diff=float(self.probe.target_temperature)-currentTemp
 					#print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
 					eta=abs(diff/degreesPerMinute)
 					#print "minutes: " + str(eta)
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
-					#print "eta: " + str(eta)
 					eta = time.mktime(eta.timetuple())
-					#print "tuple: " + str(eta)
-
-#				# test for y = mx + c
-# 				x = np.array(_x)
-# 				y = np.array(_y)
-# 			
-# 				A = np.vstack([x, np.ones(len(x))]).T
-# 				m, c = np.linalg.lstsq(A, y)[0]
-# 			
-# 				# test for x = y/m - c
-# 				eta = float(self.target_temperature)/m - c
-			
+					
 		return eta, degreesPerMinute
 			
-
-
-# Global (application) settings
-
-class GlobalSettingsManager(models.Manager):
-	def get_setting(self, key):
-		try:
-			setting = GlobalSettings.objects.get(key=key)
-		except:
-			raise Exception
-		return setting
-
-class GlobalSettings(models.Model):
-	key = models.CharField(unique=True, max_length=255)
-	value = models.CharField(max_length=255)
-
-	objects = GlobalSettingsManager()
-      
-	def __unicode__(self):
-		return self.key + " : " + self.value
-	
-	class Meta:
-		verbose_name = "Global Setting"
-		verbose_name_plural = "Global Settings"

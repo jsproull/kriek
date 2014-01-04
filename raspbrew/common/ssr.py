@@ -29,7 +29,7 @@ class SSR(threading.Thread):
 		self.enabled = False
 		self._On = False
 		
-		self.verbose = True
+		self.verbose = False
 		
 		#create an event so we can stop
 		self._stop = threading.Event()
