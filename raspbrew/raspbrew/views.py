@@ -21,36 +21,36 @@ import subprocess
 # returns the ferm.html template
 #
 def ferm(request):
-    try:
-        p = FermConfiguration.objects.all()
-    except Probe.DoesNotExist:
-        raise Http404
-        
-    return render_to_response('ferm.html', {'fermConfs': p, 'status': {'serverrunning': isRaspbrewRunning()} },
-        context_instance=RequestContext(request))
+	try:
+		p = FermConfiguration.objects.all()
+	except Probe.DoesNotExist:
+		raise Http404
+		
+	return render_to_response('ferm.html', {'fermConfs': p, 'status': {'serverrunning': isRaspbrewRunning()} },
+		context_instance=RequestContext(request))
 
 #
 # returns the brew.html template
 #
 def brew(request):
-    try:
-        p = BrewConfiguration.objects.all()
-    except Probe.DoesNotExist:
-        raise Http404
-        
-    return render_to_response('brew.html', {'brewConfs': p},
-        context_instance=RequestContext(request))
+	try:
+		p = BrewConfiguration.objects.all()
+	except Probe.DoesNotExist:
+		raise Http404
+		
+	return render_to_response('brew.html', {'brewConfs': p},
+		context_instance=RequestContext(request))
 
 #
 # updates and returns json
 # TODO - remove this below
 @csrf_exempt
 def update(request):
-    if request.method == 'POST':
-    	try:	
-    		_json=json.loads(request.body)
-    		_updatedAny = False
-    		if 'probes' in _json:
+	if request.method == 'POST':
+		try:	
+			_json=json.loads(request.body)
+			_updatedAny = False
+			if 'probes' in _json:
 				for probe in _json['probes']:
 					if 'pk' in probe:
 						edited=False
@@ -61,25 +61,42 @@ def update(request):
 						if edited:
 							_updatedAny = True
 							p.save()
-    					
-    		if 'ssrs' in _json:
-    			for ssr in _json['ssrs']:
-    				if 'pk' in ssr:
+						
+			if 'ssrs' in _json:
+				for ssr in _json['ssrs']:
+					if 'pk' in ssr:
 						edited=False
 						s=SSR.objects.get(pk=ssr['pk'])
 						if 'enabled' in ssr:
 							s.enabled=bool(ssr['enabled'])
 							edited=True
 							
+						if 'pid' in ssr:
+							newp=ssr['pid']
+						
+							#update the pid
+							pid=s.pid
+							if 'power' in newp:
+								pid.power=int(newp['power'])
+							if 'k_param' in newp:
+								pid.power=int(pid['k_param'])
+							if 'i_param' in newp:
+								pid.power=int(pid['i_param'])
+							if 'd_param' in newp:
+								pid.power=int(pid['d_param'])	
+								
+							pid.save()
+							
 						if edited:
 							_updatedAny = True
 							s.save()
-    				
-    	except KeyError as e:	
-    		print e
-    		
-    	return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
-    else :	
+					
+		except KeyError as e:	
+			print "KeyError"
+			print e
+			
+		return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
+	else :	
 		return HttpResponse(json.dumps({}), mimetype='application/json')
 
 #

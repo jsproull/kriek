@@ -74,6 +74,7 @@ class PIDStatus(models.Model):
 		pid.k_param = _pid.k_param
 		pid.i_param = _pid.i_param
 		pid.d_param = _pid.d_param
+		pid.power = _pid.power
 		
 		pid.save()
 		return pid
@@ -153,10 +154,6 @@ class Status(models.Model):
 			return None
 			
 		for probe in probes:
-			
-			#if we don't have a temp just return None
-			if not probe.temperature:
-				return None
 				
 			id=probe.probe.pk
 			jsonOut['probes'][id] = {}

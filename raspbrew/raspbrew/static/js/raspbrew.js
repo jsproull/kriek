@@ -240,6 +240,12 @@ function RaspBrew() {
 				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
 				$('#ssr' + ssrid + '_dpm').html('--');
 			}
+			
+			if (ssr.pid && ssr.pid.power) {
+				$('#ssr' + ssrid + '_power').html(ssr.pid.power + "%");
+			} else {
+				$('#ssr' + ssrid + '_power').html('--');
+			}
 		}
 		
 		//update the chart
@@ -292,7 +298,6 @@ function RaspBrew() {
 				if (temp) {
 					temp=_this.getTemperature(probe.temp)
 					dd[probeid].push({x: date, y: temp});
-					console.log(date)
 				}
 			}
 		}
@@ -421,12 +426,13 @@ function RaspBrew() {
 		
 		var data = _this.lastLoadedData;
 		
-		if (data) {
+		if (data && data.ssrs && data.ssrs[ssrid]) {
 			_this._editingSSR = data.ssrs[ssrid];
 			_this._editingSSR.id = ssrid;
 			
 			$('#ssrEnabled').prop('checked')
 			$('#ssrEnabled').prop('checked', this._editingSSR.enabled)
+			$('#ssrPower').val(this._editingSSR.pid.power)
 			$('#ssrModalTitle').html(_this._editingSSR.name);
 			$('#ssrModal').modal({});
 		}
@@ -438,7 +444,16 @@ function RaspBrew() {
 			return;
 		}
 		
-		var post = { ssrs: [ { pk: _this._editingSSR.id, enabled: $('#ssrEnabled').prop('checked') ? 1 : 0 } ]  };
+		var enabled = $('#ssrEnabled').prop('checked') ? 1 : 0 ;
+		var power = $('#ssrPower').val();
+		
+		pid={};
+		
+		if (!isNaN(parseInt(power))) {
+			pid.power = power;
+		}
+		
+		var post = { ssrs: [ { pk: _this._editingSSR.id, enabled: enabled, pid: pid } ] };
 		
 		$.ajax({
 			url: "/update",
