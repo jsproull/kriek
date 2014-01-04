@@ -1,153 +1,139 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block title %}Raspbrew - Brewing{% endblock %}
+
+{% block script %}
+    <script src="/js/raspbrew.js"></script>
+{% endblock %}
+
 {% block container %}
-<!-- Main component for a primary marketing message or call to action -->
-<!--<h1>Navbar example</h1>-->
-<div class="panel-group" id="accordion">
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-				Fermentation Configuration
-			</a>
-		  </h4>
-		</div>
-		<div id="collapseOne" class="panel-collapse collapse in">
-			<div class="panel-body">
-				<form class="form-horizontal" role="form">
-					<div class="form-group">
-						<label for="inputEmail3" class="col-sm-3 control-label">Mode</label>
-						<div class="col-sm-9">
-							<select class="form-control" id="fermMode"/ disabled="true">
-								<option value="0">Regular</option>
-								<option value="1">Coolbot</option>
-							</select>
-						</div>
-					</div>
-				
-					<div class="form-group">
-						<label for="wortTargetTemp" class="col-sm-3 control-label">Wort Target Temp</label>
-						<div class="col-sm-9">
-							<div class="input-group">
-								<input class="form-control" disabled="true" type="text" id="wortTargetTemp"/>
-								<span class="input-group-addon">c</span>
-							</div>
-						</div>
-					</div>
-				
-					<div class="form-group">
-						<label for="fanTargetTemp" class="col-sm-3 control-label">A/C Fan Minimum Temp</label>
-						<div class="col-sm-9">
-							<div class="input-group">
-								<input class="form-control" disabled="true" type="text" id="fanTargetTemp"/>
-								<span class="input-group-addon">c</span>
-							</div>
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-	</div>
+
+{% if not brewConfs %}
+	<div class="alert alert-danger">You don't have any brewing configurations defined.</div>
+{% endif %}
+
+<div id="serverstatus" class="hidden alert alert-dismissable alert-danger">
+	<button type="button" class="close" data-dismiss="alert">×</button>The RaspBrew server is not running on the Raspberry Pi. These readings may be out of date. Please restart the server by rebooting the pi.
 </div>
 
-<div class="panel-group" id="accordion2">
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
-				Current Temperatures
-			</a>
-		  </h4>
-		</div>
+{% if brewConfs.count > 1 %}
+	<ul class="nav nav-tabs">
+	{% for conf in brewConfs %}
+		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
+	{% endfor %}
+	</ul>
+{% endif %}
+
+<!-- Tab panes -->
+<div class="{% if brewConfs.count > 1 %}tab-content{%endif%}">
+{% for conf in brewConfs %}
+	{% if brewConfs.count > 1 %}
+	<div class="{% if brewConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
+	{% endif %}
+		<h3>Current Temperatures</h3>
 		
-		<!-- TODO  - for each ferm temp probe do these.. -->
-		
-		<div id="collapseTwo" class="panel-collapse collapse in">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-sm-6 col-md-4">
-						<div class="thumbnail">
-							<div class="caption">
-								<p>Wort Temperature</p>
-							</div>
-							<div>
-								<span class="value" id="wortTemp"></span>
-							</div>
+		<div class="row">
+			{% for probe in conf.probes.all %}
+				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
+					<div class="panel panel-default panel-probe">
+ 						<div class="panel-heading c{{forloop.counter0}}">
+							<h3 class="panel-title text-center">{{ probe.name }}</h3>
+						</div>
+						<div class="panel-body">
+							<dl class="dl-horizontal">
+								<dt class="templabel">Temperature (c)</dt>
+								<dd class="raspbrew-updateable temperature" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+							</dl>
+							<dl class="dl-horizontal">
+								<dt class="templabel input">Target Temp (c)</dt>
+								<dd class="temperatureinput">
+									<div class="form-group input-group">
+									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew-updateable target-temp" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
+									  <span class="input-group-btn">
+										<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
+									  </span>
+									</div>
+								</dd>
+							</dl>
+							{% if probe.ssr_set.all %}
+							<!--<div class="raspbrew row">
+							  	<div class="col-md-6">
+							  		<span class="templabel">Deg/Min (c):</span><span id="probe{{probe.pk}}_dpm"></span>
+							  	</div>
+								<div class="col-md-5 col-md-offset-1">
+									<span class="templabel">ETA:</span><span id="probe{{probe.pk}}_eta"></span>
+							 	 </div>
+							</div>-->
+							{% endif %}
+							<hr/>
+								{% if probe.ssr_set.all %}
+								<div class="row">
+									{% for ssr in probe.ssr_set.all %}
+									<div class="col-md-{% if probe.ssr_set.all.count == 1 %}12{%else%}6{%endif%}">
+										{% include "ssr.html" with ssr=ssr %}
+									</div>
+									{% endfor %}
+								</div>
+								{% else %}
+								<div style="text-align: center;"><span class="text-center label label-default" style="
+    align-content: center;">No SSRs defined for {{ probe.name }}</span></div>
+								{% endif %}
+							</dl>
 						</div>
 					</div>
-					<div class="col-sm-6 col-md-4">
-						<div class="thumbnail">
-							<div class="caption">
-								<p>Fan Temperature</p>
-							</div>
-							<div>
-								<span class="value" id="fanTemp"></span>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-6 col-md-4">
-						<div class="thumbnail">
-							<div class="caption">
-								<p>Room Temperature</p>
-							</div>
-							<div>
-								<span class="value" id="roomTemp"></span>
-							</div>
-						</div>
-					</div>	
 				</div>
-			</div>
-		</div>	
-	</div>	
-</div>
-
-<div class="panel-group" id="accordion3">
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion3" href="#collapseThree">
-				Temperature Chart
-			</a>
-		  </h4>
+			{% endfor %}
 		</div>
 		
-		<div id="collapseThree" class="panel-collapse collapse in">
-			<div class="panel-body">
-				<div id="tempchart">
-					<svg></svg>
+		<div>
+			<h3 class="pull-left">Temperature Chart</h3>
+			<div class="input-group pull-right">
+					<ul class="nav nav-pills">
+						<li class="dropdown">
+						<a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#"><span id="chartUpdates">Chart Updates Enabled</span> <b class="caret"></b></a>
+						<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(true); return false;">Updates Enabled</a></li>
+							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(false); return false;">Updates Disabled</a></li>
+			  			</ul>
+			  		</ul>
+			</div>
+			<div class="clearfix"></div>
+		</div>
+		
+		<div class="panel panel-default">
+ 			<div class="panel-body">		
+				<div id="tempChart">
+					<svg id="tempChartSvg"></svg>
 				</div>
 			</div>
 		</div>
+		
+		<div class="row">
+		  <div class="col-md-3 col-md-offset-4">
+			<div class="input-group">
+			  <span class="input-group-addon">
+				<input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); if (!this.checked) { $('#endDateCheckbox').prop('checked', false); $('#endDate').prop('disabled', true); }">
+			  </span>
+			  <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
+			</div>
+		  </div>
+		  <div class="col-md-3">
+			<div class="input-group">
+			  <span class="input-group-addon">
+				<input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); if (this.checked) { $('#startDateCheckbox').prop('checked', true); $('#startDate').prop('disabled', false); } ">
+			  </span>
+			  <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
+			</div>
+		  </div>
+		</div><!-- /.row -->
+		
+	{% if brewConfs.count > 1 %}
 	</div>
+	{% endif %}
+	
+{% endfor %}
 </div>
 
-<div class="panel-group" id="accordion4">
-	<div class="panel panel-default">
-		<div class="panel-heading">
-			<h4 class="panel-title">
-			<a data-toggle="collapse" data-parent="#accordion4" href="#collapseFour">
-				SSR Charts
-			</a>
-		  </h4>
-		</div>
-		
-		<div id="collapseFour" class="panel-collapse collapse in">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-sm-6 col-md-6">
-						<div id="heaterchart">a
-					  		<svg></svg>
-						</div>
-					</div>
-					<div class="col-sm-6 col-md-6">
-						<div id="chillerchart">a
-			  				<svg></svg>
-			  			</div>
-			  		</div>
-			  	</div>
-			</div>
-		</div>
-	</div>
-</div>
+
 {% endblock %}

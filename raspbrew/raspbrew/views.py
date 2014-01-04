@@ -1,12 +1,17 @@
 from django.http import Http404, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.db.models import Q
+from django.core.serializers.json import DjangoJSONEncoder
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from django.utils import timezone
+
 import base64, time, datetime
 
-from raspbrew.common.models import Probe,Status,SSR,GlobalSettings
+from raspbrew.common.models import Probe,SSR,GlobalSettings
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
+from raspbrew.status.models import Status
 import json
 
 import subprocess
@@ -63,16 +68,11 @@ def update(request):
 						s=SSR.objects.get(pk=ssr['pk'])
 						if 'enabled' in ssr:
 							s.enabled=bool(ssr['enabled'])
-							print s.enabled
 							edited=True
 							
 						if edited:
 							_updatedAny = True
 							s.save()
-			
-			#create a status
-    		if _updatedAny:
-    			Status.create().save()	
     				
     	except KeyError as e:	
     		print e
@@ -80,14 +80,26 @@ def update(request):
     	return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
     else :	
 		return HttpResponse(json.dumps({}), mimetype='application/json')
-		
+
+#
+# Returns saved status Json objects for the given FermConfiguration id
+#
+def jsonFermStatus(request, fermConfId, numberToReturn=50, startDate=-1, endDate=-1):
+	print str(fermConfId)
+	return jsonStatus(request, numberToReturn, startDate, endDate, Q(fermconfig__pk=fermConfId))
+
+#
+# Returns saved status Json objects for the given BrewConfiguration id
+#
+def jsonBrewStatus(request, brewConfId, numberToReturn=50, startDate=-1, endDate=-1):
+	return jsonStatus(request, numberToReturn, startDate, endDate, Q(brewconfig__pk=brewConfId))
+	
 #
 # Returns saved status Json objects
 #
-def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
+def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 	total=Status.objects.count()
 	allStatuses = []
-	
 	startDate=float(startDate)
 	endDate=float(endDate)
 	numberToReturn = int(numberToReturn)
@@ -97,20 +109,33 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
 	if numberToReturn > 1 and total > 0:
 		step=1
 		numberToReturn = int(numberToReturn)-1
-		statusese = []
+		statuses = []
+		q=None
+		
+		#default to All
+		statuses = Status.objects.all()
+			
 		if startDate > -1 and endDate > -1:
 			startDate = datetime.datetime.fromtimestamp(startDate)
 			endDate = datetime.datetime.fromtimestamp(endDate)
-			statuses = Status.objects.filter(date__gte=startDate, date__lte=endDate)
+			q = Q(date__gte=startDate) & Q(date__lte=endDate)
 		elif startDate > -1:
 			startDate = datetime.datetime.fromtimestamp(startDate)
-			statuses = Status.objects.filter(date__gte=startDate)
-		else:
-			statuses = Status.objects.all()
+			q = Q(date__gte=startDate)
+
+		if addQ:
+			if q:
+				q = q & addQ
+			else:
+				q = addQ
 		
+		if q:
+			statuses = statuses.filter(q)
+			
 		#get the number of items requested
 		total=len(statuses)
 		allStatuses=statuses
+			
 		if total > numberToReturn:
 			step=total/numberToReturn
 			allStatuses=statuses[step:total-step:step]
@@ -121,16 +146,17 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1):
 				allStatuses.append(statuses[len(statuses)-1])
 		
 		for status in reversed(allStatuses):
-			j.append(json.loads(base64.decodestring(status.status)))
-	
+			j.append(json.loads(status.toJson())) #json.loads(base64.decodestring(status.status)))
+		
+		
 	elif numberToReturn == 1 and total > 0:
 		status = Status.objects.order_by('-date')[0]
-		j.append(json.loads(base64.decodestring(status.status)))
+		j.append(json.loads(status.toJson())) #json.loads(base64.decodestring(status.status)))
 		
 	
 	#debugging	
 	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});	
-	return HttpResponse(json.dumps(j), content_type='application/json')
+	return HttpResponse(json.dumps(j, cls=DjangoJSONEncoder), content_type='application/json')
 
 
 #returns true if raspbrew.py is running

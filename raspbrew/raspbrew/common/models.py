@@ -4,6 +4,10 @@ import time, datetime
 import json, base64
 from django.utils import timezone
 from datetime import datetime, timedelta
+
+from raspbrew.ferm.models import FermConfiguration
+from raspbrew.brew.models import BrewConfiguration
+
 #import numpy as np
 
 def unix_time(dt):
@@ -26,13 +30,14 @@ class Probe(models.Model):
 		(5, 'Fermentation AC Fan'),
 		(6, 'Other'),
 	)
-	one_wire_Id = models.CharField(null=True, blank=True, max_length=30, unique=True)
+	one_wire_Id = models.CharField(null=True, blank=True, max_length=30)
 	name = models.CharField(max_length=30)
 	type = models.IntegerField(default=0, choices=PROBE_TYPE)
 	temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current temperature. Returns c or f depending on the global units
 	target_temperature = models.DecimalField(null=True, blank=True, decimal_places=3, max_digits=6)  #the probe's current target temperature. Returns c or f depending on the global units
 	correction_factor = models.DecimalField(default=0.0, decimal_places=3, max_digits=6) #a correction factor to apply (if any)
 	
+	#returns the current temperature of this probe.
 	def getCurrentTemp(self):
 		units=GlobalSettings.objects.get_setting('UNITS')
 		try:
@@ -86,31 +91,31 @@ class PID(models.Model):
 # An SSR has probe and PID information
 class SSR(models.Model):
 	#an ssr is directly tied to a probe and a pid
+	name = models.CharField(max_length=30)
+	pin = models.IntegerField()
 	probe = models.ForeignKey(Probe, null=True)
 	pid = models.OneToOneField(PID, null=True)
+	enabled = models.BooleanField(default=True) #enabled
+	state = models.BooleanField(default=False) #on/off
 	
 	#an ssr is a heater or a chiller
 	HEATER_OR_CHILLER = (
 		(0, 'Heater'),
 		(1, 'Chiller'),
 	)
-	name = models.CharField(max_length=30)
-	pin = models.IntegerField()
 	heater_or_chiller = models.IntegerField(default=0, choices=HEATER_OR_CHILLER)
 	
-	enabled = models.BooleanField(default=True) #enabled
-	state = models.BooleanField(default=False) #on/off
 	
 	def __unicode__(self):
 		return self.name
 	
-	def save(self):
+	def save(self, *args, **kwargs):
 		# create a PID
 		if not self.pid:
 			self.pid = PID.objects.create()
-        	
-		super(SSR, self).save()
         
+		super(SSR, self).save(*args, **kwargs)
+		
 	class Meta:
 		verbose_name = "SSR"
 		verbose_name_plural = "SSRs"
@@ -127,6 +132,10 @@ class SSR(models.Model):
 			startDate = now + timedelta(hours=-1)
 			
 			#todo - should just filter this by when the ssr state is true
+			
+			#start here tomorrow. ugh
+			
+			
 			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
 			if statuses and len(statuses) >= 2:
 				
@@ -186,22 +195,8 @@ class SSR(models.Model):
 			
 
 
-# This should be a singleton that contains global configuration	
-# class GlobalConfiguration(models.Model):
-# 	UNITS = (
-# 		(0, 'Metric'),
-# 		(1, 'Imperial'),
-# 	)
-# 
-# 	units = models.IntegerField(default=0, choices=UNITS)
-# 	
-# 	def __unicode__(self):
-# 		return "Global Configuration"
-# 		
-# 	class Meta:
-# 		verbose_name = "Global Configuration"
-# 		verbose_name_plural = "Global Configuration"
-		
+# Global (application) settings
+
 class GlobalSettingsManager(models.Manager):
 	def get_setting(self, key):
 		try:
@@ -222,73 +217,3 @@ class GlobalSettings(models.Model):
 	class Meta:
 		verbose_name = "Global Setting"
 		verbose_name_plural = "Global Settings"
-					
-#this class stores the current status as a json string in the db
-class Status(models.Model):
-	
-	@classmethod
-	def create(cls):
-		
-		jsonOut = {'probes': {}, 'ssrs': {}, 'date' : time.time()}
-		
-		probes=Probe.objects.all()
-		for probe in probes:
-			jsonOut['probes'][probe.pk] = {}
-			jsonOut['probes'][probe.pk]['name'] = probe.name
-			jsonOut['probes'][probe.pk]['id'] = probe.one_wire_Id
-			if probe.getCurrentTemp() > -999:
-				jsonOut['probes'][probe.pk]['temp'] = probe.getCurrentTemp()
-			jsonOut['probes'][probe.pk]['target_temp'] = probe.target_temperature
-			
-		ssrs=SSR.objects.all()
-		for ssr in ssrs:
-			jsonOut['ssrs'][ssr.pk] = {}
-			jsonOut['ssrs'][ssr.pk]['pid'] = {}
-			jsonOut['ssrs'][ssr.pk]['pid']['cycle_time'] = ssr.pid.cycle_time
-			jsonOut['ssrs'][ssr.pk]['pid']['k_param'] = ssr.pid.k_param
-			jsonOut['ssrs'][ssr.pk]['pid']['i_param'] = ssr.pid.i_param
-			jsonOut['ssrs'][ssr.pk]['pid']['d_param'] = ssr.pid.d_param
-			
-			jsonOut['ssrs'][ssr.pk]['name'] = ssr.name
-			jsonOut['ssrs'][ssr.pk]['pin'] = ssr.pin
-			jsonOut['ssrs'][ssr.pk]['state'] = ssr.state
-			jsonOut['ssrs'][ssr.pk]['enabled'] = ssr.enabled
-			
-			#add the eta if we're heating or chilling
-			probe = ssr.probe
-			currentTemp = probe.getCurrentTemp()
-			
-			#TODO - this is for regular mode.. add coolbot mode and brewing mode
-			if ssr.enabled and probe.target_temperature and currentTemp:
-				eta, degreesPerMinute = ssr.getETA()
-				#print "--------"
-				#print str(ssr.enabled) + " " + str(ssr.heater_or_chiller) + " " + str(probe.target_temperature) + " " + str(currentTemp)
-				if (ssr.heater_or_chiller == 0 and probe.target_temperature > currentTemp) or (ssr.heater_or_chiller == 1 and probe.target_temperature < currentTemp):
-					if eta:
-						jsonOut['ssrs'][ssr.pk]['eta'] = eta
-					if degreesPerMinute:
-						jsonOut['ssrs'][ssr.pk]['dpm'] = degreesPerMinute
-			
-		units=GlobalSettings.objects.get_setting('UNITS')
-		jsonOut['config'] = {'units' : units.value}
-		
-		jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
-		
-		#print jsonOut	
-		#print status
-		_status = base64.encodestring(jsonOut)
-		try:
-			status = Status.objects.get(status=_status)
-			print "already exists"
-		except Status.DoesNotExist:
-			status = Status(status=_status)
-		
-		status.date = timezone.now()
-		
-		#print base64.decodestring(status.status)
-		return status
-			
-	#TODO - get as an object i guess? or just use the probe objects directly
-			
-	date = models.DateTimeField()
-	status = models.CharField(max_length=10000)

@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block title %}Raspbrew - Fermentation{% endblock %}
+
 {% block script %}
     <script src="/js/raspbrew.js"></script>
 {% endblock %}
@@ -40,13 +42,13 @@
 						<div class="panel-body">
 							<dl class="dl-horizontal">
 								<dt class="templabel">Temperature (c)</dt>
-								<dd class="raspbrew_updateable temperature" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
+								<dd class="raspbrew-updateable temperature" id="probe{{probe.pk}}_temp">{{ probe.temperature }}</dd>
 							</dl>
 							<dl class="dl-horizontal">
 								<dt class="templabel input">Target Temp (c)</dt>
 								<dd class="temperatureinput">
 									<div class="form-group input-group">
-									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew_updateable target-temp" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
+									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew-updateable target-temp" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
 									  <span class="input-group-btn">
 										<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
 									  </span>
@@ -67,42 +69,9 @@
 								{% if probe.ssr_set.all %}
 								<div class="row">
 									{% for ssr in probe.ssr_set.all %}
-									<div class="col-sm-6 col-md-6">
-										<div id="ssr{{ssr.pk}}_panel" class="panel panel-small panel-primary {%if not ssr.enabled%}disabled{%endif%}">
-											<div class="panel-heading">
-												<h4 class="">{{ssr.name}}</h4>
-												<div class="config">
-													<a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a>
-												</div>
-											</div>
-											<div class="panel-body">
-												<dl class="dl-horizontal">
-													<dt class="">State:</dt>
-													<dd class="">
-														<span id="ssr{{ssr.pk}}_state" class="label"></span>
-													</dd>
-													<dt class="">Enabled:</dt>
-													<dd class="">
-														<span id="ssr{{ssr.pk}}_enabled" class="label"></span>
-													</dd>
-													<dt class="templabel">Deg/Min:</dt>
-													<dd class="small">
-														<span id="ssr{{ssr.pk}}_dpm" class=""></span>
-													</dd>
-													<dt class="">ETA:</dt>
-													<dd class="small">
-														<span id="ssr{{ssr.pk}}_eta" class=""></span>
-													</dd>
-												</dl>
-												
-											</div>
-										</div>
+									<div class="col-md-{% if probe.ssr_set.all.count == 1 %}12{%else%}6{%endif%}">
+										{% include "ssr.html" with ssr=ssr %}
 									</div>
-									<!--<dl class="dl-horizontal">
-							
-										<dt class="icon"><a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear"></i></a> {{ ssr.name }}</dt>
-										<dd class="raspbrew_updateable powerOff" id="ssr{{ssr.pk}}"><i id="ssr{{ssr.pk}}_icon" class="fa fa-square-o"></i></dd>
-									</dl>-->
 									{% endfor %}
 								</div>
 								{% else %}

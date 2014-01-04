@@ -1,7 +1,4 @@
 #!../env-raspbrew/bin/python
-import sys, os
-from django.db.utils import OperationalError
-
 ##                      _                       
 ##                     | |                      
 ##  _ __ __ _ ___ _ __ | |__  _ __ _____      __
@@ -20,6 +17,9 @@ from django.db.utils import OperationalError
 ##
 
 #sys.path.insert(0, "/home/pi/raspbrew")
+import sys, os
+from django.db.utils import OperationalError
+from django.utils import timezone
 
 from common.ssr import SSR as ssrController
 import common.pidpy as PIDController
@@ -30,10 +30,10 @@ from django.db.utils import OperationalError
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
-from raspbrew.common.models import Probe,Status,SSR
+from raspbrew.common.models import Probe,SSR
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
-
+from raspbrew.status.models import Status, ProbeStatus
 
 #pyro for remote 
 #import Pyro4
@@ -121,7 +121,12 @@ class Raspbrew():#threading.Thread):
 	def updateTemps(self):
 		probes = Probe.objects.all();
 		for probe in probes:
-			probe.getCurrentTemp()
+			temp = -999
+			count=0
+			while temp == -999 and count < 10:
+				temp = probe.getCurrentTemp()
+				count=count+1
+				print str(probe) + " " + str(temp)
 			
 	#
 	# called from the main thread to fire the brewing ssrs (if configured)
@@ -138,7 +143,6 @@ class Raspbrew():#threading.Thread):
 				ssr_controller=self.getSSRController(ssr)
 				pid_controller=self.getPidController(ssr.pid)
 				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
-				
 				if enabled:
 					#print "current " + str(currentTemp) + " : " + str(targetTemp) + " " + str(ssr_controller.getPower())
 					ssr_controller.setEnabled(currentTemp < targetTemp)
@@ -150,6 +154,12 @@ class Raspbrew():#threading.Thread):
 						ssr_controller.updateSSR(duty_cycle, self.power_cycle_time)
 				else:
 					ssr_controller.setEnabled(False)
+			
+			#add a status	
+			status=Status(brewconfig=brewConf,date=timezone.now())
+			status.save()
+			for probe in brewConf.probes.all():
+				status.probes.add(ProbeStatus.cloneFrom(probe))
 				
 	#
 	# called from the main thread to fire the brewing ferm (if configured)
@@ -163,7 +173,9 @@ class Raspbrew():#threading.Thread):
 			
 			if not wortProbes:
 				print "Error: You need at least one Wort probe to run in any fermentation mode."
+				continue
 			
+					
 			for wortProbe in wortProbes:	
 				wortTemp=wortProbe.getCurrentTemp()
 				ssrs=wortProbe.ssr_set.all()
@@ -192,7 +204,8 @@ class Raspbrew():#threading.Thread):
 							fanProbes=self.getFanProbes(fermConf)
 							if not fanProbes:
 								print "Error: You need at least one AC Fan probe to run in 'coolbot' fermentation mode."
-							
+								continue
+								
 							for fanProbe in fanProbes:	
 								fanTemp=fanProbe.getCurrentTemp()
 							
@@ -216,24 +229,30 @@ class Raspbrew():#threading.Thread):
 					if ssr.state != ssr_controller.isEnabled():
 						ssr.state = ssr_controller.isEnabled()
 						ssr.save()
-						
+				
+				
+			#add a status	
+			status=Status(fermconfig=fermConf, date=timezone.now())
+			status.save()
+			for probe in fermConf.probes.all():
+				status.probes.add(ProbeStatus.cloneFrom(probe))
+			status.save()
+				
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps
 	#
 	def run(self):
 		while not self.stopped():
-			#self.updateTemps()
+			print "--------"
+			self.updateTemps()
 			self.checkBrew()
 			self.checkFerm()
-			status=Status.create()
-			status.save()
 			#time.sleep(1)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'
 def main(raspbrew):
 	raspbrew.run()
-	print raspbrew
 	
 if __name__=="__main__":
 	try:

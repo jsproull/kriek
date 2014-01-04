@@ -1,0 +1,30 @@
+<!-- an ssr ui -->
+<div id="ssr{{ssr.pk}}_panel" class="panel panel-small panel-primary {%if not ssr.enabled%}disabled{%endif%}">
+	<div class="panel-heading">
+		<h4 class="">{{ssr.name}}</h4>
+		<div class="config">
+			<a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a>
+		</div>
+	</div>
+	<div class="panel-body">
+		<dl class="dl-horizontal">
+			<dt class="">State:</dt>
+			<dd class="">
+				<span id="ssr{{ssr.pk}}_state" class="label"></span>
+			</dd>
+			<dt class="">Enabled:</dt>
+			<dd class="">
+				<span id="ssr{{ssr.pk}}_enabled" class="label"></span>
+			</dd>
+			<dt class="templabel">Deg/Min:</dt>
+			<dd class="small">
+				<span id="ssr{{ssr.pk}}_dpm" class=""></span>
+			</dd>
+			<dt class="">ETA:</dt>
+			<dd class="small">
+				<span id="ssr{{ssr.pk}}_eta" class=""></span>
+			</dd>
+		</dl>
+		
+	</div>
+</div>

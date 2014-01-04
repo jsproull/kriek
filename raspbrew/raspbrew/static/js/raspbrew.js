@@ -75,7 +75,7 @@ function RaspBrew() {
 			},
 			error: function(data) {
 				//alert('woops!'); //or whatever
-				setTimeout(_this.updateStatus, _this.upateTime);
+				setTimeout(_this.updateStatus, 5000);
 			}
 		});
 	};
@@ -110,7 +110,7 @@ function RaspBrew() {
 			},
 			error: function(data) {
 				//alert('woops!'); //or whatever
-				setTimeout(_this.updateSystemStatus, _this.updateSystemSettingsTime);
+				setTimeout(_this.updateSystemStatus, 5000);
 			}
 		});
 	};
@@ -124,7 +124,7 @@ function RaspBrew() {
 		}
 	
 		if (!data || data.length==0) {
-			$('.raspbrew_updateable').html('--');
+			$('.raspbrew-updateable').html('--');
 			this.emptyChart();
 			return;
 		}
@@ -459,12 +459,11 @@ function RaspBrew() {
 		
 		//set up our enter key submit
 		$('.target-temp').on("keypress", function(e) {
-        if (e.keyCode == 13) {
-        	debugger;
-            _this.updateTargetTemp(this.id);
-            return false; // prevent the button click from happening
-        }
-});
+			if (e.keyCode == 13) {
+				_this.updateTargetTemp(this.id);
+				return false; // prevent the button click from happening
+			}
+		});
 	});
 	
 	return this;

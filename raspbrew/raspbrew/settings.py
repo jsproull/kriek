@@ -34,6 +34,7 @@ INSTALLED_APPS = (
     'raspbrew.brew',
     'raspbrew.ferm',
     'raspbrew.common',
+    'raspbrew.status',
     'suit',
     'django.contrib.admin',
     'django.contrib.auth',

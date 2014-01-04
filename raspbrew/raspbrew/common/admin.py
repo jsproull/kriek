@@ -4,7 +4,7 @@ from django.contrib import admin
 
 from .models import Probe
 from .models import SSR
-from .models import GlobalSettings, Status
+from .models import GlobalSettings
 
 class ProbeAdmin(admin.ModelAdmin):
     pass
@@ -17,7 +17,3 @@ admin.site.register(SSR, SSRAdmin)
 class GlobalSettingsAdmin(admin.ModelAdmin):
     pass
 admin.site.register(GlobalSettings, GlobalSettingsAdmin)
-
-class StatusAdmin(admin.ModelAdmin):
-	fields = ('status', 'date')
-admin.site.register(Status, StatusAdmin)

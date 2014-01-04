@@ -29,7 +29,7 @@ class SSR(threading.Thread):
 		self.enabled = False
 		self._On = False
 		
-		self.verbose = False
+		self.verbose = True
 		
 		#create an event so we can stop
 		self._stop = threading.Event()
@@ -44,7 +44,10 @@ class SSR(threading.Thread):
 		if self.verbose:
 			print "Enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
 		self.enabled = enabled
-
+		
+		if not enabled:
+			self.setState(False)
+			
 	def isEnabled(self):
 		return self.enabled	
 	
@@ -53,14 +56,10 @@ class SSR(threading.Thread):
 			if self.enabled:
 				self.fireSSR()
 			else:
-				self._On = False
-				wiringpi.digitalWrite(self.ssr.pin,0)
+				self.setState(False)
 				time.sleep(2)
-				if self.verbose:
-					print str(self.ssr.pin) + " OFF!!"
 		
-		
-		wiringpi.digitalWrite(self.ssr.pin,0)
+		self.setState(False)
 
 	def getonofftime(self, cycle_time, duty_cycle):
 		duty = duty_cycle/100.0
@@ -88,26 +87,17 @@ class SSR(threading.Thread):
 			if (on_time > 0):
 				if self.verbose:
 					print str(self.ssr.pin) + " ON for: " + str(on_time)
-				wiringpi.digitalWrite(self.ssr.pin,1)
-				self._On = True
+				
+				self.setState(True)
 				time.sleep(on_time)
 		
-			if self.verbose:
-				print str(self.GPIOPin) + " OFF"
-			wiringpi.digitalWrite(self.ssr.pin,0)
-			self._On = False
+			self.setState(False)
 			time.sleep(off_time)
 		elif self.duty_cycle == 100:
-			if self.verbose:
-				print str(self.ssr.pin) + " ON"
-			self._On = True
-			wiringpi.digitalWrite(self.ssr.pin,1)
+			self.setState(True)
 			time.sleep(self.cycle_time)	
 		else:
-			if self.verbose:
-				print str(self.ssr.pin) + " OFF"
-			self._On = False
-			wiringpi.digitalWrite(self.ssr.pin,0)
+			self.setState(False)
 			time.sleep(self.cycle_time)			
 
 
@@ -122,8 +112,19 @@ class SSR(threading.Thread):
 	def getState(self):
 		ret=0
 		if self._On:
+			if self.verbose:
+				print str(self.ssr.pin) + " ON"
 			ret=1
+		else:
+			if self.verbose:
+				print str(self.ssr.pin) + " OFF"
+				
+		wiringpi.digitalWrite(self.ssr.pin,ret)
+		
 		return ret
 		
 	def setState(self, state):
 		self._On = state
+		if self.ssr.state != state:
+			self.ssr.state = state
+			self.ssr.save()
