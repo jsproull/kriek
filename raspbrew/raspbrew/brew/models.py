@@ -10,12 +10,13 @@ class BrewConfiguration(models.Model):
 	enabled = models.BooleanField(default=True)
 	
 	#if this is set, we only allow one ssr to be fired at once
-	current_ssr = models.OneToOneField('common.SSR', related_name='current_ssr', null=True, blank=True)
+	#current_ssr = models.OneToOneField('common.SSR', related_name='current_ssr', null=True, blank=True)
 	allow_multiple_ssrs = models.BooleanField(default=False)
 	
 	def __unicode__(self):
 		return self.name
-		
+
+
 	class Meta:
 		verbose_name = "Brew Configuration"
 		verbose_name_plural = "Brew Configuration"

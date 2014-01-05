@@ -68,8 +68,22 @@ def update(request):
 						edited=False
 						s=SSR.objects.get(pk=ssr['pk'])
 						if 'enabled' in ssr:
-							s.enabled=bool(ssr['enabled'])
+							enabled=bool(ssr['enabled'])
+							if enabled:
+								#if this is part of a brew conf, ensure no other ssrs are enabled
+								for brew in s.brewconfiguration_set.all():
+									if not brew.allow_multiple_ssrs:
+										for _s in SSR.objects.filter(~Q(id = s.pk)):
+											if (_s.enabled):
+												_s.enabled = False
+												_s.save()
+
+							s.enabled=enabled
 							edited=True
+
+						# if 'current_ssr' in ssr:
+						# 	s.current_ssr=bool(ssr['current_ssr'])
+						# 	edited=True
 							
 						if 'pid' in ssr:
 							newp=ssr['pid']

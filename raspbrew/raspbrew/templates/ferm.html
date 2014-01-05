@@ -13,6 +13,9 @@
 	<div class="alert alert-danger">You don't have any fermentation configurations defined.</div>
 {% endif %}
 
+<!-- this must exist for the url to be correct -->
+<div id="ferm" class="hidden"></div>
+
 <div id="serverstatus" class="{% if status.serverrunning %}hidden{%endif%} alert alert-dismissable alert-danger">
 <button type="button" class="close" data-dismiss="alert">×</button>The RaspBrew server is not running on the Raspberry Pi. These readings may be out of date. Please restart the server by rebooting the pi.</div>
 
@@ -70,7 +73,7 @@
 								<div class="row">
 									{% for ssr in probe.ssr_set.all %}
 									<div class="col-md-{% if probe.ssr_set.all.count == 1 %}12{%else%}6{%endif%}">
-										{% include "ssr.html" with ssr=ssr %}
+										{% include "ssr.html" with ssr=ssr showenabled=True %}
 									</div>
 									{% endfor %}
 								</div>

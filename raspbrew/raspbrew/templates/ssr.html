@@ -12,10 +12,12 @@
 			<dd class="">
 				<span id="ssr{{ssr.pk}}_state" class="label"></span>
 			</dd>
+            {% if showenabled %}
 			<dt class="">Enabled:</dt>
 			<dd class="">
 				<span id="ssr{{ssr.pk}}_enabled" class="label"></span>
 			</dd>
+            {% endif %}
 			<dt class="">Power:</dt>
 			<dd class="small">
 				<span id="ssr{{ssr.pk}}_power" class=""></span>

@@ -187,7 +187,14 @@ class Status(models.Model):
 				#update the state and enabled from the actual ssr
 				jsonOut['ssrs'][ssrid]['state'] = ssr.ssr.state
 				jsonOut['ssrs'][ssrid]['enabled'] = ssr.ssr.enabled
-				
+
+				#if this is a brew config, we have a current_ssr setting
+				# if self.brewconfig:
+				# 	if ssr.ssr.current_ssr:
+				# 		jsonOut['ssrs'][ssrid]['current_ssr'] = True
+				# 	else:
+				# 		jsonOut['ssrs'][ssrid]['current_ssr'] = False
+
 				#add the eta if we're heating or chilling
 				if addEta:
 					probe = ssr.ssr.probe

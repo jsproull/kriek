@@ -23,6 +23,9 @@ function RaspBrew() {
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 	this._chartUpdatesEnabled = true;
+
+	this.baseURL = $('#brew').length > 0 ? '/status/brew' : '/status/ferm';
+	this.confId = 1;
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -41,11 +44,10 @@ function RaspBrew() {
 	
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
-		
-		var url = '/status/' + _this.chartPoints;
+
+		var url =  _this.baseURL + '/' + _this.confId + '/' + _this.chartPoints;
 		
 		if ($("#startDate").is(":focus") || $("#endDate").is(":focus")) {
-			console.log('returning cause of focus');
 			setTimeout(_this.updateStatus, _this.updateTime);
 			return;
 		}
@@ -77,7 +79,12 @@ function RaspBrew() {
 			success: function(data){ 
 				if (data) {
 					_this.updateFromData(data);
-					
+
+					//update the chart
+					if (this._chartUpdatesEnabled) {
+						_this.updateChart(data);
+					}
+
 					//set this after the update so we know what we currently have loaded
 					_this.lastLoadedData=data[0];
 				}
@@ -127,10 +134,14 @@ function RaspBrew() {
 	};
 	
 	// Updates the UI as needed
-	this.updateFromData = function(data) {
-	
+	this.updateFromData = function(data, force) {
+
+		if (!force) {
+			force = false;
+		}
+
 		//we are waiting for the server to update the data
-		if (this._writingData) {
+		if (this._writingData && !force) {
 			return;
 		}
 	
@@ -141,7 +152,7 @@ function RaspBrew() {
 		}
 		
 		var latest = data[0];
-		if (latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date)) {
+		if (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date)) {
 			//no need to update
 			return;
 		}
@@ -212,21 +223,7 @@ function RaspBrew() {
 				$('#ssr' + ssrid + "_state").addClass("label-off");
 				$('#ssr' + ssrid + "_state").html("Off");
 			}
-			//enabled
-			$('#ssr' + ssrid + "_panel").removeClass("disabled");
-			$('#ssr' + ssrid + "_enabled").removeClass("label-enabled");
-			$('#ssr' + ssrid + "_enabled").removeClass("label-disabled");
-			
-			if (ssr.enabled) {
-				$('#ssr' + ssrid + "_panel").addClass("disabled");
-				$('#ssr' + ssrid + "_enabled").addClass("label-enabled");
-				$('#ssr' + ssrid + "_enabled").html("Yes");
-			} else {
-				$('#ssr' + ssrid + "_panel").addClass("disabled");
-				$('#ssr' + ssrid + "_enabled").addClass("label-disabled");
-				$('#ssr' + ssrid + "_enabled").html("No");
-			}
-			
+
 			//set the eta and degrees per hour
 			if (ssr.eta) {
 				var eta=ssr.eta;
@@ -245,18 +242,45 @@ function RaspBrew() {
 				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
 				$('#ssr' + ssrid + '_dpm').html('--');
 			}
-			
+
+
+			//enabled -- only used in ferm.html
+			$('#ssr' + ssrid + "_panel").removeClass("disabled");
+			$('#ssr' + ssrid + "_enabled").removeClass("label-enabled");
+			$('#ssr' + ssrid + "_enabled").removeClass("label-disabled");
+
+			if (ssr.enabled) {
+				$('#ssr' + ssrid + "_panel").addClass("disabled");
+				$('#ssr' + ssrid + "_enabled").addClass("label-enabled");
+				$('#ssr' + ssrid + "_enabled").html("Yes");
+			} else {
+				$('#ssr' + ssrid + "_panel").addClass("disabled");
+				$('#ssr' + ssrid + "_enabled").addClass("label-disabled");
+				$('#ssr' + ssrid + "_enabled").html("No");
+			}
+
+
+			//button
+			if (ssr.enabled) {
+				$('#ssr' + ssrid + '_setCurrent').removeClass('btn-primary');
+				$('#ssr' + ssrid + '_setCurrent').addClass('btn-warning');
+				$('#ssr' + ssrid + '_setCurrent').addClass('enabled');
+				$('#ssr' + ssrid + '_setCurrent').html("On")
+			} else {
+				$('#ssr' + ssrid + '_setCurrent').addClass('btn-primary');
+				$('#ssr' + ssrid + '_setCurrent').removeClass('btn-warning');
+				$('#ssr' + ssrid + '_setCurrent').removeClass('enabled');
+				$('#ssr' + ssrid + '_setCurrent').html("Off")
+			}
+
+			//power
 			if (ssr.pid && ssr.pid.power) {
 				$('#ssr' + ssrid + '_power').html(ssr.pid.power + "%");
 			} else {
 				$('#ssr' + ssrid + '_power').html('--');
 			}
 		}
-		
-		//update the chart
-		if (this._chartUpdatesEnabled) {
-			_this.updateChart(data);
-		}
+
 	}
 	
 	// Clears out the chart if there's no data
@@ -370,6 +394,22 @@ function RaspBrew() {
 		$("#startDate").datetimepicker('setDate', startTime.toDate() );
 		$("#endDate").datetimepicker('setDate', endTime.toDate() );
 	}
+
+	//sets the ssr as 'current'
+	this.toggleSSR = function(ssrid) {
+		if (ssrid) {
+			var enabled = !$('#ssr' + ssrid + '_setCurrent').hasClass('enabled')
+
+			//update the local data and refresh
+			if (_this.lastLoadedData && _this.lastLoadedData['ssrs'] && _this.lastLoadedData['ssrs'][ssrid]) {
+				_this.lastLoadedData['ssrs'][ssrid].enabled = enabled;
+				this.updateFromData([_this.lastLoadedData], true);
+			}
+
+			var post = { ssrs: [ { pk: ssrid, enabled:enabled } ] };
+			_this.sendUpdate(post);
+		}
+	}
 	
 	//updates the target temperature of the given probe id
 	this.updateTargetTemp = function(input, probeid) {
@@ -394,24 +434,28 @@ function RaspBrew() {
 			} 
 			input.val(val.toFixed(2));
 		}		
-		
-		$('.raspbrew-updateable').attr('disabled', true);
-		
-		this._writingData = true;
-		
+
 		var post = { probes: [ { pk: probeid, target_temperature: val } ]  };
+
+		_this.sendUpdate(post);
+	}
+
+	this.sendUpdate = function(post) {
+		this._writingData = true;
+
+		$('.raspbrew-updateable').attr('disabled', true);
 		$.ajax({
 			url: "/update",
 			type: 'POST',
 			dataType: 'json',
 			data: JSON.stringify(post),
-			success: function(data){ 
+			success: function(data){
 				$('.raspbrew-updateable').attr('disabled', false);
-				setTimeout(function(){_this._writingData = false;}, 10000);
+				setTimeout(function(){_this._writingData = false;}, 1000);
 			},
 			error: function() {
 				$('.raspbrew-updateable').attr('disabled', false);
-				_this._writingData = false;			
+				_this._writingData = false;
 			}
 		});
 	}
@@ -460,20 +504,7 @@ function RaspBrew() {
 		
 		var post = { ssrs: [ { pk: _this._editingSSR.id, enabled: enabled, pid: pid } ] };
 		
-		$.ajax({
-			url: "/update",
-			type: 'POST',
-			dataType: 'json',
-			data:  JSON.stringify(post),
-			success: function(data){ 
-				$('.raspbrew-updateable').attr('disabled', false);
-				setTimeout(function(){_this._writingData = false;}, 10000);
-			},
-			error: function() {
-				$('.raspbrew-updateable').attr('disabled', false);
-				_this._writingData = false;			
-			}
-		});	
+		_this.sendUpdate(post);
 		
 		$('#ssrModal').modal('hide');
 	}

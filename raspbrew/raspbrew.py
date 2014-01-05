@@ -18,18 +18,19 @@
 
 #sys.path.insert(0, "/home/pi/raspbrew")
 import sys, os
-from django.db.utils import OperationalError
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
+
 from django.utils import timezone
 
-from common.ssr import SSR as ssrController
+from common.ssr import SSRController as ssrController
 from datetime import datetime
 import threading
 import time
 from django.db.utils import OperationalError
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
-from raspbrew.common.models import Probe,SSR
+from raspbrew.common.models import Probe
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import ProbeStatus, Status
@@ -120,15 +121,30 @@ class Raspbrew():#threading.Thread):
 	#
 	def checkBrew(self):
 		#do we have any fermentation probes?
-		brewConfs = BrewConfiguration.objects.all();
+		brewConfs = BrewConfiguration.objects.all()
 					
 		for brewConf in brewConfs:
+			#safety check to ensure we don't have more than one ssr enabled
+			if not brewConf.allow_multiple_ssrs:
+				enabled=False
+				for ssr in brewConf.ssrs.all():
+					if enabled and ssr.enabled:
+						ssr_controller = self.getSSRController(ssr)
+						ssr.enabled = False
+						ssr.save()
+						ssr_controller.setEnabled(False)
+
+					elif not enabled:
+						enabled = ssr.enabled
+
+
 			for ssr in brewConf.ssrs.all():
 				currentTemp=ssr.probe.getCurrentTemp()
 				targetTemp=ssr.probe.target_temperature
 				
 				ssr_controller=self.getSSRController(ssr)
-				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
+				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True)
+					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
 					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)
 				else:

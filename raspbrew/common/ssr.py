@@ -9,14 +9,14 @@ except ImportError:
 	wiringpi_available=False
 	
 import time
-from pprint import pprint
+
 #from threading import Thread
 import threading
 from subprocess import call
-
+from raspbrew.common.models import SSR
 import common.pidpy as PIDController
 
-class SSR(threading.Thread):
+class SSRController(threading.Thread):
 	def __init__(self, ssr):
 		self.ssr = ssr
 		
@@ -37,7 +37,7 @@ class SSR(threading.Thread):
 		self.enabled = False
 		self._On = False
 		
-		self.verbose = True
+		self.verbose = False
 		
 		self.pid_controller=PIDController.pidpy(ssr.pid)
 		
@@ -82,7 +82,10 @@ class SSR(threading.Thread):
 			else:
 				self.setState(False)
 				time.sleep(2)
-		
+
+			#update the ssr object
+			self.ssr=SSR.objects.get(pk=self.ssr.pk)
+
 		self.setState(False)
 
 	def getonofftime(self, cycle_time, duty_cycle):
@@ -101,8 +104,8 @@ class SSR(threading.Thread):
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
 			print "Fire: enabled:" + str(self.enabled) + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle) + " ct:" + str(self.cycle_time)
-		
-		if self.power < 100 or self.duty_cycle < 100:
+		print "self.ssr.enabled: " + str(self.ssr.enabled)
+		if self.ssr.enabled and (self.power < 100 or self.duty_cycle < 100):
 			if self.power < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.power)
 			elif self.duty_cycle < 100:
@@ -117,7 +120,7 @@ class SSR(threading.Thread):
 		
 			self.setState(False)
 			time.sleep(off_time)
-		elif self.duty_cycle == 100:
+		elif self.ssr.enabled and self.duty_cycle == 100:
 			self.setState(True)
 			time.sleep(self.cycle_time)	
 		else:
@@ -145,7 +148,7 @@ class SSR(threading.Thread):
 				
 		if wiringpi_available:
 			wiringpi.digitalWrite(self.ssr.pin,ret)
-		else:
+		elif self.verbose:
 			print "wiring: " + str(self.ssr.pin) + " " + str(ret)
 		
 		return ret
@@ -155,7 +158,7 @@ class SSR(threading.Thread):
 		if not state:
 			if wiringpi_available:
 				wiringpi.digitalWrite(self.ssr.pin,0)
-			else:
+			elif self.verbose:
 				print "wiring: " + str(self.ssr.pin) + " off."
 							
 		if self.ssr.state != state:

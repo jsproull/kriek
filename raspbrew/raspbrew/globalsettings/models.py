@@ -8,9 +8,7 @@ class GlobalSettingsManager(models.Manager):
 		try:
 			setting = GlobalSettings.objects.get(key=key)
 		except:
-			#create an empty value
-			setting=GlobalSettings(key=key, value='')
-			setting.save()
+			raise Exception
 		return setting
 
 class GlobalSettings(models.Model):

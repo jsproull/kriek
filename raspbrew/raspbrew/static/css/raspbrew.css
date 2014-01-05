@@ -19,6 +19,12 @@ h4 {
 	margin: 5px 0;
 }
 
+button.activessr {
+	position: absolute;
+	top: .9em;
+	right: 1.7em;
+}
+
 /* dts */
 
 dt.input {

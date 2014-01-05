@@ -86,7 +86,7 @@ class Probe(models.Model):
 						temp += float(self.correction_factor)# correction factor
 
 			except IOError as e:
-				print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";	
+				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";
 				temp = 15.0
 
 		if not temp:
@@ -130,7 +130,7 @@ class SSR(models.Model):
 	pid = models.OneToOneField(PID, null=True)
 	enabled = models.BooleanField(default=True) #enabled
 	state = models.BooleanField(default=False) #on/off
-	
+
 	#an ssr is a heater or a chiller
 	HEATER_OR_CHILLER = (
 		(0, 'Heater'),
