@@ -1,4 +1,4 @@
-#!../env-raspbrew-osx/bin/python
+#!../env-raspbrew/bin/python
 import os
 import sys
 

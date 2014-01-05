@@ -73,22 +73,22 @@ class Probe(models.Model):
 		
 			try:
 				f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
+				lines=f.readlines()
+				crcLine=lines[0]
+				tempLine=lines[1]
+				result_list = tempLine.split("=")
+
+				count = count + 1
+				if crcLine.find("YES") > -1:
+					temp = float(result_list[-1])/1000 # temp in Celcius
+
+					if self.correction_factor != None:
+						temp += float(self.correction_factor)# correction factor
+
 			except IOError as e:
 				print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";	
-				return -999; 
+				temp = 15.0
 
-			lines=f.readlines()
-			crcLine=lines[0]
-			tempLine=lines[1]
-			result_list = tempLine.split("=")
-			
-			count = count + 1
-			if crcLine.find("YES") > -1:
-				temp = float(result_list[-1])/1000 # temp in Celcius
-				
-				if self.correction_factor != None:
-					temp = temp + float(self.correction_factor) # correction factor
-						
 		if not temp:
 			return -999
 		

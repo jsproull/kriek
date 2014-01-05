@@ -27,10 +27,15 @@ function RaspBrew() {
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
 	this.getTemperature = function(temp) {
+	    temp = parseFloat(temp);
+        if (isNaN(temp)) {
+            return 0.0
+        }
+
 		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
-			return (9.0/5.0)*parseFloat(temp) + 32;
+			return (9.0/5.0)*temp + 32;
 		} else {
-			return parseFloat(temp);
+			return temp;
 		}
 	}
 	
@@ -147,7 +152,7 @@ function RaspBrew() {
 			var tempInput = $('#probe' + probeid + '_temp');
 			var ttempInput = $('#probe' + probeid + '_target');
 			
-			var temp = parseFloat(probe.temp);
+			var temp = _this.getTemperature(probe.temp);
 			var targetTemp = NaN;
 			if (probe.target_temp) {
 				targetTemp = parseFloat(probe.target_temp);

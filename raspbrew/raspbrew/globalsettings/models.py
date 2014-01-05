@@ -8,7 +8,9 @@ class GlobalSettingsManager(models.Manager):
 		try:
 			setting = GlobalSettings.objects.get(key=key)
 		except:
-			raise Exception
+			#create an empty value
+			setting=GlobalSettings(key=key, value='')
+			setting.save()
 		return setting
 
 class GlobalSettings(models.Model):
@@ -16,10 +18,10 @@ class GlobalSettings(models.Model):
 	value = models.CharField(max_length=255)
 
 	objects = GlobalSettingsManager()
-      
+
 	def __unicode__(self):
 		return self.key + " : " + self.value
-	
+
 	class Meta:
 		verbose_name = "Global Setting"
 		verbose_name_plural = "Global Settings"
