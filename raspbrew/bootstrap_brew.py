@@ -16,25 +16,28 @@ from raspbrew.globalsettings.models import GlobalSettings
 # 	(5, 'Fermentation AC Fan'),
 # 	(6, 'Other'),
 
-#status=Status(date=timezone.now())
-#status.save()
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000449e4',name='HLT',type=2)
+#HLT
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284da09',name='HLT',type=2)
 probe.save()
-
-ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=18, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=23, heater_or_chiller=0, probe=probe)
 ssr.save()
-#status.probes.add(ProbeStatus.cloneFrom(probe))
 
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a00',name='Boil',type=1)
+#Boil
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284b7a6',name='Boil',type=1)
 probe.save()
-
-ssr,created=SSR.objects.get_or_create(name='Boil SSR', pin=18, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='Boil SSR', pin=24, heater_or_chiller=0, probe=probe)
 ssr.save()
-#status.probes.add(ProbeStatus.cloneFrom(probe))
 
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000449ef',name='Mash',type=0)
+#Mash
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284cc3f',name='Mash',type=0)
 probe.save()
-#status.probes.add(ProbeStatus.cloneFrom(probe))
+
+#Chiller
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a0052',name='Boil Chiller',type=6)
+probe.save()
+ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=22, heater_or_chiller=0, probe=probe)
+ssr.save()
+
 
 
 #if created:
