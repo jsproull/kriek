@@ -144,9 +144,9 @@ class SSR(threading.Thread):
 				print str(self.ssr.pin) + " OFF"
 				
 		if wiringpi_available:
-				wiringpi.digitalWrite(self.ssr.pin,ret)
-			else:
-				print "wiring: " + str(self.ssr.pin) + " " + str(ret)
+			wiringpi.digitalWrite(self.ssr.pin,ret)
+		else:
+			print "wiring: " + str(self.ssr.pin) + " " + str(ret)
 		
 		return ret
 		
