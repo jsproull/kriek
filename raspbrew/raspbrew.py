@@ -143,13 +143,15 @@ class Raspbrew():#threading.Thread):
 				targetTemp=ssr.probe.target_temperature
 				
 				ssr_controller=self.getSSRController(ssr)
-				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True)
+				enabled = (targetTemp != None and currentTemp > -999)
+
+				print "brewconf " + str(brewConf) + " " + str(enabled)
 					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
 					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)
 				else:
 					ssr_controller.setEnabled(False)
-			
+
 			#add a status	
 			status=Status(brewconfig=brewConf,date=timezone.now())
 			status.save()
@@ -259,4 +261,4 @@ if __name__=="__main__":
 			except AttributeError:
 				pass
 				
-			time.sleep(2)
+			#time.sleep(2)

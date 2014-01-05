@@ -158,9 +158,10 @@ class SSR(models.Model):
 	def getETA(self):
 		eta=None
 		degreesPerMinute=None
-		#print str(self.pk) + " " + str(self.state)
-		#print str(self.probe.target_temperature)
-		#print str(self.probe.temperature)
+		print "Get ETA:"
+		print str(self.pk) + " " + str(self.state)
+		print str(self.probe.target_temperature)
+		print str(self.probe.temperature)
 		
 		if self.state and self.probe.target_temperature and self.probe.temperature:
 			#get the temps for this probe for the last 60 minutes
@@ -173,7 +174,7 @@ class SSR(models.Model):
 			#todo - should just filter this by when the ssr state is true
 			
 			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
-			
+
 			if statuses and len(statuses) >= 2:
 				
 				startTemp=None

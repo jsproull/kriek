@@ -104,7 +104,7 @@ class SSRController(threading.Thread):
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
 			print "Fire: enabled:" + str(self.enabled) + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle) + " ct:" + str(self.cycle_time)
-		print "self.ssr.enabled: " + str(self.ssr.enabled)
+
 		if self.ssr.enabled and (self.power < 100 or self.duty_cycle < 100):
 			if self.power < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.power)

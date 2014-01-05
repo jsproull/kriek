@@ -36,7 +36,7 @@
 		<h3>Current Temperatures</h3>
 		
 		<div class="row">
-			{% for probe in conf.probes.all %}
+			{% for probe in conf.probes.all|dictsort:"name" %}
 				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
 					<div class="panel panel-default panel-probe">
  						<div class="panel-heading c{{forloop.counter0}}">
@@ -69,7 +69,7 @@
 							</div>-->
 							{% endif %}
 							<hr/>
-								{% if probe.ssr_set.all %}
+								{% if probe.ssr_set.all|dictsort:"name" %}
 								<div class="row">
 									{% for ssr in probe.ssr_set.all %}
 									<div class="col-md-{% if probe.ssr_set.all.count == 1 %}12{%else%}6{%endif%}">

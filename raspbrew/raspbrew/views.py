@@ -22,7 +22,7 @@ import subprocess
 #
 def ferm(request):
 	try:
-		p = FermConfiguration.objects.all()
+		p = FermConfiguration.objects.all().order_by('pk')
 	except Probe.DoesNotExist:
 		raise Http404
 		
@@ -34,10 +34,10 @@ def ferm(request):
 #
 def brew(request):
 	try:
-		p = BrewConfiguration.objects.all()
+		p = BrewConfiguration.objects.all().order_by('name')
 	except Probe.DoesNotExist:
 		raise Http404
-		
+
 	return render_to_response('brew.html', {'brewConfs': p},
 		context_instance=RequestContext(request))
 

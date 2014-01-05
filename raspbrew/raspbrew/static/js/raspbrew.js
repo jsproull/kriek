@@ -81,7 +81,7 @@ function RaspBrew() {
 					_this.updateFromData(data);
 
 					//update the chart
-					if (this._chartUpdatesEnabled) {
+					if (_this._chartUpdatesEnabled) {
 						_this.updateChart(data);
 					}
 
@@ -311,7 +311,7 @@ function RaspBrew() {
 	
 	// Updates the chart with the current data set
 	this.updateChart = function(data) {
-		
+
 		var dd = {};
 		var values = [];
 
