@@ -2,7 +2,12 @@
 ## a class for turning on an SSR
 ##
 #import RPi.GPIO as GPIO
-import wiringpi
+try:
+	import wiringpi
+	wiringpi_available=True
+except ImportError:
+	wiringpi_available=False
+	
 import time
 from pprint import pprint
 #from threading import Thread
@@ -20,9 +25,10 @@ class SSR(threading.Thread):
 		# - wiringpi.wiringPiSetupGpio()
 		
 		# set up the pin in out mode
-		call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
-		wiringpi.wiringPiSetupSys()
-		wiringpi.pinMode(ssr.pin,1)
+		if wiringpi_available:
+			call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
+			wiringpi.wiringPiSetupSys()
+			wiringpi.pinMode(ssr.pin,1)
 		
 		self.daemon = True
 		self.duty_cycle = 0
@@ -137,15 +143,21 @@ class SSR(threading.Thread):
 			if self.verbose:
 				print str(self.ssr.pin) + " OFF"
 				
-		wiringpi.digitalWrite(self.ssr.pin,ret)
+		if wiringpi_available:
+				wiringpi.digitalWrite(self.ssr.pin,ret)
+			else:
+				print "wiring: " + str(self.ssr.pin) + " " + str(ret)
 		
 		return ret
 		
 	def setState(self, state):
 		self._On = state
 		if not state:
-			wiringpi.digitalWrite(self.ssr.pin,0)
-			
+			if wiringpi_available:
+				wiringpi.digitalWrite(self.ssr.pin,0)
+			else:
+				print "wiring: " + str(self.ssr.pin) + " off."
+							
 		if self.ssr.state != state:
 			self.ssr.state = state
 			self.ssr.save()
