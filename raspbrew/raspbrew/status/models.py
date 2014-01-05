@@ -62,6 +62,7 @@ class PIDStatus(models.Model):
 	i_param = models.FloatField(default=80.0)
 	d_param = models.FloatField(default=4.0)
 	power = models.IntegerField(default=100)
+	enabled = models.BooleanField(default=True) #enabled
 	
 	#the original pid
 	pid = models.ForeignKey('common.PID', null=True)
@@ -75,6 +76,7 @@ class PIDStatus(models.Model):
 		pid.i_param = _pid.i_param
 		pid.d_param = _pid.d_param
 		pid.power = _pid.power
+		pid.enabled = _pid.enabled
 		
 		pid.save()
 		return pid

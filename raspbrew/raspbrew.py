@@ -22,7 +22,6 @@ from django.db.utils import OperationalError
 from django.utils import timezone
 
 from common.ssr import SSR as ssrController
-import common.pidpy as PIDController
 from datetime import datetime
 import threading
 import time
@@ -104,16 +103,6 @@ class Raspbrew():#threading.Thread):
 			 	s.start()
 		
 		return s
-		
-	#returns a pid controller for a pid by its pk
-	def getPidController(self, pid):
-		try:
-			p=self.pidControllers[pid.pk]
-		except KeyError, e:
-			 	self.pidControllers[pid.pk]=PIDController.pidpy(pid)
-			 	p=self.pidControllers[pid.pk]
-			 	
-		return p
 
 	# ensure all the temperatures are up to date
 	def updateTemps(self):
@@ -125,7 +114,7 @@ class Raspbrew():#threading.Thread):
 				temp = probe.getCurrentTemp()
 				count=count+1
 				print str(probe) + " " + str(temp)
-			
+		
 	#
 	# called from the main thread to fire the brewing ssrs (if configured)
 	#
@@ -139,17 +128,9 @@ class Raspbrew():#threading.Thread):
 				targetTemp=ssr.probe.target_temperature
 				
 				ssr_controller=self.getSSRController(ssr)
-				pid_controller=self.getPidController(ssr.pid)
 				enabled = (targetTemp != None and currentTemp > -999) and (brewConf.allow_multiple_ssrs == True or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
-					#print "current " + str(currentTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
-					ssr_controller.setEnabled(currentTemp < targetTemp)
-					if ssr.pid.power < 100:
-						if currentTemp < targetTemp:
-							ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
-					else:
-						duty_cycle = pid_controller.calcPID_reg4(float(currentTemp), float(targetTemp), True)
-						ssr_controller.updateSSR(duty_cycle, ssr.pid.cycle_time)
+					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)
 				else:
 					ssr_controller.setEnabled(False)
 			
@@ -188,12 +169,11 @@ class Raspbrew():#threading.Thread):
 					if ssr.enabled:
 						#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
 						if fermConf.mode == 0: # regular mode
+						
 							if float(wortTemp) < float(targetTemp):
-								ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
-								ssr_controller.setEnabled(ssr.heater_or_chiller == 0) #Heater
+								ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
 							elif float(wortTemp) > float(targetTemp):
-								ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
-								ssr_controller.setEnabled(ssr.heater_or_chiller == 1) #chiller
+								ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
 							else:
 								ssr_controller.setEnabled(False);
 						
@@ -209,16 +189,14 @@ class Raspbrew():#threading.Thread):
 							
 								if ssr.heater_or_chiller == 0: #heater
 									if float(wortTemp) > float(targetTemp):
-										ssr_controller.setEnabled(True) # enable all ssrs (heater and chiller side)
-										ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
+										ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 									elif float(wortTemp) < float(targetTemp):
 										ssr_controller.setEnabled(False);
 						
 								if float(fanTemp) > -999 and ssr.heater_or_chiller == 0: #heater
 									#if the fan coils are too cold, disable the heater side.
 									if float(fanTemp) > float(fanProbe.target_temperature) and float(wortTemp) > float(targetTemp):
-										ssr_controller.setEnabled(True);
-										ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
+										ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 									else:
 										ssr_controller.setEnabled(False);
 					else:
@@ -257,7 +235,7 @@ if __name__=="__main__":
 	try:
 		raspbrew=Raspbrew()
 		main(raspbrew)
-	except KeyboardInterrupt:
+	except:
 		print "KeyboardInterrupt.. shutting down. Please wait."
 		for pk in raspbrew.ssrControllers:
 			try:
@@ -266,7 +244,3 @@ if __name__=="__main__":
 				pass
 				
 			time.sleep(2)
-		
-	except OperationalError:
-		print "OperationalError"
-		main()

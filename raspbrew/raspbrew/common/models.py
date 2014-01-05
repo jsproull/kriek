@@ -199,7 +199,7 @@ class SSR(models.Model):
 					#print "minutes: " + str(eta)
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
-					eta = time.mktime(eta.timetuple())
+					eta = time.mktime(eta.timetuple())*1000
 					
 		return eta, degreesPerMinute
 			

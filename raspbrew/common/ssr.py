@@ -9,6 +9,8 @@ from pprint import pprint
 import threading
 from subprocess import call
 
+import common.pidpy as PIDController
+
 class SSR(threading.Thread):
 	def __init__(self, ssr):
 		self.ssr = ssr
@@ -29,11 +31,27 @@ class SSR(threading.Thread):
 		self.enabled = False
 		self._On = False
 		
-		self.verbose = False
+		self.verbose = True
+		
+		self.pid_controller=PIDController.pidpy(ssr.pid)
 		
 		#create an event so we can stop
 		self._stop = threading.Event()
-	
+
+	#updates this controller with a settemp/targettemp and includes an enabled override
+	def updateSSRController(self, ssr_controller, setTemp, targetTemp, enabled=True):
+		ssr=self.ssr
+		
+		print "current " + str(setTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
+		ssr_controller.setEnabled(enabled)
+		
+		if ssr.pid.power < 100:
+			ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
+		else:
+			duty_cycle = ssr_controller.pid_controller.calcPID_reg4(float(setTemp), float(targetTemp), True)
+			ssr_controller.updateSSR(duty_cycle, ssr.pid.cycle_time)
+		
+			
 	def stop(self):
 		self._stop.set()
 
@@ -76,7 +94,7 @@ class SSR(threading.Thread):
 	def fireSSR(self):
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
-			print "Fire: " + str(self.enabled) + " " + str(self.ssr.pin) + " " + str(self.power) + " " + str(self.duty_cycle) + " " + str(self.cycle_time)
+			print "Fire: enabled:" + str(self.enabled) + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle) + " ct:" + str(self.cycle_time)
 		
 		if self.power < 100 or self.duty_cycle < 100:
 			if self.power < 100:
@@ -125,6 +143,9 @@ class SSR(threading.Thread):
 		
 	def setState(self, state):
 		self._On = state
+		if not state:
+			wiringpi.digitalWrite(self.ssr.pin,0)
+			
 		if self.ssr.state != state:
 			self.ssr.state = state
 			self.ssr.save()
