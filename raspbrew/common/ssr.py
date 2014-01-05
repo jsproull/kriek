@@ -16,8 +16,8 @@ class SSR(threading.Thread):
 		self.ssr = ssr
 		
 		threading.Thread.__init__(self)
-		#wiringPiSetupSys
-		#wiringpi.wiringPiSetupGpio()
+		# - wiringPiSetupSys
+		# - wiringpi.wiringPiSetupGpio()
 		
 		# set up the pin in out mode
 		call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
@@ -39,17 +39,17 @@ class SSR(threading.Thread):
 		self._stop = threading.Event()
 
 	#updates this controller with a settemp/targettemp and includes an enabled override
-	def updateSSRController(self, ssr_controller, setTemp, targetTemp, enabled=True):
+	def updateSSRController(self, setTemp, targetTemp, enabled=True):
 		ssr=self.ssr
 		
 		print "current " + str(setTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
-		ssr_controller.setEnabled(enabled)
+		self.setEnabled(enabled)
 		
 		if ssr.pid.power < 100:
-			ssr_controller.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
+			self.updateSSR(ssr.pid.power, ssr.pid.cycle_time)
 		else:
-			duty_cycle = ssr_controller.pid_controller.calcPID_reg4(float(setTemp), float(targetTemp), True)
-			ssr_controller.updateSSR(duty_cycle, ssr.pid.cycle_time)
+			duty_cycle = self.pid_controller.calcPID_reg4(float(setTemp), float(targetTemp), True)
+			self.updateSSR(duty_cycle, ssr.pid.cycle_time)
 		
 			
 	def stop(self):

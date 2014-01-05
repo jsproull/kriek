@@ -235,7 +235,7 @@ if __name__=="__main__":
 	try:
 		raspbrew=Raspbrew()
 		main(raspbrew)
-	except:
+	except KeyboardInterrupt:
 		print "KeyboardInterrupt.. shutting down. Please wait."
 		for pk in raspbrew.ssrControllers:
 			try:

@@ -118,6 +118,8 @@ class PID(models.Model):
 	i_param = models.FloatField(default=80.0)
 	d_param = models.FloatField(default=4.0)	
 	power = models.IntegerField(default=100)
+	enabled = models.BooleanField(default=True) #enabled
+	
 
 # An SSR has probe and PID information
 class SSR(models.Model):
