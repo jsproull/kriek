@@ -19,13 +19,13 @@ from raspbrew.globalsettings.models import GlobalSettings
 #HLT
 probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284da09',name='HLT',type=2)
 probe.save()
-ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=23, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=4, heater_or_chiller=0, probe=probe)
 ssr.save()
 
 #Boil
 probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284b7a6',name='Boil',type=1)
 probe.save()
-ssr,created=SSR.objects.get_or_create(name='Boil SSR', pin=24, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='Boil SSR', pin=5, heater_or_chiller=0, probe=probe)
 ssr.save()
 
 #Mash
@@ -35,10 +35,12 @@ probe.save()
 #Chiller
 probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a0052',name='Boil Chiller',type=6)
 probe.save()
-ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=22, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=3, heater_or_chiller=0, probe=probe)
 ssr.save()
 
 
+g=GlobalSettings(key='UNITS', value='metric')
+g.save()
 
 #if created:
 #	g=GlobalSettings(key='UNITS', value='metric')

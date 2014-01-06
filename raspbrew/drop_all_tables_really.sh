@@ -7,5 +7,5 @@ read
 #  ./manage.py sqlclear $name | ./manage.py dbshell
 #done
 
-psql -U postgres -d raspbrew -c "drop schema public cascade; create schema public;"
+psql  -d raspbrew -c "drop schema public cascade; create schema public;"
 ./manage.py syncdb

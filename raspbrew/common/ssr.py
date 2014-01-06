@@ -18,16 +18,25 @@ import common.pidpy as PIDController
 
 class SSRController(threading.Thread):
 	def __init__(self, ssr):
+		
+		self.verbose = False
+		
 		self.ssr = ssr
 		
 		threading.Thread.__init__(self)
-		# - wiringPiSetupSys
-		# - wiringpi.wiringPiSetupGpio()
 		
 		# set up the pin in out mode
 		if wiringpi_available:
-			call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
-			wiringpi.wiringPiSetupSys()
+			#call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
+			#wiringpi.wiringPiSetupSys()
+			
+			#rasp numbering
+			wiringpi.wiringPiSetup()
+			
+			#gpio numbering
+			#wiringpi.wiringPiSetupGpio()
+			
+			#set the pinmode
 			wiringpi.pinMode(ssr.pin,1)
 		
 		self.daemon = True
@@ -36,8 +45,6 @@ class SSRController(threading.Thread):
 		self.power = 100
 		self.enabled = False
 		self._On = False
-		
-		self.verbose = False
 		
 		self.pid_controller=PIDController.pidpy(ssr.pid)
 		
@@ -139,28 +146,23 @@ class SSRController(threading.Thread):
 	def getState(self):
 		ret=0
 		if self._On:
-			if self.verbose:
-				print str(self.ssr.pin) + " ON"
 			ret=1
-		else:
-			if self.verbose:
-				print str(self.ssr.pin) + " OFF"
+
 				
-		if wiringpi_available:
-			wiringpi.digitalWrite(self.ssr.pin,ret)
-		elif self.verbose:
-			print "wiring: " + str(self.ssr.pin) + " " + str(ret)
-		
 		return ret
 		
 	def setState(self, state):
 		self._On = state
-		if not state:
-			if wiringpi_available:
-				wiringpi.digitalWrite(self.ssr.pin,0)
-			elif self.verbose:
-				print "wiring: " + str(self.ssr.pin) + " off."
-							
+		_state=0
+		if state == True:
+			_state=1
+				
+		if self.verbose:
+			print "digitalWrite: " + str(self.ssr.pin) + " " + str(_state)
+		
+		if wiringpi_available:
+			wiringpi.digitalWrite(self.ssr.pin,_state)
+			
 		if self.ssr.state != state:
 			self.ssr.state = state
 			self.ssr.save()

@@ -124,22 +124,23 @@ class Status(models.Model):
 	
 	date = models.DateTimeField(default=timezone.now()) #time of this status
 	
-	status = models.CharField(max_length=10000, default="")
+	status = models.CharField(max_length=10000,null=True, blank=True)
 	
 	#override save
 	def save(self, *args, **kwargs):
 		
-		#have to save this here so we can use the m2m associations
-		super(Status, self).save(*args, **kwargs)
+		if self.pk:
+			#have to save this here so we can use the m2m associations
+			#super(Status, self).save(*args, **kwargs)
+			status = self.toJson(forceUpdate=True)
+			if (status and len(status) < 10000):
+				self.status = status
 		
-		status = self.toJson(forceUpdate=True)
-		if (status and len(status) < 10000):
-			self.status = status
-			super(Status, self).save(*args, **kwargs)
+		super(Status, self).save(*args, **kwargs)
 			
 		
 	#returns json for this status
-	def getJsonObject(self, addEta=True):
+	def getJsonObject(self, addEta=False):
 		
 		fermpk=None
 		brewpk=None
@@ -148,7 +149,7 @@ class Status(models.Model):
 		if self.brewconfig:
 			brewpk = self.brewconfig.pk
 			
-		jsonOut = {'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : unix_time_millis(self.date)}
+		jsonOut = {'pk' : self.pk, 'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : unix_time_millis(self.date)}
 		
 		probes=self.probes.all() #Probe.objects.all()
 		
@@ -201,7 +202,7 @@ class Status(models.Model):
 					currentTemp = probe.temperature
 					
 					#TODO - this is for regular mode.. add coolbot mode and brewing mode
-					if ssr.ssr.state and ssr.ssr.enabled and probe.target_temperature and currentTemp:
+					if probe.target_temperature and currentTemp:
 						eta, degreesPerMinute = ssr.ssr.getETA()
 						if eta and degreesPerMinute:
 							jsonOut['ssrs'][ssrid]['eta'] = eta
@@ -212,15 +213,18 @@ class Status(models.Model):
 		
 		return jsonOut
 	
-	def toJson(self, forceUpdate=False, addEta=True):
-	
-		if self.status and not forceUpdate:
+	def toJson(self, forceUpdate=False, addEta=False):
+		if self.status and not self.status == "" and not forceUpdate and not addEta:
 			return self.status
 		else:
-			jsonOut=self.getJsonObject(addEta=True)
+			jsonOut=self.getJsonObject(addEta=addEta)
 		
 		if jsonOut:
 			jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
+		
+			if not (jsonOut == self.status):
+				self.status = jsonOut
+				self.save()
 			
 		return jsonOut
 

@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.serializers.json import DjangoJSONEncoder
-import time, datetime
+import time
 import json, base64
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -159,13 +159,15 @@ class SSR(models.Model):
 		eta=None
 		degreesPerMinute=None
 		print "Get ETA:"
-		print str(self.pk) + " " + str(self.state)
-		print str(self.probe.target_temperature)
-		print str(self.probe.temperature)
+		#print str(self.pk) + " " + str(self.state)
+		#print str(self.probe.target_temperature)
+		#print str(self.probe.temperature)
 		
-		if self.state and self.probe.target_temperature and self.probe.temperature:
+		if self.probe.target_temperature and self.probe.temperature:
 			#get the temps for this probe for the last 60 minutes
 			now = timezone.now()
+			
+			#default to one hour
 			startDate = now + timedelta(hours=-1)
 			
 			currentTemp=self.probe.temperature
@@ -173,8 +175,9 @@ class SSR(models.Model):
 				
 			#todo - should just filter this by when the ssr state is true
 			
-			statuses = Status.objects.filter(date__gte=startDate, date__lte=now)
-
+			statuses = Status.objects.filter(date__gte=startDate, date__lte=now, probes__ssrstatus__state=True)
+			#print statuses
+			
 			if statuses and len(statuses) >= 2:
 				
 				startTemp=None
@@ -187,13 +190,19 @@ class SSR(models.Model):
 							continue
 							
 					if not startTemp and pp.temperature:
+						startDate=status.date
 						startTemp=float(pp.temperature) #t['temp'])
 						break
 				
 				if startTemp and currentTemp:
-					tempDiffThisHour=currentTemp-startTemp
-					degreesPerMinute=tempDiffThisHour/60
-					#print "%d : target: %f tempdiff: %f start temp: %f current temp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiffThisHour), float(startTemp), float(currentTemp), float(degreesPerMinute));
+					tempDiff=float(currentTemp)-float(startTemp)
+					timeDiff=float((now-startDate).seconds)/60
+					degreesPerMinute=0
+					if timeDiff>0:
+						degreesPerMinute=tempDiff/timeDiff
+						
+					print "delta (min) %f" % timeDiff
+					print "%d : target: %f tempdiff: %f starttemp: %f currenttemp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiff), float(startTemp), float(currentTemp), float(degreesPerMinute));
 
 				if currentTemp and self.probe.target_temperature and degreesPerMinute:
 					diff=float(self.probe.target_temperature)-currentTemp
@@ -203,6 +212,6 @@ class SSR(models.Model):
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
 					eta = time.mktime(eta.timetuple())*1000
-					
+		print str(eta)			
 		return eta, degreesPerMinute
 			

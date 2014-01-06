@@ -137,15 +137,15 @@ class Raspbrew():#threading.Thread):
 					elif not enabled:
 						enabled = ssr.enabled
 
-
+			print "brewconf " + str(brewConf)
 			for ssr in brewConf.ssrs.all():
 				currentTemp=ssr.probe.getCurrentTemp()
 				targetTemp=ssr.probe.target_temperature
 				
 				ssr_controller=self.getSSRController(ssr)
-				enabled = (targetTemp != None and currentTemp > -999)
+				enabled = (targetTemp != None and currentTemp > -999 and ssr.enabled)
 
-				print "brewconf " + str(brewConf) + " " + str(enabled)
+				print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
 					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
 					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)
@@ -157,6 +157,7 @@ class Raspbrew():#threading.Thread):
 			status.save()
 			for probe in brewConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
+			
 				
 	#
 	# called from the main thread to fire the brewing ferm (if configured)
@@ -230,7 +231,6 @@ class Raspbrew():#threading.Thread):
 			status.save()
 			for probe in fermConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
-			status.save()
 			
 				
 	#
@@ -261,4 +261,4 @@ if __name__=="__main__":
 			except AttributeError:
 				pass
 				
-			#time.sleep(2)
+			time.sleep(2)

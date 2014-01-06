@@ -181,7 +181,7 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 			
 			if count == 0:
 				addEta=True
-			_json = status.toJson()
+			_json = status.toJson(addEta=addEta)
 				
 			if _json:
 				j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
@@ -190,7 +190,7 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 		
 	elif numberToReturn == 1 and total > 0:
 		status = Status.objects.order_by('-date')[0]
-		_json = status.toJson()
+		_json = status.toJson(addEta=True)
 		if _json:
 			j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
 		
