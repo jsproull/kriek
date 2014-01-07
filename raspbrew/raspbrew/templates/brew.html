@@ -23,16 +23,18 @@
 {% if brewConfs.count > 1 %}
 	<ul class="nav nav-tabs">
 	{% for conf in brewConfs %}
-		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
+		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a class="raspbrew-tab" data-confid="{{conf.pk}}" id="conf{{conf.pk}}_tab" href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
 	{% endfor %}
 	</ul>
 {% endif %}
 
 <!-- Tab panes -->
 <div class="{% if brewConfs.count > 1 %}tab-content{%endif%}">
-{% for conf in brewConfs %}
+{% for conf in brewConfs|dictsort:"name" %}
 	{% if brewConfs.count > 1 %}
 	<div class="{% if brewConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
+    {% else %}
+    <div class="hidden" id="confid" data-confid="{{conf.pk}}"></div>
 	{% endif %}
 		<h3>Current Temperatures</h3>
 		
@@ -91,7 +93,15 @@
 				</div>
 			{% endfor %}
 		</div>
-		
+
+
+	{% if brewConfs.count > 1 %}
+	</div>
+	{% endif %}
+
+{% endfor %}
+
+{% if brewConfs.count > 0 %}
 		<div>
 			<h3 class="pull-left">Temperature Chart</h3>
 			<div class="input-group pull-right">
@@ -106,15 +116,15 @@
 			</div>
 			<div class="clearfix"></div>
 		</div>
-		
+
 		<div class="panel panel-default">
- 			<div class="panel-body">		
+ 			<div class="panel-body">
 				<div id="tempChart">
 					<svg id="tempChartSvg"></svg>
 				</div>
 			</div>
 		</div>
-		
+
 		<div class="row">
 		  <div class="col-md-3 col-md-offset-4">
 			<div class="input-group">
@@ -133,12 +143,8 @@
 			</div>
 		  </div>
 		</div><!-- /.row -->
-		
-	{% if brewConfs.count > 1 %}
-	</div>
-	{% endif %}
-	
-{% endfor %}
+{% endif %}
+
 </div>
 
 

@@ -287,7 +287,7 @@ function RaspBrew() {
 	this.emptyChart = function() {
 		
 		if (this.chart) {
-			var datum = _this.lastLoadedData;
+			var datum = _this.lastChartData;
 			if (datum) {
 				for (var i=0;i<datum.length;i++) {
 					datum[i].values = [{x:0,y:0}];
@@ -315,6 +315,8 @@ function RaspBrew() {
 		var dd = {};
 		var values = [];
 
+		var startDate, endDate;
+
 		for (var i = 0; i < data.length; i++) {
 			var d = data[i];
 			for (var probeid in d.probes) {
@@ -325,10 +327,31 @@ function RaspBrew() {
 				var date = new Date(parseFloat(d.date));
 				var temp = probe.temp;
 				if (temp) {
+					if (startDate == null) {
+						startDate=date;
+					}
+					if (startDate) {
+						endDate=date;
+					}
+
 					temp=_this.getTemperature(probe.temp)
 					dd[probeid].push({x: date, y: temp});
 				}
 			}
+		}
+
+		var diffInHours = moment(startDate).diff(moment(endDate),'hours');
+		console.log(diffInHours);
+		if (diffInHours > 24) {
+				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
+					//why do i have to do this??
+					return d3.time.format("%x %H:%M")(new Date(d));
+				});
+		} else {
+				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
+					//why do i have to do this??
+					return d3.time.format("%H:%M:%S")(new Date(d));
+				});
 		}
 
 		var datum=[];
@@ -523,6 +546,24 @@ function RaspBrew() {
 				return false; // prevent the button click from happening
 			}
 		});
+
+		//ensure we have a confId
+		if ($('.raspbrew-tab').length > 0) {
+			_this.confId = $('.raspbrew-tab').attr('data-confid');
+		} else {
+			_this.confId = $('#confid').attr('data-confid');
+		}
+		console.log(_this.confId);
+
+		//set up tabs on click
+		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+		  	console.log(e.target); // activated tab
+			_this.confId = $(e.target).attr('data-confid');
+			console.log(_this.confId);
+
+			_this.updateStatus();
+		  //e.relatedTarget // previous tab
+		})
 	});
 	
 	return this;

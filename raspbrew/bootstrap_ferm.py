@@ -28,8 +28,8 @@ ssr,created=SSR.objects.get_or_create(name='Chiller SSR', pin=18, heater_or_chil
 ssr.save()
 
 if created:
-	g=GlobalSettings(key='UNITS', value='metric')
-	g.save()
+	#g=GlobalSettings(key='UNITS', value='metric')
+	#g.save()
 
 #print status.toJson(True)
 

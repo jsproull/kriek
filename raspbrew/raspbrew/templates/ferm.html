@@ -22,19 +22,21 @@
 {% if fermConfs.count > 1 %}
 	<ul class="nav nav-tabs">
 	{% for conf in fermConfs %}
-		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
+		<li class="{% if forloop.counter0 == 0 %}active{%endif%}"><a class="raspbrew-tab" data-confid="{{conf.pk}}" id="conf{{conf.pk}}_tab" href="#conf{{conf.pk}}" data-toggle="tab">{{conf.name}}</a></li>
 	{% endfor %}
 	</ul>
 {% endif %}
 
 <!-- Tab panes -->
 <div class="{% if fermConfs.count > 1 %}tab-content{%endif%}">
-{% for conf in fermConfs %}
+{% for conf in fermConfs|dictsort:"name" %}
 	{% if fermConfs.count > 1 %}
 	<div class="{% if fermConfs.count > 1 %}tab-pane{%endif%} {% if forloop.counter0 == 0 %}active{%endif%}" id="conf{{conf.pk}}">
+	{% else %}
+    <div class="hidden" id="confid" data-confid="{{conf.pk}}"></div>
 	{% endif %}
 		<h3>Current Temperatures</h3>
-		
+
 		<div class="row">
 			{% for probe in conf.probes.all|dictsort:"name" %}
 				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
@@ -87,71 +89,74 @@
 				</div>
 			{% endfor %}
 		</div>
-		
-		<div>
-			<h3 class="pull-left">Temperature Chart</h3>
-			<div class="input-group pull-right">
-					<ul class="nav nav-pills">
-						<li class="dropdown">
-						<a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#"><span id="chartUpdates">Chart Updates Enabled</span> <b class="caret"></b></a>
-						<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(true); return false;">Updates Enabled</a></li>
-							<li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(false); return false;">Updates Disabled</a></li>
-			  			</ul>
-			  		</ul>
-			</div>
-			<div class="clearfix"></div>
-		</div>
-		
-		<div class="panel panel-default">
- 			<div class="panel-body">		
-				<div id="tempChart">
-					<svg id="tempChartSvg"></svg>
-				</div>
-			</div>
-		</div>
-		
-		<div class="row">
-		  <div class="col-md-3 col-md-offset-4">
-			<div class="input-group">
-			  <span class="input-group-addon">
-				<input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); if (!this.checked) { $('#endDateCheckbox').prop('checked', false); $('#endDate').prop('disabled', true); }">
-			  </span>
-			  <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
-			</div>
-		  </div>
-		  <div class="col-md-3">
-			<div class="input-group">
-			  <span class="input-group-addon">
-				<input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); if (this.checked) { $('#startDateCheckbox').prop('checked', true); $('#startDate').prop('disabled', false); } ">
-			  </span>
-			  <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
-			</div>
-		  </div>
-			<div class="col-md-2">
-				<div class="input-group">
-					<ul class="nav nav-pills">
-						<li class="dropdown">
-							<a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
-							<ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
-								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
-								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
-								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
-								<li role="presentation" class="divider"></li>
-								<li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
-							</ul>
-						</li>
-					</ul>
-				</div>
-		  </div>
-		</div><!-- /.row -->
-		
-		
+
+
 	{% if fermConfs.count > 1 %}
 	</div>
 	{% endif %}
-	
+
 {% endfor %}
+
+{% if fermConfs.count > 0 %}
+    <div>
+        <h3 class="pull-left">Temperature Chart</h3>
+        <div class="input-group pull-right">
+                <ul class="nav nav-pills">
+                    <li class="dropdown">
+                    <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#"><span id="chartUpdates">Chart Updates Enabled</span> <b class="caret"></b></a>
+                    <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                        <li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(true); return false;">Updates Enabled</a></li>
+                        <li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(false); return false;">Updates Disabled</a></li>
+                    </ul>
+                </ul>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div id="tempChart">
+                <svg id="tempChartSvg"></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3 col-md-offset-4">
+        <div class="input-group">
+          <span class="input-group-addon">
+            <input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); if (!this.checked) { $('#endDateCheckbox').prop('checked', false); $('#endDate').prop('disabled', true); }">
+          </span>
+          <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="input-group">
+          <span class="input-group-addon">
+            <input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); if (this.checked) { $('#startDateCheckbox').prop('checked', true); $('#startDate').prop('disabled', false); } ">
+          </span>
+          <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
+        </div>
+      </div>
+        <div class="col-md-2">
+            <div class="input-group">
+                <ul class="nav nav-pills">
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
+                        <ul id="quickmenu" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
+                            <li role="presentation" class="divider"></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+      </div>
+    </div>
+{%endif%}
+
 </div>
 
 
