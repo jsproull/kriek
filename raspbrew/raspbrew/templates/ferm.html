@@ -39,7 +39,7 @@
 
 		<div class="row">
 			{% for probe in conf.probes.all|dictsort:"name" %}
-				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}"</div>
+				<div class="col-md-{% widthratio 12 conf.probes.count 1 %}">
 					<div class="panel panel-default panel-probe">
  						<div class="panel-heading c{{forloop.counter0}}">
 							<h3 class="panel-title text-center">{{ probe.name }}</h3>
