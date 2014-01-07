@@ -341,7 +341,6 @@ function RaspBrew() {
 		}
 
 		var diffInHours = moment(startDate).diff(moment(endDate),'hours');
-		console.log(diffInHours);
 		if (diffInHours > 24) {
 				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
 					//why do i have to do this??
@@ -553,14 +552,10 @@ function RaspBrew() {
 		} else {
 			_this.confId = $('#confid').attr('data-confid');
 		}
-		console.log(_this.confId);
 
 		//set up tabs on click
 		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-		  	console.log(e.target); // activated tab
 			_this.confId = $(e.target).attr('data-confid');
-			console.log(_this.confId);
-
 			_this.updateStatus();
 		  //e.relatedTarget // previous tab
 		})
