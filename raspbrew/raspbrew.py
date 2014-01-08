@@ -181,6 +181,10 @@ class Raspbrew():#threading.Thread):
 
 					for ssr in ssrs:
 						ssr_controller=self.getSSRController(ssr)
+					
+						#for now, all fermentation pids are disabled and we just use 100%
+						ssr.pid.enabled=False
+
 						probe = ssr.probe
 						targetTemp = probe.target_temperature
 						if wortTemp == -999 or targetTemp == None:
@@ -191,9 +195,13 @@ class Raspbrew():#threading.Thread):
 							if fermConf.mode == 0: # regular mode
 
 								if float(wortTemp) < float(targetTemp):
-									ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 0);
+									ssr_controller.setState(ssr.heater_or_chiller == 0);
+									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
 								elif float(wortTemp) > float(targetTemp):
-									ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 1);
+									ssr_controller.setState(ssr.heater_or_chiller == 1);
+									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
 								else:
 									ssr_controller.setEnabled(False);
 
@@ -207,16 +215,21 @@ class Raspbrew():#threading.Thread):
 								for fanProbe in fanProbes:
 									fanTemp=fanProbe.getCurrentTemp()
 
-									if ssr.heater_or_chiller == 0: #heater
+									if ssr.heater_or_chiller == 1: #heater
 										if float(wortTemp) > float(targetTemp):
-											ssr_controller.updateSSRController(wortTemp, targetTemp, True)
+											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
+											ssr_controller.setEnabled(True);
+											ssr_controller.setState(True)
 										elif float(wortTemp) < float(targetTemp):
 											ssr_controller.setEnabled(False);
 
 									if float(fanTemp) > -999 and ssr.heater_or_chiller == 0: #heater
 										#if the fan coils are too cold, disable the heater side.
-										if float(fanTemp) > float(fanProbe.target_temperature) and float(wortTemp) > float(targetTemp):
-											ssr_controller.updateSSRController(wortTemp, targetTemp, True)
+										# TODO - we gotta get the target temp back in for the fan
+										if float(fanTemp) > float(-3) and float(wortTemp) > float(targetTemp):
+											ssr_controller.setEnabled(True);
+											ssr_controller.setState(True)
+											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 										else:
 											ssr_controller.setEnabled(False);
 						else:

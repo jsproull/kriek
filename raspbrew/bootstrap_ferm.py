@@ -22,9 +22,9 @@ probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000449ef31',name='Wo
 probe.save()
 #status.probes.add(ProbeStatus.cloneFrom(probe))
 
-ssr,created=SSR.objects.get_or_create(name='Heater SSR', pin=17, heater_or_chiller=0, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='Heater SSR', pin=0, heater_or_chiller=0, probe=probe)
 ssr.save()
-ssr,created=SSR.objects.get_or_create(name='Chiller SSR', pin=18, heater_or_chiller=1, probe=probe)
+ssr,created=SSR.objects.get_or_create(name='Chiller SSR', pin=1, heater_or_chiller=1, probe=probe)
 ssr.save()
 
 #if created:

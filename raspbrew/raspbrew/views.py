@@ -201,10 +201,13 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 
 #returns true if raspbrew.py is running
 def isRaspbrewRunning():
-	output = subprocess.check_output(['/bin/ps', '-A'])
-	if 'raspbrew.py' in output:
-		return True
-	else:
+	try:
+		output = subprocess.check_output(['/usr/bin/pgrep', '-lf', 'python.*raspbrew'])
+		if len(output) > 0:
+			return True
+		else:
+			return False
+	except subprocess.CalledProcessError:
 		return False
 		
 #
