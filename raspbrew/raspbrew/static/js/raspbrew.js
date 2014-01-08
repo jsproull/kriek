@@ -180,11 +180,11 @@ function RaspBrew() {
 			}
 			
 			//disable the targettemp if this probe has no ssrs
-			if (!probe.ssrs || probe.ssrs.length == 0) {
+			/*if (!probe.ssrs || probe.ssrs.length == 0) {
 				ttempInput.attr('disabled', true);
 			} else {
 				ttempInput.attr('disabled', false);
-			}
+			}*/
 			
 			//how close are we to the target temp?
 			if (!isNaN(temp) && !isNaN(targetTemp)) {
