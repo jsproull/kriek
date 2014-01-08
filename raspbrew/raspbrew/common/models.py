@@ -21,6 +21,15 @@ def unix_time(dt):
 def unix_time_millis(dt):
 	return unix_time(dt) * 1000.0
 
+##
+## A Schedule can be used to set a temperature after a given time
+##
+class Schedule(models.Model):
+	start_time = models.DateTimeField() #time of this status
+	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
+	hold_until_time = models.DateTimeField()
+	
+
 # Each Probe.
 class Probe(models.Model):
 	PROBE_TYPE = (

@@ -168,13 +168,17 @@ class Status(models.Model):
 				jsonOut['probes'][id]['temp'] = currentTemp
 			
 			jsonOut['probes'][id]['target_temp'] = probe.target_temperature
+			jsonOut['probes'][id]['ssrs'] = [];
 			
 			#ssrs=SSR.objects.all()
 			#for ssr in ssrs:
 			for ssr in probe.ssrstatus_set.all():
 				ssrid=ssr.ssr.pk
+				jsonOut['probes'][id]['ssrs'].append(ssrid)
+				
 				jsonOut['ssrs'][ssrid] = {}
 				jsonOut['ssrs'][ssrid]['pid'] = {}
+				
 				jsonOut['ssrs'][ssrid]['pid']['cycle_time'] = ssr.pid.cycle_time
 				jsonOut['ssrs'][ssrid]['pid']['k_param'] = ssr.pid.k_param
 				jsonOut['ssrs'][ssrid]['pid']['i_param'] = ssr.pid.i_param

@@ -13,6 +13,9 @@ class BrewConfiguration(models.Model):
 	#current_ssr = models.OneToOneField('common.SSR', related_name='current_ssr', null=True, blank=True)
 	allow_multiple_ssrs = models.BooleanField(default=False)
 	
+	#a schedule for this brew session
+	schedule = models.ForeignKey('common.Schedule',null=True, blank=True)
+	
 	def __unicode__(self):
 		return self.name
 

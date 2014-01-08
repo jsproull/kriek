@@ -14,6 +14,9 @@ class FermConfiguration(models.Model):
 		(1, 'Fermentation Coolbot'),
 	)
 	mode = models.IntegerField(default=0, choices=FERMENTATION_MODE)
+		
+	#a schedule for this brew session
+	schedule = models.ForeignKey('common.Schedule',null=True, blank=True)
 	
 	def __unicode__(self):
 		return self.name

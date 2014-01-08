@@ -57,23 +57,13 @@
 								<dt class="templabel input">Target Temp (c)</dt>
 								<dd class="temperatureinput">
 									<div class="form-group input-group">
-									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew-updateable target-temp" id="probe{{probe.pk}}_target" placeholder="--" type="text" class="form-control">
+									  <input onchange="$(this).parent().addClass('has-success');" class="form-control raspbrew-updateable target-temp" id="probe{{probe.pk}}_target" disabled="true" placeholder="--" type="text" class="form-control">
 									  <span class="input-group-btn">
 										<button onclick="raspbrew.updateTargetTemp('probe{{probe.pk}}_target', {{probe.pk}});" class="btn btn-default" type="button"><span class="fa fa-check"></span></button>
 									  </span>
 									</div>
 								</dd>
 							</dl>
-							{% if probe.ssr_set.all %}
-							<!--<div class="raspbrew row">
-							  	<div class="col-md-6">
-							  		<span class="templabel">Deg/Min (c):</span><span id="probe{{probe.pk}}_dpm"></span>
-							  	</div>
-								<div class="col-md-5 col-md-offset-1">
-									<span class="templabel">ETA:</span><span id="probe{{probe.pk}}_eta"></span>
-							 	 </div>
-							</div>-->
-							{% endif %}
 							<hr/>
 								{% if probe.ssr_set.all %}
 								<div class="row">
