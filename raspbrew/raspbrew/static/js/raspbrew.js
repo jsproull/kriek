@@ -152,7 +152,7 @@ function RaspBrew() {
 		}
 		
 		var latest = data[0];
-		if (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date)) {
+		if (!latest || (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date))) {
 			//no need to update
 			return;
 		}
