@@ -27,7 +27,7 @@ ssr.save()
 ssr,created=SSR.objects.get_or_create(name='Chiller SSR', pin=18, heater_or_chiller=1, probe=probe)
 ssr.save()
 
-if created:
+#if created:
 	#g=GlobalSettings(key='UNITS', value='metric')
 	#g.save()
 
@@ -47,8 +47,3 @@ if created:
 #current.save()
 
 #print current.status
-
-
-
-
-
