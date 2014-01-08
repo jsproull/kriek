@@ -164,6 +164,7 @@ class Status(models.Model):
 			jsonOut['probes'][id] = {}
 			jsonOut['probes'][id]['name'] = probe.name
 			jsonOut['probes'][id]['id'] = probe.one_wire_Id
+			jsonOut['probes'][id]['type'] = probe.type
 			
 			currentTemp = probe.temperature
 			if currentTemp > -999:
