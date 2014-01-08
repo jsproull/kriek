@@ -324,7 +324,10 @@ function RaspBrew() {
 
 		var startDate, endDate;
 
+		var datum=[];
+
 		for (var i = 0; i < data.length; i++) {
+			var count=0;
 			var d = data[i];
 			for (var probeid in d.probes) {
 				var probe = d.probes[probeid];
@@ -344,9 +347,15 @@ function RaspBrew() {
 					temp=_this.getTemperature(probe.temp)
 					dd[probeid].push({x: date, y: temp});
 				}
+
+				//we only have to push each dd object once and the dd[probeid] array will get updated
+				if (count == 0) {
+					datum.push({ values: dd[probeid], key: probe.name, color:this.colourList[count++] });
+				}
 			}
 		}
 
+		//udpate the time axis
 		var diffInHours = moment(startDate).diff(moment(endDate),'hours');
 		if (diffInHours > 24) {
 				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
@@ -358,15 +367,6 @@ function RaspBrew() {
 					//why do i have to do this??
 					return d3.time.format("%H:%M:%S")(new Date(d));
 				});
-		}
-
-		var datum=[];
-		var d = data[0];
-		var count=0;
-		for (var probeid in dd) {
-			if (d.probes && d.probes[probeid]) {
-				datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
-			}
 		}
 		
 		this.lastChartData = datum;
