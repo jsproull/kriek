@@ -327,8 +327,8 @@ function RaspBrew() {
 		var datum=[];
 
 		for (var i = 0; i < data.length; i++) {
-			var count=0;
 			var d = data[i];
+			var count=0;
 			for (var probeid in d.probes) {
 				var probe = d.probes[probeid];
 				if (!dd[probeid]) {
@@ -349,9 +349,7 @@ function RaspBrew() {
 				}
 
 				//we only have to push each dd object once and the dd[probeid] array will get updated
-				if (count == 0) {
-					datum.push({ values: dd[probeid], key: probe.name, color:this.colourList[count++] });
-				}
+				datum[count] = ({ values: dd[probeid], key: probe.name, color:this.colourList[count++] });
 			}
 		}
 
