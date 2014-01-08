@@ -227,9 +227,10 @@ class Raspbrew():#threading.Thread):
 									if float(fanTemp) > -999 and ssr.heater_or_chiller == 0: #heater
 										#if the fan coils are too cold, disable the heater side.
 										# TODO - we gotta get the target temp back in for the fan
-										targetFanTemp = fanProbe.target_temp
+										targetFanTemp = fanProbe.target_temperature
 										if not targetFanTemp:
 											targetFanTemp = -1
+										print "Target Fan: " + str(targetFanTemp)
 
 										if float(fanTemp) > float(targetFanTemp) and float(wortTemp) > float(targetTemp):
 											ssr_controller.setEnabled(True);
