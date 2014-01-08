@@ -17,10 +17,17 @@ from raspbrew.globalsettings.models import GlobalSettings
 # 	(5, 'Fermentation AC Fan'),
 # 	(6, 'Other'),
 
-for ssr in  SSR.objects.all():
-	for brew in ssr.brewconfiguration_set.all():
-		if not brew.allow_multiple_ssrs:
-			for ssr2 in  SSR.objects.all():
-				if ssr2 != ssr: 
-           				print ssr
+#for ssr in  SSR.objects.all():
+#	for brew in ssr.brewconfiguration_set.all():
+#		if not brew.allow_multiple_ssrs:
+#			for ssr2 in  SSR.objects.all():
+#				if ssr2 != ssr: 
+#           				print ssr
+#
 
+#print Status.objects.all().order_by('date')
+status=Status.objects.get(pk=3487)
+
+print status.status
+status.save()
+print status.status

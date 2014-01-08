@@ -167,7 +167,7 @@ class SSR(models.Model):
 	def getETA(self):
 		eta=None
 		degreesPerMinute=None
-		print "Get ETA:"
+		#print "Get ETA:"
 		#print str(self.pk) + " " + str(self.state)
 		#print str(self.probe.target_temperature)
 		#print str(self.probe.temperature)
@@ -210,8 +210,8 @@ class SSR(models.Model):
 					if timeDiff>0:
 						degreesPerMinute=tempDiff/timeDiff
 						
-					print "delta (min) %f" % timeDiff
-					print "%d : target: %f tempdiff: %f starttemp: %f currenttemp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiff), float(startTemp), float(currentTemp), float(degreesPerMinute));
+					#print "delta (min) %f" % timeDiff
+					#print "%d : target: %f tempdiff: %f starttemp: %f currenttemp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiff), float(startTemp), float(currentTemp), float(degreesPerMinute));
 
 				if currentTemp and self.probe.target_temperature and degreesPerMinute:
 					diff=float(self.probe.target_temperature)-currentTemp
@@ -221,6 +221,6 @@ class SSR(models.Model):
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
 					eta = time.mktime(eta.timetuple())*1000
-		print str(eta)			
+		#print str(eta)			
 		return eta, degreesPerMinute
 			

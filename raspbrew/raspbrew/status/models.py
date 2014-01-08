@@ -132,9 +132,11 @@ class Status(models.Model):
 		if self.pk:
 			#have to save this here so we can use the m2m associations
 			#super(Status, self).save(*args, **kwargs)
-			status = self.toJson(forceUpdate=True)
-			if (status and len(status) < 10000):
-				self.status = status
+			if not self.status or self.status == "":
+				#print str(self.pk) + " saving status, forcing update"
+				status = self.toJson(forceUpdate=True)
+				if (status and len(status) < 10000):
+					self.status = status
 		
 		super(Status, self).save(*args, **kwargs)
 			
@@ -218,18 +220,18 @@ class Status(models.Model):
 		return jsonOut
 	
 	def toJson(self, forceUpdate=False, addEta=False):
-		if self.status and not self.status == "" and not forceUpdate and not addEta:
+		#print str(self.pk) + " " + str(forceUpdate)  + " " + str(addEta)
+		#print self.status
+		if self.status and not forceUpdate and not addEta:
+			#print "Just returning status"
 			return self.status
 		else:
+			#print "updating status!"
 			jsonOut=self.getJsonObject(addEta=addEta)
-		
-		if jsonOut:
 			jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
+			self.status = jsonOut
+			self.save()
 		
-			if not (jsonOut == self.status):
-				self.status = jsonOut
-				self.save()
-			
 		return jsonOut
 
 	

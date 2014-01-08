@@ -158,6 +158,7 @@ class Raspbrew():#threading.Thread):
 			status.save()
 			for probe in brewConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
+			status.save()
 			
 				
 	#
@@ -245,6 +246,7 @@ class Raspbrew():#threading.Thread):
 			status.save()
 			for probe in fermConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
+			status.save()
 			
 				
 	#
@@ -256,7 +258,8 @@ class Raspbrew():#threading.Thread):
 			self.updateTemps()
 			self.checkBrew()
 			self.checkFerm()
-			time.sleep(5)
+			print "--- sleep ---"
+			time.sleep(10)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'
