@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'raspbrew.common',
     'raspbrew.status',
     'raspbrew.globalsettings',
+    'gunicorn',
     'suit',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,6 +45,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
 )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+}
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -84,12 +90,19 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'raspbrew',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
-        'USER': 'postgres',
+        'USER': 'pi',
         'PASSWORD': 'pi',
         'HOST': 'localhost',                      # Empty for localhost through domain sockets or           '127.0.0.1' for localhost through TCP.
         'PORT': '',                      # Set to empty string for default.
     }
 }
+
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.6/topics/i18n/
@@ -108,4 +121,9 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-STATIC_URL = os.path.join(SITE_ROOT , 'static/').replace('\\','/')
+#STATIC_URL = os.path.join(SITE_ROOT , 'static/').replace('\\','/')
+STATICFILES_DIRS = (os.path.join(SITE_ROOT , 'static/'),)
+MEDIA_ROOT = '/var/www/media/'
+MEDIA_URL = '/media/'
+STATIC_ROOT = '/var/www/static/'
+STATIC_URL = '/static/'

@@ -1,2 +1,3 @@
 env-raspbrew/
 env-raspbrew-osx/
+*.pyc
