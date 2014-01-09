@@ -328,6 +328,9 @@ function RaspBrew() {
 
 		for (var i = 0; i < data.length; i++) {
 			var d = data[i];
+			if (!d.probes) {
+				continue;
+			}
 			var count=0;
 			for (var probeid in d.probes) {
 				var probe = d.probes[probeid];
