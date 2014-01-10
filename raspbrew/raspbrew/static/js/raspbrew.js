@@ -326,6 +326,8 @@ function RaspBrew() {
 
 		var datum=[];
 
+		var states = [];
+		
 		for (var i = 0; i < data.length; i++) {
 			var d = data[i];
 			if (!d.probes) {
@@ -333,6 +335,10 @@ function RaspBrew() {
 			}
 			var count=0;
 			for (var probeid in d.probes) {
+				if (!states[probeid]) {
+					states[probeid]=[];
+				}
+				
 				var probe = d.probes[probeid];
 				if (!dd[probeid]) {
 					dd[probeid] = []
@@ -352,7 +358,19 @@ function RaspBrew() {
 				}
 
 				//we only have to push each dd object once and the dd[probeid] array will get updated
-				datum[count] = ({ values: dd[probeid], key: probe.name, color:this.colourList[count++] });
+				datum[count] = ({ values: dd[probeid], key: probe.name, color:this.colourList[count] });
+				
+				//set this if it's true or false
+				if (probe.ssrs) {
+					for (var ssri in probe.ssrs) {
+						ssr = probe.ssrs[ssri]
+						if (d.ssrs[ssr] && d.ssrs[ssr].state == true) {
+							states[probeid][i] = true;
+						}
+					}
+				}	
+				
+				count++;
 			}
 		}
 
@@ -378,6 +396,18 @@ function RaspBrew() {
 			.datum(datum)
 			.transition().duration(500)
 			.call(this.chart);
+			
+			setTimeout(function() { 
+				for (var probeid in states) {
+					if (states[probeid] && states[probeid].length>0) {
+						//console.log( states[probeid] );
+						for (var index in states[probeid]) {
+									console.log(index);
+									$(".nv-series-" + 1 + " .nv-point-" + index).attr('r', 5);//.attr('fill','blue')
+							}
+					}
+				}
+			}, 1000);
 		}
 	
 	}
