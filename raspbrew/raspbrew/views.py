@@ -131,14 +131,15 @@ def jsonBrewStatus(request, brewConfId, numberToReturn=50, startDate=-1, endDate
 def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 	total=Status.objects.count()
 	allStatuses = []
-	startDate=float(startDate)/1000
-	endDate=float(endDate)/1000
 	numberToReturn = int(numberToReturn)
 	#print "Getting Statuses : " + str(numberToReturn)
 		
 	j=[]
+	if startDate == -1:
+		startDate = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0) 
+
 	if numberToReturn > 1 and total > 0:
-		#print str(timezone.now())
+		print str(timezone.now())
 		step=1
 		numberToReturn = int(numberToReturn)-1
 		statuses = []
@@ -146,12 +147,18 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 		
 		#default to All - we assume these are sorted by date
 		statuses = Status.objects.all().order_by('date')
-		#print "Got all statuses: " + str(timezone.now())
+		print "Got all statuses: " + str(timezone.now())
+		for status in statuses:
+			pass 
+
 		if startDate >= 0 and endDate >= 0:
+			startDate=float(startDate)/1000
+			endDate=float(endDate)/1000
 			startDate = datetime.datetime.fromtimestamp(startDate)
 			endDate = datetime.datetime.fromtimestamp(endDate)
 			q = Q(date__gte=startDate) & Q(date__lte=endDate)
 		elif startDate > -1:
+			startDate=float(startDate)/1000
 			startDate = datetime.datetime.fromtimestamp(startDate)
 			q = Q(date__gte=startDate)
 
@@ -163,11 +170,14 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 		
 		if q:
 			statuses = statuses.filter(q)
-		#print "Filtered statuses: " + str(timezone.now())
+		print q
+		print "Filtered statuses: " + str(timezone.now())
 			
 		#get the number of items requested
 		total=len(statuses)
+		print "len got:" + str(timezone.now())
 		allStatuses=statuses
+		print "alltatuses got: " + str(timezone.now())
 			
 		if total > numberToReturn:
 			step=total/numberToReturn
@@ -177,7 +187,7 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 			if len(statuses) > 1:
 				allStatuses.insert(0, statuses[0])
 				allStatuses.append(statuses[len(statuses)-1])
-		#print "alltatuses sliced: " + str(timezone.now())
+		print "alltatuses sliced: " + str(timezone.now())
 		
 		
 		count=0
@@ -191,7 +201,7 @@ def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
 			if _json:
 				j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
 				count=count+1
-		#print "jsons done: " + str(timezone.now())
+		print "jsons done: " + str(timezone.now())
 		
 		
 	elif numberToReturn == 1 and total > 0:

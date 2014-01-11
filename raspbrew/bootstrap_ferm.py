@@ -10,11 +10,11 @@ from raspbrew.globalsettings.models import GlobalSettings
 
 #status=Status(date=timezone.now())
 #status.save()
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000449e4f6',name='Room',type=5)
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000449e4f6',name='Room',type=4)
 probe.save()
 #status.probes.add(ProbeStatus.cloneFrom(probe))
 
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a00b2',name='Fan',type=4)
+probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a00b2',name='Fan',type=5)
 probe.save()
 #status.probes.add(ProbeStatus.cloneFrom(probe))
 

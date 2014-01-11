@@ -216,7 +216,7 @@ class Raspbrew():#threading.Thread):
 								for fanProbe in fanProbes:
 									fanTemp=fanProbe.getCurrentTemp()
 
-									if ssr.heater_or_chiller == 1: #heater
+									if ssr.heater_or_chiller == 1: #chiller
 										if float(wortTemp) > float(targetTemp):
 											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 											ssr_controller.setEnabled(True);
@@ -233,10 +233,12 @@ class Raspbrew():#threading.Thread):
 										print "Target Fan: " + str(targetFanTemp)
 
 										if float(fanTemp) > float(targetFanTemp) and float(wortTemp) > float(targetTemp):
+											print "heater on"
 											ssr_controller.setEnabled(True);
 											ssr_controller.setState(True)
 											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 										else:
+											print "heater off"
 											ssr_controller.setEnabled(False);
 						else:
 							ssr_controller.setEnabled(False)

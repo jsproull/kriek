@@ -26,8 +26,10 @@ from raspbrew.globalsettings.models import GlobalSettings
 #
 
 #print Status.objects.all().order_by('date')
-status=Status.objects.get(pk=3487)
+#status=Status.objects.get(pk=3487)
 
-print status.status
-status.save()
-print status.status
+#print status.status
+#status.save()
+#print status.status
+
+print Status.objects.all()

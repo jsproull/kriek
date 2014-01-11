@@ -571,9 +571,15 @@ function RaspBrew() {
 
 	$( document ).ready(function() {
 		_this.createChart();
-		_this.updateStatus();
-		_this.updateSystemStatus();
+
 		$("#startDate").datetimepicker({timeFormat: "HH:mm:ss"});
+		//default to start of today
+		var d=new Date();
+		d.setHours(0,0,0,0);
+		$("#startDate").datetimepicker('setDate', d);
+		$('#startDateCheckbox').prop('checked', true);
+		$('#startDate').prop('disabled', false);
+
 		$("#endDate").datetimepicker({timeFormat: "HH:mm:ss"});
 		
 		//set up our enter key submit
@@ -597,6 +603,10 @@ function RaspBrew() {
 			_this.updateStatus();
 		  //e.relatedTarget // previous tab
 		})
+
+		//start our updates
+		_this.updateStatus();
+		_this.updateSystemStatus();
 	});
 	
 	return this;
