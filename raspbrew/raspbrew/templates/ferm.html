@@ -61,9 +61,9 @@
 								</dd>
 							</dl>
 							<hr/>
-								{% if probe.ssr_set.all|dictsort:"name" %}
+								{% if probe.ssrs.all|dictsort:"name" %}
 								<div class="row">
-									{% for ssr in probe.ssr_set.all %}
+									{% for ssr in probe.ssrs.all %}
 									<div class="col-md-{% if probe.ssr_set.all.count == 1 %}12{%else%}6{%endif%}">
 										{% include "ssr.html" with ssr=ssr showenabled=True %}
 									</div>

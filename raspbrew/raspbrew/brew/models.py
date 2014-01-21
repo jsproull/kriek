@@ -4,6 +4,8 @@ import os
 
 # Create your models here.
 class BrewConfiguration(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='brewconfs')
+
 	name = models.CharField(max_length=30)
 	probes = models.ManyToManyField('common.Probe',null=True, blank=True)
 	ssrs = models.ManyToManyField('common.SSR',null=True, blank=True)
@@ -23,5 +25,4 @@ class BrewConfiguration(models.Model):
 	class Meta:
 		verbose_name = "Brew Configuration"
 		verbose_name_plural = "Brew Configuration"
-		
-	#TODO - add brew temp control over time
+

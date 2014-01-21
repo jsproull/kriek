@@ -3,6 +3,7 @@ import os,datetime, base64, json
 from django.utils import timezone
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
+from django.contrib.auth.models import User
 from raspbrew.common.models import Probe,SSR
 from raspbrew.status.models import ProbeStatus
 from raspbrew.status.models import Status
@@ -24,7 +25,7 @@ from raspbrew.globalsettings.models import GlobalSettings
 #				if ssr2 != ssr: 
 #           				print ssr
 #
-
+print User.objects.all()[0].id
 #print Status.objects.all().order_by('date')
 #status=Status.objects.get(pk=3487)
 

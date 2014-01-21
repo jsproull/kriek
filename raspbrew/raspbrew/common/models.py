@@ -25,6 +25,8 @@ def unix_time_millis(dt):
 ## A Schedule can be used to set a temperature after a given time
 ##
 class Schedule(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='schedules')
+
 	start_time = models.DateTimeField() #time of this status
 	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
 	hold_until_time = models.DateTimeField()
@@ -32,6 +34,8 @@ class Schedule(models.Model):
 
 # Each Probe.
 class Probe(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='probes')
+
 	PROBE_TYPE = (
 		(0, 'Mash'),
 		(1, 'Boil'),
@@ -122,6 +126,7 @@ class Probe(models.Model):
         
 # An internal PID class to contain PID values for each SSR
 class PID(models.Model):
+
 	cycle_time = models.FloatField(default=2.0)
 	k_param = models.FloatField(default=70.0)
 	i_param = models.FloatField(default=80.0)
@@ -132,13 +137,19 @@ class PID(models.Model):
 
 # An SSR has probe and PID information
 class SSR(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='ssrs')
+
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
 	pin = models.IntegerField()
-	probe = models.ForeignKey(Probe, null=True)
-	pid = models.OneToOneField(PID, null=True)
+	probe = models.ForeignKey(Probe, null=True, related_name='ssrs')
+	pid = models.OneToOneField(PID, null=True, related_name='ssrs')
 	enabled = models.BooleanField(default=True) #enabled
 	state = models.BooleanField(default=False) #on/off
+
+	#these are updated on demand
+	eta = models.FloatField(null=True, blank=True)
+	degreesPerMinute = models.FloatField(null=True, blank=True)
 
 	#an ssr is a heater or a chiller
 	HEATER_OR_CHILLER = (
@@ -182,11 +193,9 @@ class SSR(models.Model):
 			currentTemp=self.probe.temperature
 			currentTemp=float(currentTemp)
 				
-			#todo - should just filter this by when the ssr state is true
-			
+			#filter when the ssr state is true
 			statuses = Status.objects.filter(date__gte=startDate, date__lte=now, probes__ssrstatus__state=True)
-			#print statuses
-			
+
 			if statuses and len(statuses) >= 2:
 				
 				startTemp=None
@@ -221,6 +230,9 @@ class SSR(models.Model):
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
 					eta = time.mktime(eta.timetuple())*1000
-		#print str(eta)			
+					self.eta = eta
+					self.degreesPerMinute = degreesPerMinute
+					self.save()
+
 		return eta, degreesPerMinute
 			

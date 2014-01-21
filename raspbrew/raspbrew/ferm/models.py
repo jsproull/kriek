@@ -4,6 +4,8 @@ import os
 
 # Create your models here.
 class FermConfiguration(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='fermconfs')
+
 	name = models.CharField(max_length=30)
 	probes = models.ManyToManyField('common.Probe',null=True, blank=True)
 	ssrs = models.ManyToManyField('common.SSR',null=True, blank=True)
@@ -24,5 +26,3 @@ class FermConfiguration(models.Model):
 	class Meta:
 		verbose_name = "Fermentation Configuration"
 		verbose_name_plural = "Fermentation Configuration"
-		
-	#TODO - add fermentation temp control over time
