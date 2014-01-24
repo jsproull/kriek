@@ -25,3 +25,11 @@ class IsOwner(permissions.BasePermission):
         print request.user
         # Write permissions are only allowed to the owner of the snippet.
         return obj.owner == request.user
+
+class IsAnyone(permissions.BasePermission):
+    """
+    Custom permission to only allow anyone
+    """
+
+    def has_object_permission(self, request, view, obj):
+        return True

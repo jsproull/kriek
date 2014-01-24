@@ -42,8 +42,8 @@ ssr.save()
 fc.ssrs.add(ssr)
 
 #if created:
-	#g=GlobalSettings(key='UNITS', value='metric')
-	#g.save()
+g=GlobalSettings(key='UNITS', value='metric')
+g.save()
 
 #print status.toJson(True)
 
@@ -51,13 +51,13 @@ fc.ssrs.add(ssr)
 now=timezone.now()
 start=now - timedelta(days=7)
 d=start
-while d < now:
-	d=d + timedelta(minutes=5)
-	print d
-	status,created=Status.objects.get_or_create(date=d, owner=user, fermconfig=fc)
-	status.probes.add(ProbeStatus.cloneFrom(probe))
-	status.save()
-	print status.date
+#while d < now:
+#	d=d + timedelta(minutes=5)
+#	print d
+#	status,created=Status.objects.get_or_create(date=d, owner=user, fermconfig=fc)
+#	status.probes.add(ProbeStatus.cloneFrom(probe))
+#	status.save()
+#	print status.date
 
 #create some statuseses
 #for i in range(0,1000):

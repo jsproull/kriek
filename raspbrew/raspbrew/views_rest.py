@@ -6,7 +6,7 @@ from raspbrew.status.models import ProbeStatus, SSRStatus
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.ferm.models import FermConfiguration
 from rest_framework import permissions
-from .permissions import IsOwnerOrReadOnly, IsOwner
+from .permissions import IsOwnerOrReadOnly, IsOwner, IsAnyone
 from django.utils import timezone
 from raspbrew.dates import unix_time, unix_time_millis
 
@@ -99,7 +99,7 @@ class StatusList(generics.ListAPIView):
 		Returns a list of statuses filtered by date and number requested
 	"""
 	serializer_class = StatusSerializer
-
+	permission_classes = (IsAnyone,)
 
 	def get_queryset(self):
 		"""
@@ -143,11 +143,6 @@ class StatusList(generics.ListAPIView):
 			except ObjectDoesNotExist:
 				return []
 
-			#default to All - we assume these are sorted by date
-			statuses = Status.objects.all().order_by('date')
-			for status in statuses:
-				pass
-
 			#zerotime = timezone.make_aware(datetime.datetime.fromtimestamp(0),timezone.get_default_timezone())
 			if startDate and endDate:
 				startDate=float(startDate)/1000
@@ -160,7 +155,9 @@ class StatusList(generics.ListAPIView):
 				startDate = datetime.datetime.fromtimestamp(startDate)
 				q = q & Q(date__gte=startDate)
 
-			statuses = statuses.filter(q).order_by("-date")
+			statuses = Status.objects.filter(q).order_by("-date")
+			print "got all statues from db"
+			print str(timezone.now())
 
 			#get the number of items requested
 			total=len(statuses)
@@ -175,11 +172,17 @@ class StatusList(generics.ListAPIView):
 					allStatuses.insert(0, statuses[0])
 					allStatuses.append(statuses[len(statuses)-1])
 
+			print "filtered statues from db"
+			print str(timezone.now())
 
 			if (allStatuses and len(allStatuses) > 0) :
 				for probe in allStatuses[0].probes.all():
 					for ssrstat in SSRStatus.objects.filter(probe=probe):
+						print "GETTING ETA: " + str(ssrstat.ssr.pk)
 						ssrstat.ssr.getETA()
+
+			print "got ETA"
+			print str(timezone.now())
 
 			return allStatuses
 
