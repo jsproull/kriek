@@ -29,6 +29,7 @@ function RaspBrew() {
 	this.confId = 1;
 
 	this.probes = {}; //cached probes by id
+	this.ssrs = {}; //cached ssrs by id
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -55,6 +56,25 @@ function RaspBrew() {
 			success: function(data){
 				_this.probes[probeid] = data;
 				callback(data);
+			}
+		});
+	}
+
+	//loads all the ssrs
+	this.loadSSRs = function(callback) {
+		var url = "/ssrs/";
+		$.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'json',
+			success: function(data){
+				if (data && data.results) {
+					for (var i=0;i<data.results.length;i++){
+						var ssr=data.results[i];
+						_this.ssrs[ssr.id] = ssr;
+					}
+					setTimeout(_this.loadSSRs, _this.updateTime);
+				}
 			}
 		});
 	}
@@ -191,10 +211,10 @@ function RaspBrew() {
 		}
 		
 		var latest = data;
-		if (!latest || (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date))) {
+		//if (!latest || (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date))) {
 			//no need to update
-			return;
-		}
+		//	return;
+		//}
 
 		//set this after the update so we know what we currently have loaded
 		_this.lastLoadedData=latest;
@@ -245,8 +265,12 @@ function RaspBrew() {
 			}
 
 			for (var index in probe.ssrs) {
-				var ssr = probe.ssrs[index];
-				var ssrid = ssr.id;
+				var _ssr = probe.ssrs[index];
+				var ssrid = _ssr.id;
+				var ssr = _this.ssrs[ssrid];
+				if (!ssr) {
+					continue;
+				}
 
 				//only update if something has changed in this ssr
 				//if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
@@ -748,6 +772,7 @@ function RaspBrew() {
 
 		//start our updates
 		_this.updateStatus();
+		_this.loadSSRs();
 		_this.updateSystemStatus();
 	});
 	
