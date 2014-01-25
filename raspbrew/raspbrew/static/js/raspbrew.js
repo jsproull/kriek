@@ -27,6 +27,8 @@ function RaspBrew() {
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
 	this.confId = 1;
+
+	this.probes = {}; //cached probes by id
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -42,7 +44,21 @@ function RaspBrew() {
 			return temp;
 		}
 	}
-	
+
+	//loads an individual probe and caches it in this.probes
+	this.loadProbe = function(probeid, callback) {
+		var url = "/probes/" + probeid +  "/";
+		$.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'json',
+			success: function(data){
+				_this.probes[probeid] = data;
+				callback(data);
+			}
+		});
+	}
+
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
 
@@ -81,36 +97,34 @@ function RaspBrew() {
 				if (data) {
 					if (data && data.results) {
 						_this.latestData = data.results;
-
 						//to make it easier, we recreate the probes array here
 						if (data.results.length > 0) {
-							for (var j=0;j<data.results.length;j++){
-								var newProbes = []
 
-								for (var i=0;i<data.results[j].probes.length;i++) {
-									var p=data.results[j].probes[i];
-									newProbes.push(p.probe);
+							//called as the probes are loaded
+							var probeLoaded = function(_probe) {
+								if (Object.keys(_this.probes).length == data.results[0].probes.length) {
+									_this.updateFromData(data.results[0]);
 								}
-
-								data.results[j].probes = newProbes;
 							}
 
-							_this.updateFromData(data.results[0]);
-
-							//set this after the update so we know what we currently have loaded
-							_this.lastLoadedData=data.results[0];
+							//load the probes from the first returned item
+							for (var j=0;j<data.results[0].probes.length;j++){
+								var probe = data.results[0].probes[j];
+								if (!_this.probes[probe.probe]) {
+									_this.loadProbe(probe.probe, probeLoaded);
+								} else {
+									//we have it cached
+									probeLoaded(_this.probes[probe.probe]);
+								}
+							}
 						} else {
 							_this.lastLoadedData=null;
 						}
-
 
 						//update the chart
 						if (_this._chartUpdatesEnabled) {
 							_this.updateChart(data.results);
 						}
-
-
-						//console.log('_this.lastLoadedData', _this.lastLoadedData, data);
 					}
 				}
 				
@@ -181,9 +195,18 @@ function RaspBrew() {
 			//no need to update
 			return;
 		}
-		
+
+		//set this after the update so we know what we currently have loaded
+		_this.lastLoadedData=latest;
+
 		for (var index in latest.probes) {
 			var probe = latest.probes[index];
+			probe = _this.probes[probe.probe];
+
+			if (!probe) {
+				continue;
+			}
+
 			var probeid = probe.id;
 
 			var tempInput = $('#probe' + probeid + '_temp');

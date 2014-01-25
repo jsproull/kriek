@@ -32,7 +32,7 @@ class ProbeViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = Probe.objects.all()
 	serializer_class = ProbeSerializer
-	permission_classes = (IsOwner,)
+	permission_classes = (IsAnyone,)
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
