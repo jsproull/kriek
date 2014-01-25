@@ -3,9 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="fb33b328-a800-49e7-ab91-c0d6b0a86269" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/static/js/raspbrew.js" afterPath="$PROJECT_DIR$/raspbrew/static/js/raspbrew.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/settings.py" afterPath="$PROJECT_DIR$/raspbrew/settings.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/views_rest.py" afterPath="$PROJECT_DIR$/raspbrew/views_rest.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="raspbrew.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,7 +28,7 @@
       <file leaf-file-name="raspbrew.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raspbrew/static/js/raspbrew.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="102" column="61" selection-start="2968" selection-end="2968" vertical-scroll-proportion="0.4334086" vertical-offset="1338" max-vertical-offset="11385">
+            <state line="551" column="17" selection-start="14944" selection-end="14944" vertical-scroll-proportion="0.36930457" vertical-offset="8111" max-vertical-offset="11460">
               <folding />
             </state>
           </provider>
@@ -98,7 +95,7 @@
       <file leaf-file-name="models.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="17" selection-start="584" selection-end="595" vertical-scroll-proportion="6.0384617" vertical-offset="442" max-vertical-offset="3615">
+            <state line="36" column="56" selection-start="1397" selection-end="1397" vertical-scroll-proportion="-3.4615386" vertical-offset="435" max-vertical-offset="3615">
               <folding />
             </state>
           </provider>
@@ -703,13 +700,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="17" selection-start="584" selection-end="595" vertical-scroll-proportion="6.0384617" vertical-offset="442" max-vertical-offset="3615">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/common/serializers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state line="66" column="21" selection-start="2073" selection-end="2073" vertical-scroll-proportion="0.0" vertical-offset="864" max-vertical-offset="1320">
@@ -735,9 +725,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="36" column="56" selection-start="1397" selection-end="1397" vertical-scroll-proportion="-3.4615386" vertical-offset="435" max-vertical-offset="3615">
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/static/js/raspbrew.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="102" column="61" selection-start="2968" selection-end="2968" vertical-scroll-proportion="0.4334086" vertical-offset="1338" max-vertical-offset="11385">
+        <state line="551" column="17" selection-start="14944" selection-end="14944" vertical-scroll-proportion="0.36930457" vertical-offset="8111" max-vertical-offset="11460">
           <folding />
         </state>
       </provider>

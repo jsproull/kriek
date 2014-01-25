@@ -548,8 +548,11 @@ function RaspBrew() {
 		}
 
 		//update the actual data
-		var probe = _this.findProbe(probeid);
-		probe.target_temperature = val;
+		var probe = _this.probes[probeid];
+		debugger;
+		if (probe) {
+			probe.target_temperature = val;
+		}
 
 		var post = { pk: probeid, target_temperature: probe.target_temperature  };
 
@@ -599,6 +602,8 @@ function RaspBrew() {
 				}
 			}
 		}
+
+		return null;
 	}
 
 	//finds the requested ssr by id from the latest loaded data
