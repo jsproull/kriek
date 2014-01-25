@@ -220,7 +220,7 @@ def brew(request):
 #returns true if raspbrew.py is running
 def isRaspbrewRunning():
 	try:
-		output = subprocess.check_output(['/usr/bin/pgrep', '-lf', 'python.*raspbrew'])
+		output = subprocess.check_output(['/usr/bin/pgrep', '-lf', 'python.*raspbrew_'])
 		if len(output) > 0:
 			return True
 		else:
