@@ -68,13 +68,13 @@ class FermConfSerializer(serializers.ModelSerializer):
 SSRSerializer.probe = ProbeSerializer(many=False)
 
 ## status
-class ProbeStatusSerializer(serializers.ModelSerializer):
-	probe = ProbeSerializer(many=False)
+class ProbeStatusSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer): 
+	#probe = ProbeSerializer(many=False)
 	class Meta:
 		model = ProbeStatus
 		fields = ('id', 'name', 'one_wire_Id', 'type', 'temperature', 'target_temperature', 'probe', 'owner')
 
-class StatusSerializer(serializers.ModelSerializer):
+class StatusSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer): 
 	probes = ProbeStatusSerializer(many=True)
 	class Meta:
 		model = Status

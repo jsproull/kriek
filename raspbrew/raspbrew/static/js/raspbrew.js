@@ -20,7 +20,7 @@ function RaspBrew() {
 	
 	this.updateTime = 2000;
 	this.updateSystemSettingsTime = 20000;
-	this.chartPoints = 50;
+	this.chartPoints = 20;
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 	this._chartUpdatesEnabled = true;

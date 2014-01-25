@@ -21,6 +21,7 @@
 
 import sys, os
 sys.path.insert(0, "../")
+sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 

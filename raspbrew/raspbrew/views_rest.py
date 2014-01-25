@@ -16,6 +16,13 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 
+class UserViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows users to be viewed or edited.
+	"""
+	queryset = User.objects.all()
+	serializer_class = UserSerializer
+
 class ProbeViewSet(viewsets.ModelViewSet):
 	"""
 	This viewset automatically provides `list`, `create`, `retrieve`,
@@ -178,11 +185,11 @@ class StatusList(generics.ListAPIView):
 			if (allStatuses and len(allStatuses) > 0) :
 				for probe in allStatuses[0].probes.all():
 					for ssrstat in SSRStatus.objects.filter(probe=probe):
-						print "GETTING ETA: " + str(ssrstat.ssr.pk)
 						ssrstat.ssr.getETA()
 
-			print "got ETA"
+			print "Done"
 			print str(timezone.now())
+			print "-----------"
 
 			return allStatuses
 
