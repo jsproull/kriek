@@ -1,0 +1,69 @@
+    <div>
+        <h3 class="pull-left">Temperature Chart</h3>
+        <div class="input-group pull-right">
+                <!--ul class="nav nav-pills">
+                    <li class="dropdown">
+                    <a class="dropdown-toggle" role="button" data-toggle="dropdown" href="#"><span id="chartUpdates">Chart Updates Enabled</span> <b class="caret"></b></a>
+                    <ul id="menu1" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                        <li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(true); return false;">Updates Enabled</a></li>
+                        <li><a href="#" onclick="raspbrew.setChartUpdatesEnabled(false); return false;">Updates Disabled</a></li>
+                    </ul>
+                </ul>-->
+            <div class="btn-group dropdown">
+              <button class="btn btn-info dropdown-toggle" type="button" data-toggle="dropdown">
+                Chart Settings <span class="caret"></span>
+                </button>
+              <ul class="dropdown-menu">
+                <!-- Dropdown menu links -->
+                  <li><a href="#" onclick="raspbrew.toggleChartUpdatesEnabled(); return false;"><input checked="true" id="chartEnabledCheckbox" type="checkbox"> Updates enabled</a></li>
+                  <li role="presentation" class="divider"></li>
+                  <li><a href="#" onclick="raspbrew.calibratePID(); return false;">TODO - calibrate PID</a></li>
+
+              </ul>
+            </div>
+        </div>
+        <div class="clearfix"></div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div id="tempChart">
+                <svg id="tempChartSvg"></svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-3 col-md-offset-4">
+        <div class="input-group">
+          <span class="input-group-addon">
+            <input id="startDateCheckbox" type="checkbox" onclick="javascript:$('#startDate').prop('disabled', !this.checked); if (!this.checked) { $('#endDateCheckbox').prop('checked', false); $('#endDate').prop('disabled', true); }">
+          </span>
+          <input disabled="true" class="form-control" placeholder="Start Date/Time" class="datetime" type="text" id="startDate"/>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="input-group">
+          <span class="input-group-addon">
+            <input id="endDateCheckbox" type="checkbox" onclick="javascript:$('#endDate').prop('disabled', !this.checked); if (this.checked) { $('#startDateCheckbox').prop('checked', true); $('#startDate').prop('disabled', false); } ">
+          </span>
+          <input disabled="true" class="form-control" placeholder="End Date/Time" class="datetime" type="text" id="endDate"/>
+        </div>
+      </div>
+        <div class="col-md-2">
+            <div class="input-group">
+                <ul class="nav nav-pills">
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" id="drop4" role="button" data-toggle="dropdown" href="#">Quick Time <b class="caret"></b></a>
+                        <ul id="quickmenu" class="dropdown-menu" role="menu" aria-labelledby="drop4">
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 15), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 15 minutes</a></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('minutes', 60), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last hour</a></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('hours', 3), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">Last 3 hours</a></li>
+                            <li role="presentation" class="divider"></li>
+                            <li role="presentation"><a onclick="javascript:raspbrew.quickTime(moment().subtract('days', 7), moment().add('days', 1).startOf('day')); return false;" role="menuitem" tabindex="-1" href="#">This Week</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+      </div>
+ </div>

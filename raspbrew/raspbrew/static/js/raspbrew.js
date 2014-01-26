@@ -15,17 +15,20 @@ function RaspBrew() {
 	
 	this.lastChartData = null;
 	this.lastLoadedData = null;
+	this.latestChartData = null; 	// an array of results from the server
 	this._systemStatus = null;
 	
 	this.updateTime = 2000;
 	this.updateSystemSettingsTime = 20000;
-	this.chartPoints = 50;
+	this.chartPoints = 20;
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 	this._chartUpdatesEnabled = true;
 
-	this.baseURL = $('#brew').length > 0 ? '/status/brew' : '/status/ferm';
+	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
 	this.confId = 1;
+
+	this.probes = {}; //cached probes by id
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -41,12 +44,35 @@ function RaspBrew() {
 			return temp;
 		}
 	}
-	
+
+	//loads all the probes and caches them in this.probes
+	this.loadProbes = function() {
+		var url = "/probes/";
+		$.ajax({
+			url: url,
+			type: 'GET',
+			dataType: 'json',
+			success: function(data){
+				if (data && data.results) {
+					for (var i=0;i<data.results.length;i++){
+						var probe = data.results[i];
+						_this.probes[probe.id] = probe;
+					}
+					_this.updateFromData(data.results);
+				}
+				setTimeout(_this.loadProbes, _this.updateTime);
+			},
+			error: function(data) {
+				setTimeout(_this.loadProbes, _this.updateTime);
+			}
+		});
+	}
+
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
 
-		var url =  _this.baseURL + '/' + _this.confId + '/' + _this.chartPoints;
-		
+		var url =  _this.baseURL + '&confId=' + _this.confId + '&numberToReturn=' + _this.chartPoints;
+
 		if ($("#startDate").is(":focus") || $("#endDate").is(":focus")) {
 			setTimeout(_this.updateStatus, _this.updateTime);
 			return;
@@ -62,12 +88,12 @@ function RaspBrew() {
 			startDateValue = $("#startDate").val();
 			if (startDateValue) {
 				sd = new Date($("#startDate").datetimepicker('getDate'));
-				url = url + '/' + parseFloat(sd.getTime());
+				url = url + '&startDate=' + parseFloat(sd.getTime());
 			
 				endDateValue = $("#endDate").val();
 				if (endDateEnabled && endDateValue) {
 					ed = new Date($("#endDate").datetimepicker('getDate'));
-					url = url + '/' + parseFloat(ed.getTime());
+					url = url + '&endDate=' + parseFloat(ed.getTime());
 				}
 			}
 		}
@@ -78,15 +104,14 @@ function RaspBrew() {
 			dataType: 'json',
 			success: function(data){ 
 				if (data) {
-					_this.updateFromData(data);
-
-					//update the chart
-					if (_this._chartUpdatesEnabled) {
-						_this.updateChart(data);
+					if (data && data.results) {
+						_this.latestChartData = data.results;
+						
+						//update the chart
+						if (_this._chartUpdatesEnabled) {
+							_this.updateChart(data.results);
+						}
 					}
-
-					//set this after the update so we know what we currently have loaded
-					_this.lastLoadedData=data[0];
 				}
 				
 				setTimeout(_this.updateStatus, _this.updateTime);
@@ -101,7 +126,7 @@ function RaspBrew() {
 	// This is called to update the system status.
 	this.updateSystemStatus = function() {
 		$.ajax({
-			url: "/status/system",
+			url: "/system/status/",
 			type: 'GET',
 			dataType: 'json',
 			success: function(data){ 
@@ -145,39 +170,55 @@ function RaspBrew() {
 			return;
 		}
 	
-		if (!data || data.length==0) {
+		if (!data) {
 			$('.raspbrew-updateable').html('--');
 			this.emptyChart();
 			return;
 		}
 		
-		var latest = data[0];
-		if (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date)) {
+		var latest = data;
+		//if (!latest || (!force && latest && _this.lastLoadedData && (latest.date == _this.lastLoadedData.date))) {
 			//no need to update
-			return;
-		}
-		
-		for (var probeid in latest.probes) {
-			var probe = latest.probes[probeid];
-			
+		//	return;
+		//}
+
+		//set this after the update so we know what we currently have loaded
+		_this.lastLoadedData=latest;
+
+		for (var index in latest) {
+			var probe = latest[index];
+
+			if (!probe) {
+				continue;
+			}
+
+			var probeid = probe.id;
+
 			var tempInput = $('#probe' + probeid + '_temp');
 			var ttempInput = $('#probe' + probeid + '_target');
 			
-			var temp = _this.getTemperature(probe.temp);
+			var temp = _this.getTemperature(probe.temperature);
 			var targetTemp = NaN;
-			if (probe.target_temp) {
-				targetTemp = parseFloat(probe.target_temp);
+			if (probe.target_temperature) {
+				targetTemp = parseFloat(probe.target_temperature);
 			}
 			
 			if (! tempInput.is(":focus"))
 				tempInput.html(temp.toFixed(2));
 			if (! ttempInput.is(":focus") && ! ttempInput.parent().hasClass('has-success')) {
-				if (probe.target_temp) {
+				if (probe.target_temperature) {
 					ttempInput.val(targetTemp.toFixed(2));
 				} else {
 					ttempInput.val("");
 				}
 			}
+			
+			//disable the targettemp if this probe has no ssrs
+			/*if (!probe.ssrs || probe.ssrs.length == 0) {
+				ttempInput.attr('disabled', true);
+			} else {
+				ttempInput.attr('disabled', false);
+			}*/
 			
 			//how close are we to the target temp?
 			if (!isNaN(temp) && !isNaN(targetTemp)) {
@@ -187,107 +228,108 @@ function RaspBrew() {
 				  color: color
 			  	}, 1500 );
 			}
-			
+
+			for (var index in probe.ssrs) {
+				var ssr = probe.ssrs[index];
+				var ssrid = ssr.id;
+				if (!ssr) {
+					continue;
+				}
+
+				//only update if something has changed in this ssr
+				//if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
+				//	continue;
+				//}
+
+				$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
+				$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
+				$('#ssr' + ssrid).removeClass("powerOff");
+				$('#ssr' + ssrid).removeClass("power");
+
+				if (ssr.state) {
+					$('#ssr' + ssrid + "_icon").addClass("fa-check-square-o");
+					$('#ssr' + ssrid).addClass("power");
+				} else {
+					$('#ssr' + ssrid + "_icon").addClass("fa-square-o");
+					$('#ssr' + ssrid).addClass("powerOff");
+				}
+
+				//state
+				$('#ssr' + ssrid + "_state").removeClass("label-on");
+				$('#ssr' + ssrid + "_state").removeClass("label-off");
+
+				if (ssr.state) {
+					$('#ssr' + ssrid + "_state").addClass("label-on");
+					$('#ssr' + ssrid + "_state").html("On");
+				} else {
+					$('#ssr' + ssrid + "_state").addClass("label-off");
+					$('#ssr' + ssrid + "_state").html("Off");
+				}
+
+				//set the eta and degrees per hour
+				if (ssr.eta) {
+					var eta=ssr.eta;
+					var eta=new Date(eta);
+					eta=moment(eta).fromNow(true);
+					$('#ssr' + ssrid + '_eta').html(eta);
+				} else {
+					$('#ssr' + ssrid + '_eta').html('--');
+				}
+
+				if (ssr.dpm) {
+					var dpm = parseFloat(ssr.dpm).toFixed(3);
+					//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
+					$('#ssr' + ssrid + '_dpm').html(dpm);
+				} else {
+					//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
+					$('#ssr' + ssrid + '_dpm').html('--');
+				}
+
+
+				//enabled -- only used in ferm.html
+				$('#ssr' + ssrid + "_panel").removeClass("disabled");
+				$('#ssr' + ssrid + "_enabled").removeClass("label-enabled");
+				$('#ssr' + ssrid + "_enabled").removeClass("label-disabled");
+
+				if (ssr.enabled) {
+					$('#ssr' + ssrid + "_panel").addClass("disabled");
+					$('#ssr' + ssrid + "_enabled").addClass("label-enabled");
+					$('#ssr' + ssrid + "_enabled").html("Yes");
+				} else {
+					$('#ssr' + ssrid + "_panel").addClass("disabled");
+					$('#ssr' + ssrid + "_enabled").addClass("label-disabled");
+					$('#ssr' + ssrid + "_enabled").html("No");
+				}
+
+
+				//button
+				if (ssr.enabled) {
+					$('#ssr' + ssrid + '_setCurrent').removeClass('btn-primary');
+					$('#ssr' + ssrid + '_setCurrent').addClass('btn-warning');
+					$('#ssr' + ssrid + '_setCurrent').addClass('enabled');
+					$('#ssr' + ssrid + '_setCurrent').html("On")
+				} else {
+					$('#ssr' + ssrid + '_setCurrent').addClass('btn-primary');
+					$('#ssr' + ssrid + '_setCurrent').removeClass('btn-warning');
+					$('#ssr' + ssrid + '_setCurrent').removeClass('enabled');
+					$('#ssr' + ssrid + '_setCurrent').html("Off")
+				}
+
+				//power
+				if (ssr.pid && ssr.pid.power) {
+					$('#ssr' + ssrid + '_power').html(ssr.pid.power + "%");
+				} else {
+					$('#ssr' + ssrid + '_power').html('--');
+				}
+			}
 		}
-		
-		for (var ssrid in latest.ssrs) {
-			var ssr = latest.ssrs[ssrid];
-			
-			//only update if something has changed in this ssr
-			//if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
-			//	continue;
-			//}
-			
-				
-			$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
-			$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
-			$('#ssr' + ssrid).removeClass("powerOff");
-			$('#ssr' + ssrid).removeClass("power");
-			
-			if (ssr.state) {
-				$('#ssr' + ssrid + "_icon").addClass("fa-check-square-o");
-				$('#ssr' + ssrid).addClass("power");
-			} else {
-				$('#ssr' + ssrid + "_icon").addClass("fa-square-o");
-				$('#ssr' + ssrid).addClass("powerOff");
-			}
-			
-			//state
-			$('#ssr' + ssrid + "_state").removeClass("label-on");
-			$('#ssr' + ssrid + "_state").removeClass("label-off");
-			
-			if (ssr.state) {
-				$('#ssr' + ssrid + "_state").addClass("label-on");
-				$('#ssr' + ssrid + "_state").html("On");
-			} else {
-				$('#ssr' + ssrid + "_state").addClass("label-off");
-				$('#ssr' + ssrid + "_state").html("Off");
-			}
-
-			//set the eta and degrees per hour
-			if (ssr.eta) {
-				var eta=ssr.eta;
-				var eta=new Date(eta);
-				eta=moment(eta).fromNow(true);
-				$('#ssr' + ssrid + '_eta').html(eta);
-			} else {
-				$('#ssr' + ssrid + '_eta').html('--');
-			}
-			
-			if (ssr.dpm) {
-				var dpm = parseFloat(ssr.dpm).toFixed(3);
-				//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
-				$('#ssr' + ssrid + '_dpm').html(dpm);
-			} else {
-				//$('#probe' + probeid + '_dpm').parent().addClass("hidden");
-				$('#ssr' + ssrid + '_dpm').html('--');
-			}
-
-
-			//enabled -- only used in ferm.html
-			$('#ssr' + ssrid + "_panel").removeClass("disabled");
-			$('#ssr' + ssrid + "_enabled").removeClass("label-enabled");
-			$('#ssr' + ssrid + "_enabled").removeClass("label-disabled");
-
-			if (ssr.enabled) {
-				$('#ssr' + ssrid + "_panel").addClass("disabled");
-				$('#ssr' + ssrid + "_enabled").addClass("label-enabled");
-				$('#ssr' + ssrid + "_enabled").html("Yes");
-			} else {
-				$('#ssr' + ssrid + "_panel").addClass("disabled");
-				$('#ssr' + ssrid + "_enabled").addClass("label-disabled");
-				$('#ssr' + ssrid + "_enabled").html("No");
-			}
-
-
-			//button
-			if (ssr.enabled) {
-				$('#ssr' + ssrid + '_setCurrent').removeClass('btn-primary');
-				$('#ssr' + ssrid + '_setCurrent').addClass('btn-warning');
-				$('#ssr' + ssrid + '_setCurrent').addClass('enabled');
-				$('#ssr' + ssrid + '_setCurrent').html("On")
-			} else {
-				$('#ssr' + ssrid + '_setCurrent').addClass('btn-primary');
-				$('#ssr' + ssrid + '_setCurrent').removeClass('btn-warning');
-				$('#ssr' + ssrid + '_setCurrent').removeClass('enabled');
-				$('#ssr' + ssrid + '_setCurrent').html("Off")
-			}
-
-			//power
-			if (ssr.pid && ssr.pid.power) {
-				$('#ssr' + ssrid + '_power').html(ssr.pid.power + "%");
-			} else {
-				$('#ssr' + ssrid + '_power').html('--');
-			}
-		}
-
 	}
 	
 	// Clears out the chart if there's no data
 	this.emptyChart = function() {
 		
 		if (this.chart) {
-			var datum = _this.lastLoadedData;
+			var datum = _this.lastChartData;
 			if (datum) {
 				for (var i=0;i<datum.length;i++) {
 					datum[i].values = [{x:0,y:0}];
@@ -312,34 +354,80 @@ function RaspBrew() {
 	// Updates the chart with the current data set
 	this.updateChart = function(data) {
 
-		var dd = {};
+		var dd = [];
 		var values = [];
 
+		var startDate, endDate;
+
+		var datum=[];
+
+		var states = [];
+		
 		for (var i = 0; i < data.length; i++) {
 			var d = data[i];
-			for (var probeid in d.probes) {
-				var probe = d.probes[probeid];
-				if (!dd[probeid]) {
-					dd[probeid] = []
+			if (!d.probes) {
+				continue;
+			}
+			//console.log('d.probes', d.probes);
+
+			for (var index in d.probes) {
+				var probe = d.probes[index];
+				var probeid = probe.id;
+				if (!states[index]) {
+					states[index]=[];
 				}
-				var date = new Date(parseFloat(d.date));
-				var temp = probe.temp;
+
+				if (!dd[index]) {
+					dd[index] = []
+				}
+				var date = new Date(moment(d.date));
+				var temp = probe.temperature;
 				if (temp) {
-					temp=_this.getTemperature(probe.temp)
-					dd[probeid].push({x: date, y: temp});
+					if (startDate == null) {
+						startDate=date;
+					}
+					if (startDate) {
+						endDate=date;
+					}
+					//console.log(temp);
+					temp=_this.getTemperature(probe.temperature)
+					dd[index].push({x: date, y: temp});
 				}
+
+				//we only have to push each dd object once and the dd[index] array will get updated
+				datum[index] = ({ values: dd[index], key: probe.name, color:this.colourList[index] });
+				
+				//set this if it's true or false
+				if (probe.ssrs) {
+					for (var ssri in probe.ssrs) {
+						ssr = probe.ssrs[ssri]
+						if (ssr && ssr.state == true) {
+							states[index][i] = true;
+						}
+					}
+				}
+
+				//console.log(index, dd[index])
 			}
 		}
 
-		var datum=[];
-		var d = data[0];
-		var count=0;
-		for (var probeid in dd) {
-			if (d.probes && d.probes[probeid]) {
-				datum.push({ values: dd[probeid], key: d.probes[probeid].name, color:this.colourList[count++] });
-			}
+		//udpate the time axis
+		var diffInHours = moment(startDate).diff(moment(endDate),'hours');
+		if (diffInHours > 24) {
+				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
+					//why do i have to do this??
+					return d3.time.format("%x %H:%M")(new Date(d));
+				});
+		} else {
+				_this.chart.xAxis.axisLabel('Time (s)').tickFormat(function(d) {
+					//why do i have to do this??
+					return d3.time.format("%H:%M:%S")(new Date(d));
+				});
 		}
-		
+
+
+		//console.log('chart data', datum);
+
 		this.lastChartData = datum;
 		
 		if (this.chart) {
@@ -348,6 +436,17 @@ function RaspBrew() {
 			.datum(datum)
 			.transition().duration(500)
 			.call(this.chart);
+			
+			setTimeout(function() { 
+				for (var probeid in states) {
+					if (states[probeid] && states[probeid].length>0) {
+						//console.log( states[probeid] );
+						for (var index in states[probeid]) {
+									$(".nv-series-" + 1 + " .nv-point-" + index).attr('r', 5);//.attr('fill','blue')
+							}
+					}
+				}
+			}, 1000);
 		}
 	
 	}
@@ -399,15 +498,31 @@ function RaspBrew() {
 	this.toggleSSR = function(ssrid) {
 		if (ssrid) {
 			var enabled = !$('#ssr' + ssrid + '_setCurrent').hasClass('enabled')
-
-			//update the local data and refresh
-			if (_this.lastLoadedData && _this.lastLoadedData['ssrs'] && _this.lastLoadedData['ssrs'][ssrid]) {
-				_this.lastLoadedData['ssrs'][ssrid].enabled = enabled;
-				this.updateFromData([_this.lastLoadedData], true);
+			var ssr = _this.findSSR(ssrid);
+			if (!ssr) {
+				return;
 			}
 
-			var post = { ssrs: [ { pk: ssrid, enabled:enabled } ] };
-			_this.sendUpdate(post);
+			//disable all other ssrs locally
+			for (var probeid in _this.probes){
+				var probe = _this.probes[probeid];
+				for (var j=0;j<probe.ssrs.length;j++){
+					var _ssr = probe.ssrs[j];
+					if (_ssr.id != ssr.id) {
+						_ssr.enabled=false;
+					}
+				}
+			}
+
+			ssr.enabled = enabled;
+
+			//update the local data and refresh
+			if (_this.lastLoadedData) {
+				_this.updateFromData(_this.lastLoadedData, true);
+			}
+
+			var post = { pk: ssrid, enabled:enabled };
+			_this.sendUpdate("/ssrs/" + ssr.id + "/", post);
 		}
 	}
 	
@@ -433,58 +548,94 @@ function RaspBrew() {
 				return;
 			} 
 			input.val(val.toFixed(2));
-		}		
+		}
 
-		var post = { probes: [ { pk: probeid, target_temperature: val } ]  };
+		//update the actual data
+		var probe = _this.probes[probeid];
+		if (probe) {
+			probe.target_temperature = val;
+		}
 
-		_this.sendUpdate(post);
+		var post = { pk: probeid, target_temperature: probe.target_temperature  };
+
+		_this.sendUpdate("/probes/" + probeid + "/", post);
 	}
 
-	this.sendUpdate = function(post) {
-		this._writingData = true;
+	this.sendUpdate = function(url, post, callback, errcallback) {
+		_this._writingData = true;
 
 		$('.raspbrew-updateable').attr('disabled', true);
 		$.ajax({
-			url: "/update",
-			type: 'POST',
+			url: url,
+			type: 'PATCH',
 			dataType: 'json',
 			data: JSON.stringify(post),
+			contentType:"application/json",
 			success: function(data){
 				$('.raspbrew-updateable').attr('disabled', false);
 				setTimeout(function(){_this._writingData = false;}, 1000);
+				if (callback) { callback(data); }
 			},
-			error: function() {
+			error: function(data) {
 				$('.raspbrew-updateable').attr('disabled', false);
 				_this._writingData = false;
+				if (errcallback) { errcallback(data); }
 			}
 		});
+
+		_this.updateFromData(_this.lastLoadedData, true);
 	}
 	
 	//this sets wether or not we should be updating the char
-	this.setChartUpdatesEnabled = function(enabled) {
-		this._chartUpdatesEnabled = enabled;
-		if (enabled) {
-			$('#chartUpdates').html('Chart Updates Enabled');
-		} else {
-			$('#chartUpdates').html('Chart Updates Disabled');
+	this.toggleChartUpdatesEnabled = function(enabled) {
+		this._chartUpdatesEnabled = !this._chartUpdatesEnabled;
+		enabled = $('#chartEnabledCheckbox').prop('checked', this._chartUpdatesEnabled);
+	}
+
+	//finds the requested probe by id from the latest loaded data
+	this.findProbe = function(probeid) {
+		var data = _this.lastLoadedData;
+
+		if (data && data) {
+			for (var i=0;i<data.length;i++) {
+				var probe = data[i];
+				if (probe.id == probeid) {
+					return probe;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	//finds the requested ssr by id from the latest loaded data
+	this.findSSR = function(ssrid) {
+		var data = _this.lastLoadedData;
+
+		if (data) {
+			for (var i=0;i<data.length;i++) {
+				var probe = data[i];
+
+				for (var j=0;j<probe.ssrs.length;j++) {
+					var ssr = probe.ssrs[j];
+					if (ssr.id == ssrid) {
+						return ssr;
+					}
+				}
+			}
 		}
 	}
 	
 	//shows a configuration dialog for a given ssr
-	this.configureSSR = function(ssrid, ssrname) {
-		
-		var data = _this.lastLoadedData;
-		
-		if (data && data.ssrs && data.ssrs[ssrid]) {
-			_this._editingSSR = data.ssrs[ssrid];
-			_this._editingSSR.id = ssrid;
-			
-			$('#ssrEnabled').prop('checked')
-			$('#ssrEnabled').prop('checked', this._editingSSR.enabled)
-			$('#ssrPower').val(this._editingSSR.pid.power)
-			$('#ssrModalTitle').html(_this._editingSSR.name);
-			$('#ssrModal').modal({});
-		}
+	this.configureSSR = function(ssrid) {
+		_this._editingSSR = ssrid;
+
+		var ssr = _this.findSSR(ssrid);
+
+		$('#ssrEnabled').prop('checked', ssr.enabled)
+		$('#ssrPower').val(ssr.pid.power)
+		$('#ssrModalTitle').html(ssr.name);
+		$('#ssrModal').modal({});
 	}
 
 	//saves the ssr from the modal dialog
@@ -495,25 +646,83 @@ function RaspBrew() {
 		
 		var enabled = $('#ssrEnabled').prop('checked') ? 1 : 0 ;
 		var power = $('#ssrPower').val();
-		
-		pid={};
+		var ssr = _this.findSSR(_this._editingSSR);
+
+		//update our values
+		var pid=ssr.pid;
+		ssr.enabled = enabled;
 		
 		if (!isNaN(parseInt(power))) {
 			pid.power = power;
 		}
-		
-		var post = { ssrs: [ { pk: _this._editingSSR.id, enabled: enabled, pid: pid } ] };
-		
-		_this.sendUpdate(post);
-		
+
+		var post = { pk: ssr.id, enabled: enabled, pid: pid };
+
+		//call back function
+		var cb = function(data) {
+			_this._editingSSR = null;
+		}
+
+		_this.sendUpdate("/ssrs/" + ssr.id + "/", post, cb, cb);
+
 		$('#ssrModal').modal('hide');
 	}
 
+	//this method will try to calibrate the heater pid
+	this.calibratePID = function() {
+		if (!_this.latestChartData || _this.latestChartData.length == 0) {
+			return;
+		}
+
+		/*
+		  	Dead-Time (TD): the dead-time of the system is the time delay between the initial response and a 10 % increase in the process variable
+			(which is the HLT temperature in our case). Unity is given in seconds.
+		*/
+
+		//go through all of our data points and figure out when we've gone up 10% from the first data point
+		var start = _this.latestChartData[0];
+		var end = null;
+		for (var i=0;i<_this.latestChartData.length;i++) {
+			var data = _this.latestChartData[i];
+			if (data.temperature > start.temperature*1.1) {
+				break;
+			}
+			end = data;
+		}
+
+		if (!end) {
+			alert('something wrongo');
+			return;
+		}
+
+		var deadtime = moment(end.date) - moment(start.date);
+
+		if (datetime <= 0) {
+			alert('something wrongo2');
+			return;
+		}
+		console.log('deadtime', deadtime);
+
+		//Normalized slope (a): the normalized slope of the step response is the increase in temperature per second per percentage of the PID controller output.
+			// Stated in a formula: a = change in temperature divided by time-interval divided by PID controller output.
+		//Gain (K): the gain of the HLT system. We can model our HLT system as having one input (the PID controller output in %)
+			// and one output (the HLT temperature). The Gain of this HLT system is then defined as output divided by input and has a unity of °C / %.
+		//Time-constant (tau): the time-constant of the system is another important parameter of the system. It describes how quick the
+			// temperature will increase, given a particular output of the PID controller. Unity is given in seconds.
+	}
+
+	//on ready
 	$( document ).ready(function() {
 		_this.createChart();
-		_this.updateStatus();
-		_this.updateSystemStatus();
+
 		$("#startDate").datetimepicker({timeFormat: "HH:mm:ss"});
+		//default to start of today
+		var d=new Date();
+		d.setHours(0,0,0,0);
+		$("#startDate").datetimepicker('setDate', d);
+		$('#startDateCheckbox').prop('checked', true);
+		$('#startDate').prop('disabled', false);
+
 		$("#endDate").datetimepicker({timeFormat: "HH:mm:ss"});
 		
 		//set up our enter key submit
@@ -523,6 +732,25 @@ function RaspBrew() {
 				return false; // prevent the button click from happening
 			}
 		});
+
+		//ensure we have a confId
+		if ($('.raspbrew-tab').length > 0) {
+			_this.confId = $('.raspbrew-tab').attr('data-confid');
+		} else {
+			_this.confId = $('#confid').attr('data-confid');
+		}
+
+		//set up tabs on click
+		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+			_this.confId = $(e.target).attr('data-confid');
+			_this.updateStatus();
+		  //e.relatedTarget // previous tab
+		})
+
+		//start our updates
+		_this.updateStatus();
+		_this.loadProbes();
+		_this.updateSystemStatus();
 	});
 	
 	return this;

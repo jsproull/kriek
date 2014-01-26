@@ -4,6 +4,8 @@ import os
 
 # Create your models here.
 class BrewConfiguration(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='brewconfs')
+
 	name = models.CharField(max_length=30)
 	probes = models.ManyToManyField('common.Probe',null=True, blank=True)
 	ssrs = models.ManyToManyField('common.SSR',null=True, blank=True)
@@ -13,6 +15,9 @@ class BrewConfiguration(models.Model):
 	#current_ssr = models.OneToOneField('common.SSR', related_name='current_ssr', null=True, blank=True)
 	allow_multiple_ssrs = models.BooleanField(default=False)
 	
+	#a schedule for this brew session
+	schedule = models.ForeignKey('common.Schedule',null=True, blank=True)
+	
 	def __unicode__(self):
 		return self.name
 
@@ -20,5 +25,4 @@ class BrewConfiguration(models.Model):
 	class Meta:
 		verbose_name = "Brew Configuration"
 		verbose_name_plural = "Brew Configuration"
-		
-	#TODO - add brew temp control over time
+

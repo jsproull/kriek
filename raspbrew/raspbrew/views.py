@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.core.serializers.json import DjangoJSONEncoder
 from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.utils import timezone
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
 
 import base64, time, datetime
 
@@ -13,13 +15,17 @@ from raspbrew.globalsettings.models import GlobalSettings
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import Status
+
+
 import json
 
 import subprocess
+from django.contrib.auth import authenticate, login, logout
 
 #
 # returns the ferm.html template
 #
+@login_required
 def ferm(request):
 	try:
 		p = FermConfiguration.objects.all().order_by('pk')
@@ -32,6 +38,7 @@ def ferm(request):
 #
 # returns the brew.html template
 #
+@login_required
 def brew(request):
 	try:
 		p = BrewConfiguration.objects.all().order_by('name')
@@ -41,178 +48,222 @@ def brew(request):
 	return render_to_response('brew.html', {'brewConfs': p},
 		context_instance=RequestContext(request))
 
+# #
+# # updates and returns json
+# # TODO - remove this below
+# @csrf_exempt
+# def update(request):
+# 	if request.method == 'POST':
+# 		try:
+# 			_json=json.loads(request.body)
+# 			_updatedAny = False
+# 			if 'probes' in _json:
+# 				for probe in _json['probes']:
+# 					if 'pk' in probe:
+# 						edited=False
+# 						p=Probe.objects.get(pk=probe['pk'])
+# 						if 'target_temperature' in probe:
+# 							p.target_temperature=probe['target_temperature']
+# 							edited=True
+# 						if edited:
+# 							_updatedAny = True
+# 							p.save()
 #
-# updates and returns json
-# TODO - remove this below
-@csrf_exempt
-def update(request):
-	if request.method == 'POST':
-		try:	
-			_json=json.loads(request.body)
-			_updatedAny = False
-			if 'probes' in _json:
-				for probe in _json['probes']:
-					if 'pk' in probe:
-						edited=False
-						p=Probe.objects.get(pk=probe['pk'])
-						if 'target_temperature' in probe:
-							p.target_temperature=probe['target_temperature']
-							edited=True
-						if edited:
-							_updatedAny = True
-							p.save()
-						
-			if 'ssrs' in _json:
-				for ssr in _json['ssrs']:
-					if 'pk' in ssr:
-						edited=False
-						s=SSR.objects.get(pk=ssr['pk'])
-						if 'enabled' in ssr:
-							enabled=bool(ssr['enabled'])
-							if enabled:
-								#if this is part of a brew conf, ensure no other ssrs are enabled
-								for brew in s.brewconfiguration_set.all():
-									if not brew.allow_multiple_ssrs:
-										for _s in SSR.objects.filter(~Q(id = s.pk)):
-											if (_s.enabled):
-												_s.enabled = False
-												_s.save()
-
-							s.enabled=enabled
-							edited=True
-
-						# if 'current_ssr' in ssr:
-						# 	s.current_ssr=bool(ssr['current_ssr'])
-						# 	edited=True
-							
-						if 'pid' in ssr:
-							newp=ssr['pid']
-						
-							#update the pid
-							pid=s.pid
-							if 'power' in newp:
-								pid.power=int(newp['power'])
-							if 'k_param' in newp:
-								pid.power=int(pid['k_param'])
-							if 'i_param' in newp:
-								pid.power=int(pid['i_param'])
-							if 'd_param' in newp:
-								pid.power=int(pid['d_param'])	
-								
-							pid.save()
-							
-						if edited:
-							_updatedAny = True
-							s.save()
-					
-		except KeyError as e:	
-			print "KeyError"
-			print e
-			
-		return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
-	else :	
-		return HttpResponse(json.dumps({}), mimetype='application/json')
+# 			if 'ssrs' in _json:
+# 				for ssr in _json['ssrs']:
+# 					if 'pk' in ssr:
+# 						edited=False
+# 						s=SSR.objects.get(pk=ssr['pk'])
+# 						if 'enabled' in ssr:
+# 							enabled=bool(ssr['enabled'])
+# 							if enabled:
+# 								#if this is part of a brew conf, ensure no other ssrs are enabled
+# 								for brew in s.brewconfiguration_set.all():
+# 									if not brew.allow_multiple_ssrs:
+# 										for _s in SSR.objects.filter(~Q(id = s.pk)):
+# 											if (_s.enabled):
+# 												_s.enabled = False
+# 												_s.save()
+#
+# 							s.enabled=enabled
+# 							edited=True
+#
+# 						# if 'current_ssr' in ssr:
+# 						# 	s.current_ssr=bool(ssr['current_ssr'])
+# 						# 	edited=True
+#
+# 						if 'pid' in ssr:
+# 							newp=ssr['pid']
+#
+# 							#update the pid
+# 							pid=s.pid
+# 							if 'power' in newp:
+# 								pid.power=int(newp['power'])
+# 							if 'k_param' in newp:
+# 								pid.power=int(pid['k_param'])
+# 							if 'i_param' in newp:
+# 								pid.power=int(pid['i_param'])
+# 							if 'd_param' in newp:
+# 								pid.power=int(pid['d_param'])
+#
+# 							pid.save()
+#
+# 						if edited:
+# 							_updatedAny = True
+# 							s.save()
+#
+# 		except KeyError as e:
+# 			print "KeyError"
+# 			print e
+#
+# 		return HttpResponse(json.dumps({"ok":True}), content_type='application/json')
+# 	else :
+# 		return HttpResponse(json.dumps({}), mimetype='application/json')
 
 #
 # Returns saved status Json objects for the given FermConfiguration id
 #
-def jsonFermStatus(request, fermConfId, numberToReturn=50, startDate=-1, endDate=-1):
-	return jsonStatus(request, numberToReturn, startDate, endDate, Q(fermconfig__pk=fermConfId))
+#def jsonFermStatus(request, fermConfId, numberToReturn=50, startDate=-1, endDate=-1):
+#	return jsonStatus(request, numberToReturn, startDate, endDate, Q(fermconfig__pk=fermConfId))
 
 #
 # Returns saved status Json objects for the given BrewConfiguration id
 #
-def jsonBrewStatus(request, brewConfId, numberToReturn=50, startDate=-1, endDate=-1):
-	return jsonStatus(request, numberToReturn, startDate, endDate, Q(brewconfig__pk=brewConfId))
+#def jsonBrewStatus(request, brewConfId, numberToReturn=50, startDate=-1, endDate=-1):
+#	return jsonStatus(request, numberToReturn, startDate, endDate, Q(brewconfig__pk=brewConfId))
 	
 #
 # Returns saved status Json objects
 #
-def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
-	total=Status.objects.count()
-	allStatuses = []
-	startDate=float(startDate)/1000
-	endDate=float(endDate)/1000
-	numberToReturn = int(numberToReturn)
-		
-	j=[]
-	if numberToReturn > 1 and total > 0:
-		step=1
-		numberToReturn = int(numberToReturn)-1
-		statuses = []
-		q=None
-		
-		#default to All
-		statuses = Status.objects.all().order_by('date')
-		if startDate >= 0 and endDate >= 0:
-			startDate = datetime.datetime.fromtimestamp(startDate)
-			endDate = datetime.datetime.fromtimestamp(endDate)
-			q = Q(date__gte=startDate) & Q(date__lte=endDate)
-		elif startDate > -1:
-			startDate = datetime.datetime.fromtimestamp(startDate)
-			q = Q(date__gte=startDate)
-
-		if addQ:
-			if q:
-				q = q & addQ
-			else:
-				q = addQ
-		
-		if q:
-			statuses = statuses.filter(q)
-			
-		#get the number of items requested
-		total=len(statuses)
-		allStatuses=statuses
-			
-		if total > numberToReturn:
-			step=total/numberToReturn
-			allStatuses=statuses[step:total-step:step]
-	
-			#add the first and last one on everytime
-			if len(statuses) > 1:
-				allStatuses.insert(0, statuses[0])
-				allStatuses.append(statuses[len(statuses)-1])
-		
-		
-		count=0
-		for status in reversed(allStatuses):
-			addEta=False
-			
-			if count == 0:
-				addEta=True
-			_json = status.toJson(addEta=addEta)
-				
-			if _json:
-				j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
-				count=count+1
-		
-		
-	elif numberToReturn == 1 and total > 0:
-		status = Status.objects.order_by('-date')[0]
-		_json = status.toJson(addEta=True)
-		if _json:
-			j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
-		
-	#debugging	
-	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});	
-	return HttpResponse(json.dumps(j, cls=DjangoJSONEncoder), content_type='application/json')
+# def jsonStatus(request, numberToReturn=50, startDate=-1, endDate=-1, addQ=None):
+# 	total=Status.objects.count()
+# 	allStatuses = []
+# 	numberToReturn = int(numberToReturn)
+# 	#print "Getting Statuses : " + str(numberToReturn)
+#
+# 	j=[]
+# 	if startDate == -1:
+# 		startDate = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+#
+# 	if numberToReturn > 1 and total > 0:
+# 		print str(timezone.now())
+# 		step=1
+# 		numberToReturn = int(numberToReturn)-1
+# 		statuses = []
+# 		q=None
+#
+# 		#default to All - we assume these are sorted by date
+# 		statuses = Status.objects.all().order_by('date')
+# 		print "Got all statuses: " + str(timezone.now())
+# 		for status in statuses:
+# 			pass
+#
+# 		if startDate >= 0 and endDate >= 0:
+# 			startDate=float(startDate)/1000
+# 			endDate=float(endDate)/1000
+# 			startDate = datetime.datetime.fromtimestamp(startDate)
+# 			endDate = datetime.datetime.fromtimestamp(endDate)
+# 			q = Q(date__gte=startDate) & Q(date__lte=endDate)
+# 		elif startDate > -1:
+# 			startDate=float(startDate)/1000
+# 			startDate = datetime.datetime.fromtimestamp(startDate)
+# 			q = Q(date__gte=startDate)
+#
+# 		if addQ:
+# 			if q:
+# 				q = q & addQ
+# 			else:
+# 				q = addQ
+#
+# 		if q:
+# 			statuses = statuses.filter(q)
+# 		print q
+# 		print "Filtered statuses: " + str(timezone.now())
+#
+# 		#get the number of items requested
+# 		total=len(statuses)
+# 		print "len got:" + str(timezone.now())
+# 		allStatuses=statuses
+# 		print "alltatuses got: " + str(timezone.now())
+#
+# 		if total > numberToReturn:
+# 			step=total/numberToReturn
+# 			allStatuses=statuses[step:total-step:step]
+#
+# 			#add the first and last one on everytime
+# 			if len(statuses) > 1:
+# 				allStatuses.insert(0, statuses[0])
+# 				allStatuses.append(statuses[len(statuses)-1])
+# 		print "alltatuses sliced: " + str(timezone.now())
+#
+#
+# 		count=0
+# 		for status in reversed(allStatuses):
+# 			addEta=False
+#
+# 			if count == 0:
+# 				addEta=True
+# 			_json = status.toJson(addEta=addEta)
+#
+# 			if _json:
+# 				j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
+# 				count=count+1
+# 		print "jsons done: " + str(timezone.now())
+#
+#
+# 	elif numberToReturn == 1 and total > 0:
+# 		status = Status.objects.order_by('-date')[0]
+# 		_json = status.toJson(addEta=True)
+# 		if _json:
+# 			j.append(json.loads(_json)) #json.loads(base64.decodestring(status.status)))
+#
+# 	#debugging
+# 	#j.append({'step': step, 'total': total, 'numberToReturn': numberToReturn, 'startDate': startDate.strftime('%c')});
+# 	return HttpResponse(json.dumps(j, cls=DjangoJSONEncoder), content_type='application/json')
 
 
 #returns true if raspbrew.py is running
 def isRaspbrewRunning():
-	output = subprocess.check_output(['ps', '-A'])
-	if 'raspbrew.py' in output:
-		return True
-	else:
+	try:
+		output = subprocess.check_output(['/usr/bin/pgrep', '-lf', 'python.*raspbrew_'])
+		if len(output) > 0:
+			return True
+		else:
+			return False
+	except subprocess.CalledProcessError:
 		return False
 		
 #
 # returns the system status via json
 #
+@login_required
 def systemStatus(request):
 	j={}
 	units=GlobalSettings.objects.get_setting('UNITS')
 	j['units'] = units.value
 	j['serverrunning'] = isRaspbrewRunning()
 	return HttpResponse(json.dumps(j), content_type='application/json')
+
+#login
+def login_view(request):
+	username = request.POST['username']
+	password = request.POST['password']
+	user = authenticate(username=username, password=password)
+	if user is not None:
+		if user.is_active:
+			login(request, user)
+			return redirect('index')
+			# Redirect to a success page.
+		else:
+			return redirect('index')
+			pass
+			# Return a 'disabled account' error message
+	else:
+		pass
+		return redirect('index')
+		# Return an 'invalid login' error message.
+
+#logou
+def logout_view(request):
+	logout(request)
+	return redirect('index')

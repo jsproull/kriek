@@ -19,6 +19,7 @@ def unix_time_millis(dt):
 	
 #this class stores the current status
 class ProbeStatus(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='probestatuses')
 	one_wire_Id = models.CharField(null=True, blank=True, max_length=30)
 	name = models.CharField(max_length=30)
 	type = models.IntegerField(default=0)
@@ -39,6 +40,7 @@ class ProbeStatus(models.Model):
 	def cloneFrom(cls, probe):
 		p=cls()
 		p.probe = probe
+		p.owner = probe.owner
 		p.one_wire_Id = probe.one_wire_Id
 		p.name = probe.name
 		p.type = probe.type
@@ -48,7 +50,7 @@ class ProbeStatus(models.Model):
 
 		p.save()
 		
-		for ssr in probe.ssr_set.all():
+		for ssr in probe.ssrs.all():
 			#update the ssrs
 			newssr = SSRStatus.cloneFrom(ssr)
 			p.ssrstatus_set.add(newssr)
@@ -82,6 +84,7 @@ class PIDStatus(models.Model):
 		return pid
 		
 class SSRStatus(models.Model):
+	owner = models.ForeignKey('auth.User', related_name='ssrstatuses')
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
 	pin = models.IntegerField()
@@ -103,6 +106,7 @@ class SSRStatus(models.Model):
 		ssr.pin = _ssr.pin
 		ssr.enabled = _ssr.enabled
 		ssr.state = _ssr.state
+		ssr.owner = _ssr.owner
 		ssr.heater_or_chiller = _ssr.heater_or_chiller
 		
 		if _ssr.pid:
@@ -113,7 +117,8 @@ class SSRStatus(models.Model):
 
 				
 class Status(models.Model):
-	
+	owner = models.ForeignKey('auth.User', related_name='statuses')
+
 	#status can be for a FermConfiguration
 	fermconfig = models.ForeignKey('ferm.FermConfiguration',null=True, blank=True)
 	#or a BrewConfiguration
@@ -127,105 +132,105 @@ class Status(models.Model):
 	status = models.CharField(max_length=10000,null=True, blank=True)
 	
 	#override save
-	def save(self, *args, **kwargs):
-		
-		if self.pk:
-			#have to save this here so we can use the m2m associations
-			#super(Status, self).save(*args, **kwargs)
-			status = self.toJson(forceUpdate=True)
-			if (status and len(status) < 10000):
-				self.status = status
-		
-		super(Status, self).save(*args, **kwargs)
+	# def save(self, *args, **kwargs):
+	#
+	# 	if self.pk:
+	# 		#have to save this here so we can use the m2m associations
+	# 		#super(Status, self).save(*args, **kwargs)
+	# 		if not self.status or self.status == "":
+	# 			#print str(self.pk) + " saving status, forcing update"
+	# 			status = self.toJson(forceUpdate=True)
+	# 			if (status and len(status) < 10000):
+	# 				self.status = status
+	#
+	# 	super(Status, self).save(*args, **kwargs)
 			
 		
-	#returns json for this status
-	def getJsonObject(self, addEta=False):
-		
-		fermpk=None
-		brewpk=None
-		if self.fermconfig:
-			fermpk = self.fermconfig.pk
-		if self.brewconfig:
-			brewpk = self.brewconfig.pk
-			
-		jsonOut = {'pk' : self.pk, 'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : unix_time_millis(self.date)}
-		
-		probes=self.probes.all() #Probe.objects.all()
-		
-		if not probes:
-			return None
-			
-		for probe in probes:
-				
-			id=probe.probe.pk
-			jsonOut['probes'][id] = {}
-			jsonOut['probes'][id]['name'] = probe.name
-			jsonOut['probes'][id]['id'] = probe.one_wire_Id
-			
-			currentTemp = probe.temperature
-			if currentTemp > -999:
-				jsonOut['probes'][id]['temp'] = currentTemp
-			
-			jsonOut['probes'][id]['target_temp'] = probe.target_temperature
-			
-			#ssrs=SSR.objects.all()
-			#for ssr in ssrs:
-			for ssr in probe.ssrstatus_set.all():
-				ssrid=ssr.ssr.pk
-				jsonOut['ssrs'][ssrid] = {}
-				jsonOut['ssrs'][ssrid]['pid'] = {}
-				jsonOut['ssrs'][ssrid]['pid']['cycle_time'] = ssr.pid.cycle_time
-				jsonOut['ssrs'][ssrid]['pid']['k_param'] = ssr.pid.k_param
-				jsonOut['ssrs'][ssrid]['pid']['i_param'] = ssr.pid.i_param
-				jsonOut['ssrs'][ssrid]['pid']['d_param'] = ssr.pid.d_param
-				jsonOut['ssrs'][ssrid]['pid']['power'] = ssr.pid.power
-			
-				jsonOut['ssrs'][ssrid]['name'] = ssr.name
-				jsonOut['ssrs'][ssrid]['pin'] = ssr.pin
-				jsonOut['ssrs'][ssrid]['heater_or_chiller'] = ssr.heater_or_chiller
-				
-				#update the state and enabled from the actual ssr
-				jsonOut['ssrs'][ssrid]['state'] = ssr.ssr.state
-				jsonOut['ssrs'][ssrid]['enabled'] = ssr.ssr.enabled
-
-				#if this is a brew config, we have a current_ssr setting
-				# if self.brewconfig:
-				# 	if ssr.ssr.current_ssr:
-				# 		jsonOut['ssrs'][ssrid]['current_ssr'] = True
-				# 	else:
-				# 		jsonOut['ssrs'][ssrid]['current_ssr'] = False
-
-				#add the eta if we're heating or chilling
-				if addEta:
-					probe = ssr.ssr.probe
-					currentTemp = probe.temperature
-					
-					#TODO - this is for regular mode.. add coolbot mode and brewing mode
-					if probe.target_temperature and currentTemp:
-						eta, degreesPerMinute = ssr.ssr.getETA()
-						if eta and degreesPerMinute:
-							jsonOut['ssrs'][ssrid]['eta'] = eta
-							jsonOut['ssrs'][ssrid]['dpm'] = degreesPerMinute
-								
-		units=GlobalSettings.objects.get_setting('UNITS')
-		jsonOut['config'] = {'units' : units.value}
-		
-		return jsonOut
-	
-	def toJson(self, forceUpdate=False, addEta=False):
-		if self.status and not self.status == "" and not forceUpdate and not addEta:
-			return self.status
-		else:
-			jsonOut=self.getJsonObject(addEta=addEta)
-		
-		if jsonOut:
-			jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
-		
-			if not (jsonOut == self.status):
-				self.status = jsonOut
-				self.save()
-			
-		return jsonOut
+	# #returns json for this status
+	# def getJsonObject(self, addEta=False):
+	#
+	# 	fermpk=None
+	# 	brewpk=None
+	# 	if self.fermconfig:
+	# 		fermpk = self.fermconfig.pk
+	# 	if self.brewconfig:
+	# 		brewpk = self.brewconfig.pk
+	#
+	# 	jsonOut = {'pk' : self.pk, 'probes': {}, 'ssrs': {}, 'fermconf': fermpk, 'brewconf': brewpk, 'date' : unix_time_millis(self.date)}
+	#
+	# 	probes=self.probes.all() #Probe.objects.all()
+	#
+	# 	if not probes:
+	# 		return None
+	#
+	# 	for probe in probes:
+	#
+	# 		id=probe.probe.pk
+	# 		jsonOut['probes'][id] = {}
+	# 		jsonOut['probes'][id]['name'] = probe.name
+	# 		jsonOut['probes'][id]['id'] = probe.one_wire_Id
+	# 		jsonOut['probes'][id]['type'] = probe.type
+	#
+	# 		currentTemp = probe.temperature
+	# 		if currentTemp > -999:
+	# 			jsonOut['probes'][id]['temp'] = currentTemp
+	#
+	# 		jsonOut['probes'][id]['target_temp'] = probe.target_temperature
+	# 		jsonOut['probes'][id]['ssrs'] = [];
+	#
+	# 		#ssrs=SSR.objects.all()
+	# 		#for ssr in ssrs:
+	# 		for ssr in probe.ssrstatus_set.all():
+	# 			ssrid=ssr.ssr.pk
+	# 			jsonOut['probes'][id]['ssrs'].append(ssrid)
+	#
+	# 			jsonOut['ssrs'][ssrid] = {}
+	# 			jsonOut['ssrs'][ssrid]['pid'] = {}
+	#
+	# 			jsonOut['ssrs'][ssrid]['pid']['cycle_time'] = ssr.pid.cycle_time
+	# 			jsonOut['ssrs'][ssrid]['pid']['k_param'] = ssr.pid.k_param
+	# 			jsonOut['ssrs'][ssrid]['pid']['i_param'] = ssr.pid.i_param
+	# 			jsonOut['ssrs'][ssrid]['pid']['d_param'] = ssr.pid.d_param
+	# 			jsonOut['ssrs'][ssrid]['pid']['power'] = ssr.pid.power
+	#
+	# 			jsonOut['ssrs'][ssrid]['name'] = ssr.name
+	# 			jsonOut['ssrs'][ssrid]['pin'] = ssr.pin
+	# 			jsonOut['ssrs'][ssrid]['heater_or_chiller'] = ssr.heater_or_chiller
+	#
+	# 			#update the state and enabled from the actual ssr
+	# 			jsonOut['ssrs'][ssrid]['state'] = ssr.ssr.state
+	# 			jsonOut['ssrs'][ssrid]['enabled'] = ssr.ssr.enabled
+	#
+	# 			#add the eta if we're heating or chilling
+	# 			if addEta:
+	# 				probe = ssr.ssr.probe
+	# 				currentTemp = probe.temperature
+	#
+	# 				#TODO - this is for regular mode.. add coolbot mode and brewing mode
+	# 				if probe.target_temperature and currentTemp:
+	# 					eta, degreesPerMinute = ssr.ssr.getETA()
+	# 					if eta and degreesPerMinute:
+	# 						jsonOut['ssrs'][ssrid]['eta'] = eta
+	# 						jsonOut['ssrs'][ssrid]['dpm'] = degreesPerMinute
+	#
+	# 	units=GlobalSettings.objects.get_setting('UNITS')
+	# 	jsonOut['config'] = {'units' : units.value}
+	#
+	# 	return jsonOut
+	#
+	# def toJson(self, forceUpdate=False, addEta=False):
+	# 	#print str(self.pk) + " " + str(forceUpdate)  + " " + str(addEta)
+	# 	#print self.status
+	# 	if self.status and not forceUpdate and not addEta:
+	# 		#print "Just returning status"
+	# 		return self.status
+	# 	else:
+	# 		#print "updating status!"
+	# 		jsonOut=self.getJsonObject(addEta=addEta)
+	# 		jsonOut = json.dumps(jsonOut, cls=DjangoJSONEncoder)
+	# 		self.status = jsonOut
+	# 		self.save()
+	#
+	# 	return jsonOut
 
 	

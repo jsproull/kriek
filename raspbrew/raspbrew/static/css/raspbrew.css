@@ -160,6 +160,10 @@ dd.powerOff {
 	margin-bottom: 0;
 }
 
+.navbar-default .navbar-text {
+	color: white;
+}
+
 /* small panel heading */
 .panel.panel-small {
 	font-size: 90%;

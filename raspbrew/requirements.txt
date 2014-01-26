@@ -3,6 +3,6 @@ Django==1.6.1
 django-suit==0.2.5
 gunicorn==18.0
 psycopg2==2.5.1
-wiringpi==1.0.5
-wiringpi2==1.0.10
+#wiringpi==1.0.5
+#wiringpi2==1.0.10
 wsgiref==0.1.2

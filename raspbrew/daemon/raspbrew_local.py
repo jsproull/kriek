@@ -1,4 +1,4 @@
-#!../env-raspbrew/bin/python
+#!../../env-raspbrew/bin/python
 ##                      _                       
 ##                     | |                      
 ##  _ __ __ _ ___ _ __ | |__  _ __ _____      __
@@ -11,22 +11,30 @@
 ##  RaspBrew v3.0 
 ##
 ##  This class controls a fermentation chamber. It is responsible for reading 2 temp probes and logging both to sqlite.
-##  It will also turn on a cooling/heating unit 
+##  It will also turn on a cooling/heating unit
 ##
-##  December 26, 2012 - V3.0 for Raspberry Pi
+##  This version stores everything locally
+##
+##  December 26, 2013 - V3.0 for Raspberry Pi
 ##
 
-#sys.path.insert(0, "/home/pi/raspbrew")
+
 import sys, os
+sys.path.insert(0, "../")
+sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.utils import timezone
 
+from django.contrib.auth.models import User, Group
+from datetime import datetime, timedelta
+
 from common.ssr import SSRController as ssrController
 from datetime import datetime
 import threading
 import time
+import math
 from django.db.utils import OperationalError
 
 
@@ -45,7 +53,7 @@ def unix_time(self, dt):
 def unix_time_millis(self, dt):
 	return self.unix_time(dt) * 1000.0
 	
-class Raspbrew():#threading.Thread):
+class Raspbrew(object):#threading.Thread):
 	"""
 	Fermpi main class	
 	"""
@@ -54,6 +62,7 @@ class Raspbrew():#threading.Thread):
 		
 		#threading.Thread.__init__(self)
 		#self.daemon = True
+		self.user = User.objects.get(pk=1)
 		
 		#a dictionary of ssr controllers
 		self.ssrControllers = {}
@@ -99,9 +108,9 @@ class Raspbrew():#threading.Thread):
 		try:
 			s=self.ssrControllers[ssr.pk]
 		except KeyError, e:
-			 	self.ssrControllers[ssr.pk]=ssrController(ssr)
-			 	s=self.ssrControllers[ssr.pk]
-			 	s.start()
+			self.ssrControllers[ssr.pk]=ssrController(ssr)
+			s=self.ssrControllers[ssr.pk]
+			s.start()
 		
 		return s
 
@@ -114,7 +123,7 @@ class Raspbrew():#threading.Thread):
 			while temp == -999 and count < 10:
 				temp = probe.getCurrentTemp()
 				count=count+1
-				print str(probe) + " " + str(temp)
+				print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
 		
 	#
 	# called from the main thread to fire the brewing ssrs (if configured)
@@ -137,7 +146,6 @@ class Raspbrew():#threading.Thread):
 					elif not enabled:
 						enabled = ssr.enabled
 
-			print "brewconf " + str(brewConf)
 			for ssr in brewConf.ssrs.all():
 				currentTemp=ssr.probe.getCurrentTemp()
 				targetTemp=ssr.probe.target_temperature
@@ -152,13 +160,21 @@ class Raspbrew():#threading.Thread):
 				else:
 					ssr_controller.setEnabled(False)
 
-			#add a status	
-			status=Status(brewconfig=brewConf,date=timezone.now())
+	#
+	# Adds a Status object for all brewconf
+	#
+	def addBrewStatus(self):
+		brewConfs = BrewConfiguration.objects.all()
+
+		for brewConf in brewConfs:
+			print "Saving Status for brewConf: " + str(brewConf)
+			status=Status(brewconfig=brewConf,date=timezone.now(),owner=self.user)
 			status.save()
 			for probe in brewConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
-			
-				
+			status.save()
+
+
 	#
 	# called from the main thread to fire the brewing ferm (if configured)
 	#	
@@ -171,68 +187,118 @@ class Raspbrew():#threading.Thread):
 			
 			if not wortProbes:
 				print "Error: You need at least one Wort probe to run in any fermentation mode."
-				continue
-			
+
+			else:
+
+				for wortProbe in wortProbes:
+					wortTemp=wortProbe.getCurrentTemp()
+					ssrs=wortProbe.ssrs.all()
+
+					for ssr in ssrs:
+						ssr_controller=self.getSSRController(ssr)
 					
-			for wortProbe in wortProbes:	
-				wortTemp=wortProbe.getCurrentTemp()
-				ssrs=wortProbe.ssr_set.all()
+						#for now, all fermentation pids are disabled and we just use 100%
+						ssr.pid.enabled=False
+
+						probe = ssr.probe
+						targetTemp = probe.target_temperature
+						if wortTemp == -999 or targetTemp == None:
+							continue
+
+						if ssr.enabled:
+							#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
+							if fermConf.mode == 0: # regular mode
+
+								if float(wortTemp) < float(targetTemp):
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 0);
+									ssr_controller.setState(ssr.heater_or_chiller == 0);
+									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
+								elif float(wortTemp) > float(targetTemp):
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 1);
+									ssr_controller.setState(ssr.heater_or_chiller == 1);
+									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
+								else:
+									ssr_controller.setEnabled(False);
+
+							elif fermConf.mode == 1: # chiller
+
+								fanProbes=self.getFanProbes(fermConf)
+								if not fanProbes:
+									print "Error: You need at least one AC Fan probe to run in 'coolbot' fermentation mode."
+									continue
+
+								for fanProbe in fanProbes:
+									fanTemp=fanProbe.getCurrentTemp()
+
+									if ssr.heater_or_chiller == 1: #chiller
+										if float(wortTemp) > float(targetTemp):
+											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
+											ssr_controller.setEnabled(True);
+											ssr_controller.setState(True)
+										elif float(wortTemp) < float(targetTemp):
+											ssr_controller.setEnabled(False);
+
+									if float(fanTemp) > -999 and ssr.heater_or_chiller == 0: #heater
+										#if the fan coils are too cold, disable the heater side.
+										targetFanTemp = fanProbe.target_temperature
+										if not targetFanTemp:
+											targetFanTemp = -1
+										print "Target Fan: " + str(targetFanTemp)
+
+										if float(fanTemp) > float(targetFanTemp) and float(wortTemp) > float(targetTemp):
+											print "heater on"
+											ssr_controller.setEnabled(True);
+											ssr_controller.setState(True)
+											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
+										else:
+											print "heater off"
+											ssr_controller.setEnabled(False);
+						else:
+							ssr_controller.setEnabled(False)
+
+						if ssr.state != ssr_controller.isEnabled():
+							ssr.state = ssr_controller.isEnabled()
+							ssr.save()
 				
-				for ssr in ssrs:
-					ssr_controller=self.getSSRController(ssr)
-					probe = ssr.probe
-					targetTemp = probe.target_temperature
-					if wortTemp == -999 or targetTemp == None:
-						continue
-						
-					if ssr.enabled:
-						#print "current " + str(wortTemp) + " : " + str(targetTemp) + " " + str(ssr.pid.power)
-						if fermConf.mode == 0: # regular mode
-						
-							if float(wortTemp) < float(targetTemp):
-								ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
-							elif float(wortTemp) > float(targetTemp):
-								ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
-							else:
-								ssr_controller.setEnabled(False);
-						
-						elif fermConf.mode == 1: # chiller
-				
-							fanProbes=self.getFanProbes(fermConf)
-							if not fanProbes:
-								print "Error: You need at least one AC Fan probe to run in 'coolbot' fermentation mode."
-								continue
-								
-							for fanProbe in fanProbes:	
-								fanTemp=fanProbe.getCurrentTemp()
-							
-								if ssr.heater_or_chiller == 0: #heater
-									if float(wortTemp) > float(targetTemp):
-										ssr_controller.updateSSRController(wortTemp, targetTemp, True)
-									elif float(wortTemp) < float(targetTemp):
-										ssr_controller.setEnabled(False);
-						
-								if float(fanTemp) > -999 and ssr.heater_or_chiller == 0: #heater
-									#if the fan coils are too cold, disable the heater side.
-									if float(fanTemp) > float(fanProbe.target_temperature) and float(wortTemp) > float(targetTemp):
-										ssr_controller.updateSSRController(wortTemp, targetTemp, True)
-									else:
-										ssr_controller.setEnabled(False);
-					else:
-						ssr_controller.setEnabled(False)
-						
-					if ssr.state != ssr_controller.isEnabled():
-						ssr.state = ssr_controller.isEnabled()
-						ssr.save()
-				
-				
+	def addFermStatus(self):
+		fermConfs = FermConfiguration.objects.all();
+
+		for fermConf in fermConfs:
+			print "Saving Status for fermConf: " + str(fermConf)
 			#add a status
-			status=Status(fermconfig=fermConf, date=timezone.now())
+			status=Status(fermconfig=fermConf, date=timezone.now(),owner=self.user)
 			status.save()
 			for probe in fermConf.probes.all():
 				status.probes.add(ProbeStatus.cloneFrom(probe))
-			
-				
+			status.save()
+
+	#
+	# we only keep data for every 15 minutes for fermenters if it's older than 1 day
+	#
+	def removeOldStatuses(self):
+		fermConfs = FermConfiguration.objects.all()
+		now=timezone.now()
+		yesterday=now - timedelta(hours=24)
+		minutes=15
+		for fermConf in fermConfs:
+			statuses = Status.objects.filter(date__lte=yesterday,fermconfig=fermConf).order_by('date')#filter()#,
+			_len=len(statuses)
+			if _len > 0:
+				startDate=statuses[0].date
+				dt=(now-startDate)
+				totalMinutes=dt.days*24*60 + dt.seconds/60
+				max = totalMinutes/minutes
+				i=0
+				if _len > max:
+					while _len > 0 and startDate < yesterday:
+						startDate=statuses[i].date
+						todel=Status.objects.filter(date__gt=startDate, date__lte=startDate + timedelta(minutes=minutes),fermconfig=fermConf)
+						c=todel.count()
+						todel.delete()
+						statuses=statuses[1+c:]
+						_len=len(statuses)
+
+
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps
 	#
@@ -241,8 +307,14 @@ class Raspbrew():#threading.Thread):
 			print "--------"
 			self.updateTemps()
 			self.checkBrew()
+			self.addBrewStatus()
 			self.checkFerm()
-			time.sleep(5)
+			self.addFermStatus()
+
+			#remove old fermentation statuses
+			self.removeOldStatuses()
+			print "--- sleep ---"
+			time.sleep(1)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'

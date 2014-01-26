@@ -5,29 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Bootstrap -->
-    <link href="/js/thirdparty/bootstrap/css/bootstrap_flatly.css" rel="stylesheet">
+    <link href="/static/js/thirdparty/bootstrap/css/bootstrap_flatly.css" rel="stylesheet">
 
 	<!-- third party css -->
-	<link href="/js/thirdparty/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css">
-	<link href="//code.jquery.com/ui/jquery-ui-git.css" rel="stylesheet" type="text/css"></link>
-	<link href="/css/thirdparty/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css"></link>
-	<link href="/css/thirdparty/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"></link>
+	<link href="/static/js/thirdparty/nvd3/src/nv.d3.css" rel="stylesheet" type="text/css"/>
+	<link href="//code.jquery.com/ui/jquery-ui-git.css" rel="stylesheet" type="text/css"/>
+	<link href="/static/css/thirdparty/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css"/>
+	<link href="/static/css/thirdparty/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
 	
 	<!-- third party scripts -->	
-	<script src="/js/thirdparty/moment.min.js"></script>
+	<script src="/static/js/thirdparty/moment.min.js"></script>
 	
-	<script src="/js/thirdparty/nvd3/lib/d3.v2.js"></script>
-	<script src="/js/thirdparty/nvd3/nv.d3.js"></script>
-	<script src="/js/thirdparty/nvd3/src/tooltip.js"></script>
-	<script src="/js/thirdparty/nvd3/src/utils.js"></script>
-	<script src="/js/thirdparty/nvd3/src/models/legend.js"></script>
-	<script src="/js/thirdparty/nvd3/src/models/axis.js"></script>
-	<script src="/js/thirdparty/nvd3/src/models/scatter.js"></script>
-	<script src="/js/thirdparty/nvd3/src/models/line.js"></script>
-	<script src="/js/thirdparty/nvd3/src/models/lineChart.js"></script>
+	<script src="/static/js/thirdparty/nvd3/lib/d3.v2.js"></script>
+	<script src="/static/js/thirdparty/nvd3/nv.d3.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/tooltip.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/utils.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/models/legend.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/models/axis.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/models/scatter.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/models/line.js"></script>
+	<script src="/static/js/thirdparty/nvd3/src/models/lineChart.js"></script>
 	
 	<!-- custom css -->
-	<link href="/css/raspbrew.css" rel="stylesheet">
+	<link href="/static/css/raspbrew.css" rel="stylesheet">
 	
   </head>
   <body>
@@ -50,11 +50,21 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+
+            {% if user.is_authenticated %}
             <li class="{% ifequal request.path '/brew' %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
             <li class="{% ifequal request.path '/ferm' %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
+            {% endif %}
+
+            <li><a href="/admin/">Config</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/admin">Config</a></li>
+             {% if user.is_authenticated %}
+                     <p class="navbar-text navbar-right">
+                         Signed in as <em>{{user.username}}</em> -
+                         <a href="/logout">Logout</a>
+                     </p>
+             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
       </div>
@@ -108,20 +118,22 @@
 					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
 					<button type="button" class="btn btn-primary" onclick="raspbrew.saveSSRConfig();">Save changes</button>
 				</div>
+              </div>
 			</div><!-- /.modal-content -->
 		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
-    
+
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="//code.jquery.com/jquery.js"></script>
     <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="/js/thirdparty/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/js/thirdparty/jquery-ui-timepicker-addon.js"></script>
-    <script src="/js/thirdparty/jquery.color-2.1.2.min.js"></script>
+    <script src="/static/js/thirdparty/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/js/thirdparty/jquery-ui-timepicker-addon.js"></script>
+    <script src="/static/js/thirdparty/jquery.color-2.1.2.min.js"></script>
     
 	{% block script %}{% endblock %}
 	
+
   </body>
 </html>

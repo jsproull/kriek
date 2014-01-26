@@ -1,7 +1,8 @@
 <!-- an ssr ui -->
 <div id="ssr{{ssr.pk}}_panel" class="panel panel-small panel-primary {%if not ssr.enabled%}disabled{%endif%}">
 	<div class="panel-heading">
-		<h4 class="">{{ssr.name}}</h4>
+		<h4 class="text-center">{{ssr.name}}</h4>
+        <div class="text-center small">{%ifequal ssr.heater_or_chiller 0%}(heater){%else%}(chiller){%endifequal%}</div>
 		<div class="config">
 			<a href="#" title="configure SSR" onclick="raspbrew.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a>
 		</div>
