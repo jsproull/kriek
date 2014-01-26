@@ -20,7 +20,7 @@ function RaspBrew() {
 	
 	this.updateTime = 2000;
 	this.updateSystemSettingsTime = 20000;
-	this.chartPoints = 20;
+	this.chartPoints = 50;
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 	this._chartUpdatesEnabled = true;
@@ -276,8 +276,8 @@ function RaspBrew() {
 					$('#ssr' + ssrid + '_eta').html('--');
 				}
 
-				if (ssr.dpm) {
-					var dpm = parseFloat(ssr.dpm).toFixed(3);
+				if (ssr.degreesPerMinute) {
+					var dpm = parseFloat(ssr.degreesPerMinute).toFixed(3);
 					//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
 					$('#ssr' + ssrid + '_dpm').html(dpm);
 				} else {
@@ -375,12 +375,12 @@ function RaspBrew() {
 				var probeid = probe.probe;
 				var probeIndex = _this.findProbeIndex(probeid);
 				
-				if (!states[index]) {
-					states[index]=[];
+				if (!states[probeIndex]) {
+					states[probeIndex]=[];
 				}
 
-				if (!dd[index]) {
-					dd[index] = []
+				if (!dd[probeIndex]) {
+					dd[probeIndex] = []
 				}
 				var date = new Date(moment(d.date));
 				var temp = probe.temperature;
@@ -393,18 +393,18 @@ function RaspBrew() {
 					}
 					//console.log(temp);
 					temp=_this.getTemperature(probe.temperature)
-					dd[index].push({x: date, y: temp});
+					dd[probeIndex].push({x: date, y: temp});
 				}
 
 				//we only have to push each dd object once and the dd[index] array will get updated
-				datum[index] = ({ values: dd[index], key: probe.name, color:this.colourList[probeIndex] });
+				datum[probeIndex] = ({ values: dd[probeIndex], key: probe.name, color:this.colourList[probeIndex] });
 				
 				//set this if it's true or false
 				if (probe.ssrs) {
 					for (var ssri in probe.ssrs) {
 						ssr = probe.ssrs[ssri]
 						if (ssr && ssr.state == true) {
-							states[index][i] = true;
+							states[probeIndex][i] = true;
 						}
 					}
 				}
@@ -698,9 +698,9 @@ function RaspBrew() {
 		*/
 
 		//go through all of our data points and figure out when we've gone up 10% from the first data point
-		var start = _this.latestChartData[0];
+		var start = _this.latestChartData[_this.latestChartData.length-1];
 		var end = null;
-		for (var i=0;i<_this.latestChartData.length;i++) {
+		for (var i=_this.latestChartData.length-1;i>=0;i--) {
 			var data = _this.latestChartData[i];
 			if (data.temperature > start.temperature*1.1) {
 				break;
@@ -715,7 +715,7 @@ function RaspBrew() {
 
 		var deadtime = moment(end.date) - moment(start.date);
 
-		if (datetime <= 0) {
+		if (deadtime <= 0) {
 			alert('something wrongo2');
 			return;
 		}

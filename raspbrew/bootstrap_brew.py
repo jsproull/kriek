@@ -22,8 +22,8 @@ print user
 # 	(6, 'Other'),
 bc,created = BrewConfiguration.objects.get_or_create(owner=user, name="Brew Configuration 1")
 bc.save()
-bc1,created = BrewConfiguration.objects.get_or_create(owner=user, name="Brew Configuration 2")
-bc1.save()
+#bc1,created = BrewConfiguration.objects.get_or_create(owner=user, name="Brew Configuration 2")
+#bc1.save()
 
 #HLT
 probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284da09',name='HLT',type=2,owner=user)
@@ -49,7 +49,7 @@ bc.probes.add(probe)
 #Chiller
 probe,created=Probe.objects.get_or_create(one_wire_Id='28-0000044a0052',name='Boil Chiller',type=6,owner=user)
 probe.save()
-bc1.probes.add(probe)
+bc.probes.add(probe)
 ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=3, heater_or_chiller=0, probe=probe,owner=user)
 ssr.save()
 bc.ssrs.add(ssr)
