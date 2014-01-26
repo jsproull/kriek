@@ -314,7 +314,7 @@ class Raspbrew(object):#threading.Thread):
 			#remove old fermentation statuses
 			self.removeOldStatuses()
 			print "--- sleep ---"
-			time.sleep(10)
+			time.sleep(1)
 			
                 
 #Pyro4.config.HMAC_KEY='derp'
