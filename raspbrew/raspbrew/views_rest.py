@@ -46,10 +46,19 @@ class SSRViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = SSR.objects.all()
 	serializer_class = SSRSerializer
-	permission_classes = (IsOwner,)
+	permission_classes = (IsAnyone,)
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
+
+		#disable all the other ssrs
+		for bc in obj.brewconfiguration_set.all():
+			if not bc.allow_multiple_ssrs:
+				for ssr in bc.ssrs.all():
+					if not obj.id == ssr.id:
+						print "Disabling: " + str(ssr.id)
+						ssr.enabled=False
+						ssr.save()
 
 class BrewConfViewSet(viewsets.ModelViewSet):
 	"""
@@ -60,7 +69,7 @@ class BrewConfViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = BrewConfiguration.objects.all()
 	serializer_class = BrewConfSerializer
-	permission_classes = (IsOwner,)
+	permission_classes = (IsAnyone,)
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
@@ -74,7 +83,7 @@ class FermConfViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = FermConfiguration.objects.all()
 	serializer_class = FermConfSerializer
-	permission_classes = (IsOwner,)
+	permission_classes = (IsAnyone,)
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
@@ -88,7 +97,7 @@ class ProbeStatusViewSet(viewsets.ModelViewSet):
 	"""
 	queryset = ProbeStatus.objects.all()
 	serializer_class = ProbeStatusSerializer
-	permission_classes = (IsOwner,)
+	permission_classes = (IsAnyone,)
 
 	# def get_queryset(self):
 	# 	"""
@@ -130,14 +139,14 @@ class StatusList(generics.ListAPIView):
 
 		total=Status.objects.count()
 		numberToReturn = int(numberToReturn)
-		print "Getting Statuses : " + str(numberToReturn)
+		#print "Getting Statuses : " + str(numberToReturn)
 
 		j=[]
 		#if startDate == -1:
 		#	startDate = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 		if numberToReturn > 1 and total > 0:
-			print str(timezone.now())
+			#print str(timezone.now())
 			numberToReturn = numberToReturn-1
 
 			try:
@@ -163,8 +172,8 @@ class StatusList(generics.ListAPIView):
 				q = q & Q(date__gte=startDate)
 
 			statuses = Status.objects.filter(q).order_by("-date")
-			print "got all statues from db"
-			print str(timezone.now())
+			#print "got all statues from db"
+			#print str(timezone.now())
 
 			#get the number of items requested
 			total=len(statuses)
@@ -179,17 +188,17 @@ class StatusList(generics.ListAPIView):
 					allStatuses.insert(0, statuses[0])
 					allStatuses.append(statuses[len(statuses)-1])
 
-			print "filtered statues from db"
-			print str(timezone.now())
+			#print "filtered statues from db"
+			#print str(timezone.now())
 
 			if (allStatuses and len(allStatuses) > 0) :
 				for probe in allStatuses[0].probes.all():
 					for ssrstat in SSRStatus.objects.filter(probe=probe):
 						ssrstat.ssr.getETA()
 
-			print "Done"
-			print str(timezone.now())
-			print "-----------"
+			#print "Done"
+			#print str(timezone.now())
+			#print "-----------"
 
 			return allStatuses
 

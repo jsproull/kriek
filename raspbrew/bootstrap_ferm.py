@@ -42,7 +42,7 @@ ssr.save()
 fc.ssrs.add(ssr)
 
 #if created:
-g=GlobalSettings(key='UNITS', value='metric')
+g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
 g.save()
 
 #print status.toJson(True)

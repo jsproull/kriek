@@ -20,9 +20,9 @@ print user
 # 	(4, 'Fermentation Room'),
 # 	(5, 'Fermentation AC Fan'),
 # 	(6, 'Other'),
-bc = BrewConfiguration(owner=user, name="Brew Configuration 1")
+bc,created = BrewConfiguration.objects.get_or_create(owner=user, name="Brew Configuration 1")
 bc.save()
-bc1 = BrewConfiguration(owner=user, name="Brew Configuration 2")
+bc1,created = BrewConfiguration.objects.get_or_create(owner=user, name="Brew Configuration 2")
 bc1.save()
 
 #HLT
@@ -54,7 +54,7 @@ ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=3, heater_or_
 ssr.save()
 bc.ssrs.add(ssr)
 
-g=GlobalSettings(key='UNITS', value='metric')
+g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
 g.save()
 
 #if created:

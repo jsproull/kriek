@@ -22,6 +22,10 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 
+    url(r'^$', TemplateView.as_view(template_name='index.html'), name="index"),
+    url(r'^ferm$', views.ferm, {}, name='ferm'),
+	url(r'^brew$', views.brew, {}, name='brew'),
+
 	#rest calls
 	url(r'^', include(router.urls)),
 	url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
@@ -31,11 +35,12 @@ urlpatterns = patterns('',
 
 	#admin
     url(r'^admin/', include(admin.site.urls)),
- 
-    url(r'^$', TemplateView.as_view(template_name='index.html'), name="index"),
-    url(r'^ferm$', views.ferm, {}, name='ferm'),
-	url(r'^brew$', views.brew, {}, name='brew'),
-	
+
+	#login/logout
+	url(r'^login$', views.login_view, {}, name='loginView'),
+	url(r'^logout$', views.logout_view, {}, name='logoutView'),
+	url(r'^accounts/login/$', TemplateView.as_view(template_name='index.html')), # 'django.contrib.auth.views.login'),
+
 	#update
 	#url(r'^update$', views.update, {}, name='update'),
 	

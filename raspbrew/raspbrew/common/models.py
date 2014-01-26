@@ -25,7 +25,7 @@ def unix_time_millis(dt):
 ## A Schedule can be used to set a temperature after a given time
 ##
 class Schedule(models.Model):
-	owner = models.ForeignKey('auth.User', related_name='schedules')
+	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
 
 	start_time = models.DateTimeField() #time of this status
 	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
@@ -34,7 +34,7 @@ class Schedule(models.Model):
 
 # Each Probe.
 class Probe(models.Model):
-	owner = models.ForeignKey('auth.User', related_name='probes')
+	owner = models.ForeignKey('auth.User', related_name='probes', blank=True, null=True)
 
 	PROBE_TYPE = (
 		(0, 'Mash'),
@@ -137,7 +137,7 @@ class PID(models.Model):
 
 # An SSR has probe and PID information
 class SSR(models.Model):
-	owner = models.ForeignKey('auth.User', related_name='ssrs')
+	owner = models.ForeignKey('auth.User', related_name='ssrs', blank=True, null=True)
 
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)

@@ -50,11 +50,21 @@
         </div>
         <div class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
+
+            {% if user.is_authenticated %}
             <li class="{% ifequal request.path '/brew' %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
             <li class="{% ifequal request.path '/ferm' %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
+            {% endif %}
+
+            <li><a href="/admin/">Config</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="/admin">Config</a></li>
+             {% if user.is_authenticated %}
+                     <p class="navbar-text navbar-right">
+                         Signed in as <em>{{user.username}}</em> -
+                         <a href="/logout">Logout</a>
+                     </p>
+             {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
       </div>

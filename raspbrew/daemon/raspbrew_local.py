@@ -153,7 +153,7 @@ class Raspbrew(object):#threading.Thread):
 				ssr_controller=self.getSSRController(ssr)
 				enabled = (targetTemp != None and currentTemp > -999 and ssr.enabled)
 
-				#print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
+				print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
 					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
 					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)

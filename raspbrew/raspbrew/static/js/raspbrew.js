@@ -15,7 +15,7 @@ function RaspBrew() {
 	
 	this.lastChartData = null;
 	this.lastLoadedData = null;
-	this.latestData = null; 	// an array of results from the server
+	this.latestChartData = null; 	// an array of results from the server
 	this._systemStatus = null;
 	
 	this.updateTime = 2000;
@@ -29,7 +29,6 @@ function RaspBrew() {
 	this.confId = 1;
 
 	this.probes = {}; //cached probes by id
-	this.ssrs = {}; //cached ssrs by id
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -46,23 +45,9 @@ function RaspBrew() {
 		}
 	}
 
-	//loads an individual probe and caches it in this.probes
-	this.loadProbe = function(probeid, callback) {
-		var url = "/probes/" + probeid +  "/";
-		$.ajax({
-			url: url,
-			type: 'GET',
-			dataType: 'json',
-			success: function(data){
-				_this.probes[probeid] = data;
-				callback(data);
-			}
-		});
-	}
-
-	//loads all the ssrs
-	this.loadSSRs = function(callback) {
-		var url = "/ssrs/";
+	//loads all the probes and caches them in this.probes
+	this.loadProbes = function() {
+		var url = "/probes/";
 		$.ajax({
 			url: url,
 			type: 'GET',
@@ -70,11 +55,15 @@ function RaspBrew() {
 			success: function(data){
 				if (data && data.results) {
 					for (var i=0;i<data.results.length;i++){
-						var ssr=data.results[i];
-						_this.ssrs[ssr.id] = ssr;
+						var probe = data.results[i];
+						_this.probes[probe.id] = probe;
 					}
-					setTimeout(_this.loadSSRs, _this.updateTime);
+					_this.updateFromData(data.results);
 				}
+				setTimeout(_this.loadProbes, _this.updateTime);
+			},
+			error: function(data) {
+				setTimeout(_this.loadProbes, _this.updateTime);
 			}
 		});
 	}
@@ -116,31 +105,8 @@ function RaspBrew() {
 			success: function(data){ 
 				if (data) {
 					if (data && data.results) {
-						_this.latestData = data.results;
-						//to make it easier, we recreate the probes array here
-						if (data.results.length > 0) {
-
-							//called as the probes are loaded
-							var probeLoaded = function(_probe) {
-								if (Object.keys(_this.probes).length == data.results[0].probes.length) {
-									_this.updateFromData(data.results[0]);
-								}
-							}
-
-							//load the probes from the first returned item
-							for (var j=0;j<data.results[0].probes.length;j++){
-								var probe = data.results[0].probes[j];
-								if (!_this.probes[probe.probe]) {
-									_this.loadProbe(probe.probe, probeLoaded);
-								} else {
-									//we have it cached
-									probeLoaded(_this.probes[probe.probe]);
-								}
-							}
-						} else {
-							_this.lastLoadedData=null;
-						}
-
+						_this.latestChartData = data.results;
+						
 						//update the chart
 						if (_this._chartUpdatesEnabled) {
 							_this.updateChart(data.results);
@@ -219,9 +185,8 @@ function RaspBrew() {
 		//set this after the update so we know what we currently have loaded
 		_this.lastLoadedData=latest;
 
-		for (var index in latest.probes) {
-			var probe = latest.probes[index];
-			probe = _this.probes[probe.probe];
+		for (var index in latest) {
+			var probe = latest[index];
 
 			if (!probe) {
 				continue;
@@ -265,9 +230,8 @@ function RaspBrew() {
 			}
 
 			for (var index in probe.ssrs) {
-				var _ssr = probe.ssrs[index];
-				var ssrid = _ssr.id;
-				var ssr = _this.ssrs[ssrid];
+				var ssr = probe.ssrs[index];
+				var ssrid = ssr.id;
 				if (!ssr) {
 					continue;
 				}
@@ -276,7 +240,6 @@ function RaspBrew() {
 				//if (_this.lastLoadedData && _this.lastLoadedData.ssrs && _this.lastLoadedData.ssrs[ssrid].state == ssr.state && _this.lastLoadedData.ssrs[ssrid].enabled == ssr.enabled) {
 				//	continue;
 				//}
-
 
 				$('#ssr' + ssrid + "_icon").removeClass("fa-check-square-o");
 				$('#ssr' + ssrid + "_icon").removeClass("fa-square-o");
@@ -535,15 +498,31 @@ function RaspBrew() {
 	this.toggleSSR = function(ssrid) {
 		if (ssrid) {
 			var enabled = !$('#ssr' + ssrid + '_setCurrent').hasClass('enabled')
+			var ssr = _this.findSSR(ssrid);
+			if (!ssr) {
+				return;
+			}
+
+			//disable all other ssrs locally
+			for (var probeid in _this.probes){
+				var probe = _this.probes[probeid];
+				for (var j=0;j<probe.ssrs.length;j++){
+					var _ssr = probe.ssrs[j];
+					if (_ssr.id != ssr.id) {
+						_ssr.enabled=false;
+					}
+				}
+			}
+
+			ssr.enabled = enabled;
 
 			//update the local data and refresh
-			if (_this.lastLoadedData && _this.lastLoadedData['ssrs'] && _this.lastLoadedData['ssrs'][ssrid]) {
-				_this.lastLoadedData['ssrs'][ssrid].enabled = enabled;
-				this.updateFromData(_this.lastLoadedData, true);
+			if (_this.lastLoadedData) {
+				_this.updateFromData(_this.lastLoadedData, true);
 			}
 
 			var post = { pk: ssrid, enabled:enabled };
-			_this.sendUpdate("/ssrs/" + _this._editingSSR + "/", post);
+			_this.sendUpdate("/ssrs/" + ssr.id + "/", post);
 		}
 	}
 	
@@ -573,7 +552,6 @@ function RaspBrew() {
 
 		//update the actual data
 		var probe = _this.probes[probeid];
-		debugger;
 		if (probe) {
 			probe.target_temperature = val;
 		}
@@ -584,7 +562,7 @@ function RaspBrew() {
 	}
 
 	this.sendUpdate = function(url, post, callback, errcallback) {
-		this._writingData = true;
+		_this._writingData = true;
 
 		$('.raspbrew-updateable').attr('disabled', true);
 		$.ajax({
@@ -598,14 +576,14 @@ function RaspBrew() {
 				setTimeout(function(){_this._writingData = false;}, 1000);
 				if (callback) { callback(data); }
 			},
-			error: function() {
+			error: function(data) {
 				$('.raspbrew-updateable').attr('disabled', false);
 				_this._writingData = false;
 				if (errcallback) { errcallback(data); }
 			}
 		});
 
-		this.updateFromData(_this.lastLoadedData, true);
+		_this.updateFromData(_this.lastLoadedData, true);
 	}
 	
 	//this sets wether or not we should be updating the char
@@ -618,9 +596,9 @@ function RaspBrew() {
 	this.findProbe = function(probeid) {
 		var data = _this.lastLoadedData;
 
-		if (data && data.probes) {
-			for (var i=0;i<data.probes.length;i++) {
-				var probe = data.probes[i];
+		if (data && data) {
+			for (var i=0;i<data.length;i++) {
+				var probe = data[i];
 				if (probe.id == probeid) {
 					return probe;
 				}
@@ -634,9 +612,9 @@ function RaspBrew() {
 	this.findSSR = function(ssrid) {
 		var data = _this.lastLoadedData;
 
-		if (data && data.probes) {
-			for (var i=0;i<data.probes.length;i++) {
-				var probe = data.probes[i];
+		if (data) {
+			for (var i=0;i<data.length;i++) {
+				var probe = data[i];
 
 				for (var j=0;j<probe.ssrs.length;j++) {
 					var ssr = probe.ssrs[j];
@@ -650,7 +628,6 @@ function RaspBrew() {
 	
 	//shows a configuration dialog for a given ssr
 	this.configureSSR = function(ssrid) {
-		debugger;
 		_this._editingSSR = ssrid;
 
 		var ssr = _this.findSSR(ssrid);
@@ -693,7 +670,7 @@ function RaspBrew() {
 
 	//this method will try to calibrate the heater pid
 	this.calibratePID = function() {
-		if (!_this.latestData || _this.latestData.length == 0) {
+		if (!_this.latestChartData || _this.latestChartData.length == 0) {
 			return;
 		}
 
@@ -703,10 +680,10 @@ function RaspBrew() {
 		*/
 
 		//go through all of our data points and figure out when we've gone up 10% from the first data point
-		var start = _this.latestData[0];
+		var start = _this.latestChartData[0];
 		var end = null;
-		for (var i=0;i<_this.latestData.length;i++) {
-			var data = _this.latestData[i];
+		for (var i=0;i<_this.latestChartData.length;i++) {
+			var data = _this.latestChartData[i];
 			if (data.temperature > start.temperature*1.1) {
 				break;
 			}
@@ -772,7 +749,7 @@ function RaspBrew() {
 
 		//start our updates
 		_this.updateStatus();
-		_this.loadSSRs();
+		_this.loadProbes();
 		_this.updateSystemStatus();
 	});
 	
