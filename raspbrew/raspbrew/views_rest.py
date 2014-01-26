@@ -30,7 +30,7 @@ class ProbeViewSet(viewsets.ModelViewSet):
 
 	Additionally we also provide an extra `highlight` action.
 	"""
-	queryset = Probe.objects.all()
+	queryset = Probe.objects.all().order_by('name')
 	serializer_class = ProbeSerializer
 	permission_classes = (IsAnyone,)
 

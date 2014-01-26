@@ -116,14 +116,11 @@ class Raspbrew(object):#threading.Thread):
 
 	# ensure all the temperatures are up to date
 	def updateTemps(self):
+		#print "updateTemps"
 		probes = Probe.objects.all();
 		for probe in probes:
-			temp = -999
-			count=0
-			while temp == -999 and count < 10:
-				temp = probe.getCurrentTemp()
-				count=count+1
-				print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
+			temp = probe.getCurrentTemp()
+			print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
 		
 	#
 	# called from the main thread to fire the brewing ssrs (if configured)

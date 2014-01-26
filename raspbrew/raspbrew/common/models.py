@@ -90,7 +90,6 @@ class Probe(models.Model):
 				crcLine=lines[0]
 				tempLine=lines[1]
 				result_list = tempLine.split("=")
-
 				count = count + 1
 				if crcLine.find("YES") > -1:
 					temp = float(result_list[-1])/1000 # temp in Celcius
@@ -100,7 +99,8 @@ class Probe(models.Model):
 
 			except IOError as e:
 				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";
-				temp = 15.0
+				temp = None #15.0
+				break
 
 		if not temp:
 			return -999
