@@ -95,7 +95,7 @@ class ProbeStatusViewSet(viewsets.ModelViewSet):
 
 	Additionally we also provide an extra `highlight` action.
 	"""
-	queryset = ProbeStatus.objects.all()
+	queryset = ProbeStatus.objects.all().order_by('name')
 	serializer_class = ProbeStatusSerializer
 	permission_classes = (IsAnyone,)
 

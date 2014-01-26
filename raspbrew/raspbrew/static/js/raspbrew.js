@@ -372,7 +372,9 @@ function RaspBrew() {
 
 			for (var index in d.probes) {
 				var probe = d.probes[index];
-				var probeid = probe.id;
+				var probeid = probe.probe;
+				var probeIndex = _this.findProbeIndex(probeid);
+				
 				if (!states[index]) {
 					states[index]=[];
 				}
@@ -395,7 +397,7 @@ function RaspBrew() {
 				}
 
 				//we only have to push each dd object once and the dd[index] array will get updated
-				datum[index] = ({ values: dd[index], key: probe.name, color:this.colourList[index] });
+				datum[index] = ({ values: dd[index], key: probe.name, color:this.colourList[probeIndex] });
 				
 				//set this if it's true or false
 				if (probe.ssrs) {
@@ -606,6 +608,22 @@ function RaspBrew() {
 		}
 
 		return null;
+	}
+
+	//returns the index of the probe so we can match the colour
+	this.findProbeIndex = function(probeid) {
+		var data = _this.lastLoadedData;
+
+		if (data && data) {
+			for (var i=0;i<data.length;i++) {
+				var probe = data[i];
+				if (probe.id == probeid) {
+					return i;
+				}
+			}
+		}
+
+		return -1;
 	}
 
 	//finds the requested ssr by id from the latest loaded data
