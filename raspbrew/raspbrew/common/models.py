@@ -74,6 +74,7 @@ class Probe(models.Model):
 			now = timezone.now()
 			if now < self.last_temp_date + timedelta(seconds=10):
 				updateNeeded=False
+
 		
 		if not updateNeeded:
 			return self.temperature
@@ -99,19 +100,18 @@ class Probe(models.Model):
 
 			except IOError as e:
 				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";
-				temp = None #15.0
+				temp = None
 				break
 
-		if not temp:
-			return -999
-		
 		#this is now all done on the client side
 		#if units.value == 'imperial':
 		#	temp = (9.0/5.0)*float(temp) + 32  #convert to F
 		
 		if (self.temperature != temp):
-			self.temperature = temp
-			self.last_temp_date = timezone.now()
+			#update the last good date if we have a good reading
+			if not temp == None :
+				self.last_temp_date = timezone.now()
+
 			self.temperature = temp
 			self.save()
 			

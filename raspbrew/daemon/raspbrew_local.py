@@ -272,7 +272,7 @@ class Raspbrew(object):#threading.Thread):
 		#print "updateTemps"
 		probes = Probe.objects.all();
 		for probe in probes:
-			temp = probe.temperature #probe.getCurrentTemp()
+			temp = probe.getCurrentTemp()
 			print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
 
 	#

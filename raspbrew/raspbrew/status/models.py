@@ -45,6 +45,7 @@ class ProbeStatus(models.Model):
 		p.name = probe.name
 		p.type = probe.type
 		p.temperature = probe.temperature
+		print "PROBE: " + probe.name + " TEMP: " + str(probe.temperature)
 		p.target_temperature = probe.target_temperature
 		p.correction_factor = probe.correction_factor
 
