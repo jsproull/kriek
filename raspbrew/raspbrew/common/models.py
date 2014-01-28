@@ -22,15 +22,28 @@ def unix_time_millis(dt):
 	return unix_time(dt) * 1000.0
 
 ##
+## A ScheduleTime is one step in a Schedule
+##
+class ScheduleTime(models.Model):
+	name = models.CharField(max_length=30)
+	start_time = models.DateTimeField() #time of this status
+	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
+	hold_until_time = models.DateTimeField() #end time of this status
+
+	def __unicode__(self):
+		return "%s - %s" % (self.start_time, self.hold_until_time)
+
+##
 ## A Schedule can be used to set a temperature after a given time
 ##
 class Schedule(models.Model):
+	name = models.CharField(max_length=30)
 	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
+	scheduleTime = models.ManyToManyField(ScheduleTime, blank=True, null=True)
+	probe = models.ForeignKey('common.Probe', null=True, related_name='schedules')
 
-	start_time = models.DateTimeField() #time of this status
-	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
-	hold_until_time = models.DateTimeField()
-	
+	def __unicode__(self):
+		return self.name
 
 # Each Probe.
 class Probe(models.Model):

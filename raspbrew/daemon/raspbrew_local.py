@@ -26,8 +26,9 @@ sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.utils import timezone
-
+from django.db.models import Q
 from django.contrib.auth.models import User, Group
+
 from datetime import datetime, timedelta
 
 from common.ssr import SSRController as ssrController
@@ -35,7 +36,7 @@ from datetime import datetime
 import threading
 import time
 
-from raspbrew.common.models import Probe
+from raspbrew.common.models import Probe, ScheduleTime, Schedule
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import ProbeStatus, Status
@@ -151,6 +152,20 @@ class Fermentation(BaseThreaded):
 
 						probe = ssr.probe
 						targetTemp = probe.target_temperature
+
+						#if we have schedules assigned, use the current set time
+						if fermConf.schedules:
+							now=timezone.now()
+							for schedule in fermConf.schedules.filter(probe=probe):
+								q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(hold_until_time__gte=now)
+								times = ScheduleTime.objects.filter(q)
+								if times:
+									_time=times[0]
+									targetTemp = _time.target_temperature
+									if targetTemp != probe.target_temperature:
+										probe.target_temperature=targetTemp
+										probe.save()
+
 						if wortTemp == -999 or targetTemp == None:
 							continue
 
@@ -159,15 +174,15 @@ class Fermentation(BaseThreaded):
 							if fermConf.mode == 0: # regular mode
 
 								if float(wortTemp) < float(targetTemp):
-									ssr_controller.setEnabled(ssr.heater_or_chiller == 0);
-									ssr_controller.setState(ssr.heater_or_chiller == 0);
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 0)
+									ssr_controller.setState(ssr.heater_or_chiller == 0)
 									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 0)
 								elif float(wortTemp) > float(targetTemp):
-									ssr_controller.setEnabled(ssr.heater_or_chiller == 1);
-									ssr_controller.setState(ssr.heater_or_chiller == 1);
+									ssr_controller.setEnabled(ssr.heater_or_chiller == 1)
+									ssr_controller.setState(ssr.heater_or_chiller == 1)
 									#ssr_controller.updateSSRController(wortTemp, targetTemp, ssr.heater_or_chiller == 1)
 								else:
-									ssr_controller.setEnabled(False);
+									ssr_controller.setEnabled(False)
 
 							elif fermConf.mode == 1: # chiller
 
@@ -246,7 +261,21 @@ class Brewing(BaseThreaded):
 
 			for ssr in brewConf.ssrs.all():
 				currentTemp=ssr.probe.getCurrentTemp()
+
 				targetTemp=ssr.probe.target_temperature
+
+				#if we have schedules assigned, use those
+				if brewConf.schedules:
+					now=timezone.now()
+					for schedule in brewConf.schedules.filter(probe=ssr.probe):
+						q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(hold_until_time__gte=now)
+						times = ScheduleTime.objects.filter(q)
+						if times:
+							_time=times[0]
+							targetTemp = _time.target_temperature
+							if targetTemp != ssr.probe.target_temperature:
+								ssr.probe.target_temperature=targetTemp
+								ssr.probe.save()
 
 				ssr_controller=self.getSSRController(ssr)
 				enabled = (targetTemp != None and currentTemp > -999 and ssr.enabled)

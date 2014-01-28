@@ -1,10 +1,11 @@
 #!../env-raspbrew/bin/python
 import os,datetime, base64, json
+from datetime import timedelta
 from django.utils import timezone
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.contrib.auth.models import User
-from raspbrew.common.models import Probe,SSR
+from raspbrew.common.models import Probe,SSR,Schedule,ScheduleTime
 from raspbrew.status.models import ProbeStatus
 from raspbrew.status.models import Status
 from raspbrew.globalsettings.models import GlobalSettings
@@ -26,10 +27,10 @@ bc.save()
 #bc1.save()
 
 #HLT
-probe,created=Probe.objects.get_or_create(one_wire_Id='28-00000284da09',name='HLT',type=2,owner=user)
-probe.save()
-bc.probes.add(probe)
-ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=4, heater_or_chiller=0, probe=probe,owner=user)
+probeh,created=Probe.objects.get_or_create(one_wire_Id='28-00000284da09',name='HLT',type=2,owner=user)
+probeh.save()
+bc.probes.add(probeh)
+ssr,created=SSR.objects.get_or_create(name='HLT SSR', pin=4, heater_or_chiller=0, probe=probeh,owner=user)
 ssr.save()
 bc.ssrs.add(ssr)
 
@@ -53,6 +54,18 @@ bc.probes.add(probe)
 ssr,created=SSR.objects.get_or_create(name='Boil Chiller SSR', pin=3, heater_or_chiller=0, probe=probe,owner=user)
 ssr.save()
 bc.ssrs.add(ssr)
+
+#schedules
+s,created=Schedule.objects.get_or_create(name="Stepping", owner=user, probe=probeh)
+bc.schedules.add(s)
+
+t=timezone.now()
+for r in range(1000):
+	s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*10), hold_until_time=t+timedelta(seconds=(r+1)*10), target_temperature=float(r)/4)
+	print s1.target_temperature
+	s.scheduleTime.add(s1)
+	s.save()
+
 
 g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
 g.save()
