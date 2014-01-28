@@ -157,11 +157,11 @@ class Fermentation(BaseThreaded):
 						if fermConf.schedules:
 							now=timezone.now()
 							for schedule in fermConf.schedules.filter(probe=probe):
-								q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(hold_until_time__gte=now)
+								q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
 								times = ScheduleTime.objects.filter(q)
 								if times:
 									_time=times[0]
-									targetTemp = _time.target_temperature
+									targetTemp = _time.getTargetTemperature()
 									if targetTemp != probe.target_temperature:
 										probe.target_temperature=targetTemp
 										probe.save()
@@ -268,11 +268,11 @@ class Brewing(BaseThreaded):
 				if brewConf.schedules:
 					now=timezone.now()
 					for schedule in brewConf.schedules.filter(probe=ssr.probe):
-						q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(hold_until_time__gte=now)
+						q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
 						times = ScheduleTime.objects.filter(q)
 						if times:
 							_time=times[0]
-							targetTemp = _time.target_temperature
+							targetTemp = _time.getTargetTemperature()
 							if targetTemp != ssr.probe.target_temperature:
 								ssr.probe.target_temperature=targetTemp
 								ssr.probe.save()

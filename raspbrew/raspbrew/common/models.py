@@ -27,11 +27,33 @@ def unix_time_millis(dt):
 class ScheduleTime(models.Model):
 	name = models.CharField(max_length=30)
 	start_time = models.DateTimeField() #time of this status
-	target_temperature = models.DecimalField(decimal_places=3, max_digits=6)
-	hold_until_time = models.DateTimeField() #end time of this status
+	start_temperature = models.FloatField()
+	end_temperature = models.FloatField(blank=True,null=True)
+	end_time = models.DateTimeField() #end time of this status
+
+	def getTargetTemperature(self):
+
+		#if we just have a start time, return it
+		if self.start_temperature and not self.end_temperature:
+			return self.start_temperature
+
+		#for now, assume it's linear
+		diff = (self.end_time-self.start_time).total_seconds()
+		now = timezone.now()
+		curr=(now-self.start_time).total_seconds()
+		percent=float(curr)/diff
+
+		tempDiff=self.end_temperature - self.start_temperature
+		temp=self.start_temperature + tempDiff*percent
+		return round(temp,1)
+
+
+	#TODO
+	#we have to add the ability to 'ramp up' over time
+	#type = hold, linear, ease in, ease out
 
 	def __unicode__(self):
-		return "%s - %s" % (self.start_time, self.hold_until_time)
+		return "%s - %s" % (self.start_time, self.end_time)
 
 ##
 ## A Schedule can be used to set a temperature after a given time
@@ -41,6 +63,7 @@ class Schedule(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
 	scheduleTime = models.ManyToManyField(ScheduleTime, blank=True, null=True)
 	probe = models.ForeignKey('common.Probe', null=True, related_name='schedules')
+
 
 	def __unicode__(self):
 		return self.name

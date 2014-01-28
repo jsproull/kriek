@@ -71,6 +71,11 @@ dd.small {
 	margin-bottom: 5px;
 }
 /* override */
+.col-md-3 .input-group .form-control {
+	padding: 5px;
+	font-size: .6em;
+}
+/* override */
 .dl-horizontal dd {
 	font-size: 1.5em;
 	margin-left: 130px;

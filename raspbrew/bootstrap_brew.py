@@ -61,8 +61,8 @@ bc.schedules.add(s)
 
 t=timezone.now()
 for r in range(1000):
-	s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*10), hold_until_time=t+timedelta(seconds=(r+1)*10), target_temperature=float(r)/4)
-	print s1.target_temperature
+	s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
+	print s1.start_temperature
 	s.scheduleTime.add(s1)
 	s.save()
 
