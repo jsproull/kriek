@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fb33b328-a800-49e7-ab91-c0d6b0a86269" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bootstrap_brew.py" afterPath="$PROJECT_DIR$/bootstrap_brew.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/common/models.py" afterPath="$PROJECT_DIR$/raspbrew/common/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/static/css/raspbrew.css" afterPath="$PROJECT_DIR$/raspbrew/static/css/raspbrew.css" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/daemon/raspbrew_local.py" afterPath="$PROJECT_DIR$/daemon/raspbrew_local.py" />
     </list>
     <ignored path="raspbrew.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -31,7 +28,7 @@
       <file leaf-file-name="models.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/raspbrew/common/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="47" column="28" selection-start="1448" selection-end="1448" vertical-scroll-proportion="0.83693045" vertical-offset="356" max-vertical-offset="4200">
+            <state line="36" column="114" selection-start="1152" selection-end="1152" vertical-scroll-proportion="0.44124702" vertical-offset="356" max-vertical-offset="4200">
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -798,7 +795,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/common/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="28" selection-start="1448" selection-end="1448" vertical-scroll-proportion="0.83693045" vertical-offset="356" max-vertical-offset="4200">
+        <state line="36" column="114" selection-start="1152" selection-end="1152" vertical-scroll-proportion="0.44124702" vertical-offset="356" max-vertical-offset="4200">
           <folding>
             <element signature="e#0#28#0" expanded="true" />
           </folding>

@@ -34,7 +34,7 @@ class ScheduleTime(models.Model):
 	def getTargetTemperature(self):
 
 		#if we just have a start time, return it
-		if self.start_temperature and not self.end_temperature:
+		if (self.start_temperature and not self.end_temperature) or self.start_temperature == self.end_temperature:
 			return self.start_temperature
 
 		#for now, assume it's linear
