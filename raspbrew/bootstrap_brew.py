@@ -5,7 +5,7 @@ from django.utils import timezone
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.contrib.auth.models import User
-from raspbrew.common.models import Probe,SSR,Schedule,ScheduleTime
+from raspbrew.common.models import Probe,SSR,Schedule,ScheduleTime,ScheduleStep
 from raspbrew.status.models import ProbeStatus
 from raspbrew.status.models import Status
 from raspbrew.globalsettings.models import GlobalSettings
@@ -60,10 +60,11 @@ s,created=Schedule.objects.get_or_create(name="Stepping", owner=user, probe=prob
 bc.schedules.add(s)
 
 t=timezone.now()
-for r in range(1000):
-	s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
-	print s1.start_temperature
-	s.scheduleTime.add(s1)
+for r in range(10):
+	#s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
+	#s.scheduleTime.add(s1)
+	st,created=ScheduleStep.objects.get_or_create(step_index=r,temperature=r, hold_seconds=60)
+	s.scheduleStep.add(st)
 	s.save()
 
 

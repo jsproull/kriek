@@ -19,7 +19,9 @@
 ##
 
 
-import sys, os
+import sys
+import os
+
 sys.path.insert(0, "../")
 sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 
@@ -27,16 +29,16 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.utils import timezone
 from django.db.models import Q
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import User
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from common.ssr import SSRController as ssrController
 from datetime import datetime
 import threading
 import time
 
-from raspbrew.common.models import Probe, ScheduleTime, Schedule
+from raspbrew.common.models import Probe, ScheduleTime, ScheduleStep
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import ProbeStatus, Status
@@ -155,18 +157,12 @@ class Fermentation(BaseThreaded):
 
 						#if we have schedules assigned, use the current set time
 						if fermConf.schedules:
-							now=timezone.now()
 							for schedule in fermConf.schedules.filter(probe=probe):
-								q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
-								times = ScheduleTime.objects.filter(q)
-								if times:
-									_time=times[0]
-									targetTemp = _time.getTargetTemperature()
-									if targetTemp != probe.target_temperature:
-										probe.target_temperature=targetTemp
-										probe.save()
+								_targetTemp = schedule.getTargetTemperature()
+								if _targetTemp:
+									targetTemp = _targetTemp
 
-						if wortTemp == -999 or targetTemp == None:
+						if wortTemp == -999 or targetTemp is None:
 							continue
 
 						if ssr.enabled:
@@ -268,17 +264,24 @@ class Brewing(BaseThreaded):
 				if brewConf.schedules:
 					now=timezone.now()
 					for schedule in brewConf.schedules.filter(probe=ssr.probe):
-						q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
-						times = ScheduleTime.objects.filter(q)
-						if times:
-							_time=times[0]
-							targetTemp = _time.getTargetTemperature()
-							if targetTemp != ssr.probe.target_temperature:
-								ssr.probe.target_temperature=targetTemp
-								ssr.probe.save()
+						_targetTemp = schedule.getTargetTemperature()
+						if _targetTemp:
+							targetTemp = _targetTemp
+
+						# q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
+						# times = ScheduleTime.objects.filter(q)
+						# steps = ScheduleStep.objects.filter(q)
+						# if times:
+						# 	_time=times[0]
+						# 	targetTemp = _time.getTargetTemperature()
+						# 	if targetTemp != ssr.probe.target_temperature:
+						# 		ssr.probe.target_temperature=targetTemp
+						# 		ssr.probe.save()
+						# elif steps:
+						# 	pass
 
 				ssr_controller=self.getSSRController(ssr)
-				enabled = (targetTemp != None and currentTemp > -999 and ssr.enabled)
+				enabled = (targetTemp is not None and currentTemp > -999 and ssr.enabled)
 
 				print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
 					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))

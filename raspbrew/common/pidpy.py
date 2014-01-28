@@ -15,7 +15,7 @@ class pidpy(object):
     GMA_LLIM = 0.0
     
     def __init__(self, pid):
-    	self.pid = pid
+        self.pid = pid
     	
         #self.kc = kc
         #self.ti = ti
@@ -47,7 +47,7 @@ class pidpy(object):
         lpf = 0.0
         ek = tset - xk # calculate e[k] = SP[k] - PV[k]
 
-	#ek = abs(ek)
+	    #ek = abs(ek)
 
         #--------------------------------------
         # Calculate Lowpass Filter for D-term

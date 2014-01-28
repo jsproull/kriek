@@ -94,6 +94,7 @@ class RaspbrewRemote(Raspbrew):#threading.Thread):
 						fc,created=FermConfiguration.objects.get_or_create(name="TEST",owner=self.user)#pk=fermConf["id"],name=fermConf["name"])
 						#print created
 						fcnew=FermConfSerializer(fc)
+						fcnew=FermConfSerializer(fc)
 						fc=fcnew.restore_object(fermConf, fc)
 						print "HI"
 						print fc._nested_forward_relations

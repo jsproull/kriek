@@ -4,10 +4,10 @@ from django.contrib import admin
 
 from .models import Probe
 from .models import SSR
-from .models import GlobalSettings, Schedule, ScheduleTime
+from .models import GlobalSettings, Schedule, ScheduleTime, ScheduleStep
 
 class ProbeAdmin(admin.ModelAdmin):
-    pass
+	pass
 admin.site.register(Probe, ProbeAdmin)
 
 class SSRAdmin(admin.ModelAdmin):
@@ -15,13 +15,17 @@ class SSRAdmin(admin.ModelAdmin):
 admin.site.register(SSR, SSRAdmin)
 
 class GlobalSettingsAdmin(admin.ModelAdmin):
-    pass
+	pass
 admin.site.register(GlobalSettings, GlobalSettingsAdmin)
 
 class ScheduleAdmin(admin.ModelAdmin):
-    pass
+	pass
 admin.site.register(Schedule, ScheduleAdmin)
 
 class ScheduleTimeAdmin(admin.ModelAdmin):
-    pass
+	pass
 admin.site.register(ScheduleTime, ScheduleTimeAdmin)
+
+class ScheduleStepAdmin(admin.ModelAdmin):
+	fields = ('name', 'step_index', 'temperature', 'active', 'hold_seconds')
+admin.site.register(ScheduleStep, ScheduleStepAdmin)

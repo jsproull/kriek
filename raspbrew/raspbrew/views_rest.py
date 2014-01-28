@@ -147,7 +147,7 @@ class StatusList(generics.ListAPIView):
 
 		if numberToReturn > 1 and total > 0:
 			#print str(timezone.now())
-			numberToReturn = numberToReturn-1
+			numberToReturn -= 1
 
 			try:
 				if confId and _type=="brew":
@@ -194,7 +194,7 @@ class StatusList(generics.ListAPIView):
 			if (allStatuses and len(allStatuses) > 0) :
 				for probe in allStatuses[0].probes.all():
 					for ssrstat in SSRStatus.objects.filter(probe=probe):
-						ssrstat.ssr.getETA()
+						ssrstat.ssr.getETA
 
 			#print "Done"
 			#print str(timezone.now())
