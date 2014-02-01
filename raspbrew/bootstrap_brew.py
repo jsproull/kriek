@@ -64,7 +64,7 @@ for r in range(10):
 	#s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
 	#s.scheduleTime.add(s1)
 	st,created=ScheduleStep.objects.get_or_create(step_index=r,temperature=r, hold_seconds=60)
-	s.scheduleStep.add(st)
+	s.scheduleSteps.add(st)
 	s.save()
 
 

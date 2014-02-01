@@ -2,7 +2,7 @@ from rest_framework import serializers, generics
 from django.contrib.auth.models import User, Group
 import datetime, time
 
-from .models import Probe, SSR, PID
+from .models import Probe, SSR, PID, Schedule, ScheduleStep, ScheduleTime
 from raspbrew.status.models import ProbeStatus, Status
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.ferm.models import FermConfiguration
@@ -36,13 +36,29 @@ class SSRSerializer(serializers.ModelSerializer):
 		model = SSR
 		fields = ('id', 'name', 'pin', 'probe', 'pid', 'enabled', 'state', 'heater_or_chiller', 'owner', 'eta', 'degreesPerMinute')
 
+class ScheduleStepSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = ScheduleStep
+
+class ScheduleTimeSerializer(serializers.ModelSerializer):
+	class Meta:
+		model = ScheduleTime
+
+class ScheduleSerializer(serializers.ModelSerializer):
+	scheduleTimes = ScheduleTimeSerializer(many=True)
+	scheduleSteps = ScheduleStepSerializer(many=True)
+
+	class Meta:
+		model = Schedule
+
 class ProbeSerializer(serializers.ModelSerializer):
 	last_temp_date  = UnixEpochDateField(source='last_temp_date')
 	ssrs = SSRSerializer(many=True)
+	schedules = ScheduleSerializer(many=True)
 
 	class Meta:
 		model = Probe
-		fields = ('id', 'name', 'one_wire_Id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs')
+		fields = ('id', 'name', 'one_wire_Id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs', 'schedules')
 
 
 class BrewConfSerializer(serializers.ModelSerializer):

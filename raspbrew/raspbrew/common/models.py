@@ -78,8 +78,8 @@ class ScheduleStep(models.Model):
 class Schedule(models.Model):
 	name = models.CharField(max_length=30)
 	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
-	scheduleTime = models.ManyToManyField('common.ScheduleTime', blank=True, null=True)
-	scheduleStep = models.ManyToManyField('common.ScheduleStep', blank=True, null=True)
+	scheduleTimes = models.ManyToManyField('common.ScheduleTime', blank=True, null=True)
+	scheduleSteps = models.ManyToManyField('common.ScheduleStep', blank=True, null=True)
 
 	probe = models.ForeignKey('common.Probe', null=True, related_name='schedules')
 
@@ -88,14 +88,14 @@ class Schedule(models.Model):
 
 		#check if we have any scheduleTimes
 		q = Q(start_time__lte=now) & Q(end_time__gte=now)
-		for _time in self.scheduleTime.filter(q):
+		for _time in self.scheduleTimes.filter(q):
 			targetTemp = _time.getTargetTemperature()
 			if targetTemp != self.probe.target_temperature:
 				self.probe.target_temperature = targetTemp
 				self.probe.save()
 
 		#or any ScheduleSteps that are active
-		for _step in self.scheduleStep.filter(active=True).order_by("step_index"):
+		for _step in self.scheduleSteps.filter(active=True).order_by("step_index"):
 			print "STEP"
 			print _step
 			now = timezone.now()
@@ -125,7 +125,7 @@ class Schedule(models.Model):
 				print str(_step.active_time+timedelta(seconds=_step.hold_seconds))
 				#check if we should move on to the next step
 				if now>_step.active_time+timedelta(seconds=_step.hold_seconds):
-					next=self.scheduleStep.filter(step_index=_step.index+1)
+					next=self.scheduleSteps.filter(step_index=_step.index+1)
 					print "next:" + str(next)
 					if next:
 						next = next[0]

@@ -25,7 +25,7 @@ from raspbrew.globalsettings.models import GlobalSettings
 #				if ssr2 != ssr: 
 #           				print ssr
 #
-print User.objects.all()[0].id
+#print User.objects.all()[0].id
 #print Status.objects.all().order_by('date')
 #status=Status.objects.get(pk=3487)
 
@@ -33,4 +33,4 @@ print User.objects.all()[0].id
 #status.save()
 #print status.status
 
-print Status.objects.all()
+#Status.objects.all().delete()

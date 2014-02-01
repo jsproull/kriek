@@ -229,6 +229,7 @@ function RaspBrew() {
 			  	}, 1500 );
 			}
 
+			//update the ssrs
 			for (var index in probe.ssrs) {
 				var ssr = probe.ssrs[index];
 				var ssrid = ssr.id;
@@ -320,6 +321,23 @@ function RaspBrew() {
 					$('#ssr' + ssrid + '_power').html(ssr.pid.power + "%");
 				} else {
 					$('#ssr' + ssrid + '_power').html('--');
+				}
+			}
+
+			//update schedules if any
+			if (probe.schedules) {
+
+				for (var i=0;i<probe.schedules.length;i++) {
+					var sched = probe.schedules[i];
+
+					if (sched.scheduleSteps) {
+						for (var j=0;j<sched.scheduleSteps.length;j++) {
+							var step = sched.scheduleSteps[j];
+							console.log(step);
+						}
+					} else if (sched.scheduleTimes) {
+						//TODO
+					}
 				}
 			}
 		}

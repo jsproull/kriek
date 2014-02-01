@@ -38,7 +38,7 @@ from datetime import datetime
 import threading
 import time
 
-from raspbrew.common.models import Probe, ScheduleTime, ScheduleStep
+from raspbrew.common.models import Probe
 from raspbrew.ferm.models import FermConfiguration
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.status.models import ProbeStatus, Status
