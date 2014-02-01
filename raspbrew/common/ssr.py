@@ -66,7 +66,7 @@ class SSRController(threading.Thread):
 			cycle_time=100
 			self.updateSSR(power, cycle_time)
 		else:	
-			if ssr.pid.power < 100 or not ssr.pid.enabled:
+			if ssr.pid.power < 100:
 				self.updateSSR(power, cycle_time)
 			else:
 				duty_cycle = self.pid_controller.calcPID_reg4(float(setTemp), float(targetTemp), True)
@@ -92,10 +92,9 @@ class SSRController(threading.Thread):
 	
 	def run(self):
 		while not self.stopped():
-			if self.enabled:
-				self.fireSSR()
-			else:
-				self.setState(False)
+			self.fireSSR()
+
+			if not self.enabled:
 				time.sleep(2)
 
 			#update the ssr object
@@ -118,7 +117,7 @@ class SSRController(threading.Thread):
 	def fireSSR(self):
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
-			print "Fire: enabled:" + str(self.enabled) + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle) + " ct:" + str(self.cycle_time)
+			print "Fire: enabled:" + str(self.enabled)+ " pid enabled:" + str(self.ssr.pid.enabled)  + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle) + " ct:" + str(self.cycle_time)
 
 		if self.ssr.pid.enabled and self.ssr.enabled and (self.power < 100 or self.duty_cycle < 100):
 			if self.power < 100:

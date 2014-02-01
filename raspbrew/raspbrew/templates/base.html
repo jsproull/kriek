@@ -92,33 +92,62 @@
 					<h4 class="modal-title" id="ssrModalTitle"></h4>
 				</div>
 				<div class="modal-body">
-					<div class="row">
 					<form class="form-horizontal" role="form">
-						<div class="form-group">
-						  <div class="col-sm-offset-2 col-sm-10">
-							<div class="checkbox">
-							  <label>
-								<input type="checkbox" id="ssrEnabled"> Enabled
-							  </label>
-							</div>
-						  </div>
-						</div>
-						<div class="form-group">
-							<label for="ssrPower" class="col-sm-2 control-label">Power</label>
-							<div class="col-sm-4">
+					    <div class="row">
+						    <div class="col-sm-offset-2 col-sm-10">
+							    <div class="checkbox">
+							        <label>
+								        <input type="checkbox" id="ssrEnabled"> Enabled
+							        </label>
+							    </div>
+						    </div>
+							<label for="ssrPower" class="col-sm-2 col-md-offset-2 control-label">Power</label>
+							<div class="col-sm-8">
 								<div class="input-group">
 								  <input type="text" class="form-control" id="ssrPower">
 								  <span class="input-group-addon">%</span>
 								</div>
 							</div>
-						</div>
+                            <div class="col-sm-12"><hr/></div>
+                            <div class="col-sm-12 text-center"><h4>Advanced PID Settings</h4></div>
+                            <div class="col-sm-offset-2 col-sm-10">
+							    <div class="checkbox">
+							        <label>
+								        <input type="checkbox" id="ssrPIDEnabled"> PID Enabled
+							        </label>
+							    </div>
+						    </div>
+                            <label for="ssrK" class="col-sm-2 col-md-offset-2 control-label">K Param</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+								  <input type="text" class="form-control" id="ssrK">
+								</div>
+							</div>
+                            <label for="ssrI" class="col-sm-2 col-md-offset-2 control-label">I Param</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+								  <input type="text" class="form-control" id="ssrI">
+								</div>
+							</div>
+                            <label for="ssrD" class="col-sm-2 col-md-offset-2 control-label">D Param</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+								  <input type="text" class="form-control" id="ssrD">
+								</div>
+							</div>
+                            <label for="ssrCycleTime" class="col-sm-2 col-md-offset-2 control-label">Cycle Time</label>
+							<div class="col-sm-8">
+								<div class="input-group">
+								  <input type="text" class="form-control" id="ssrCycleTime">
+								</div>
+							</div>
+				        </div>
 					</form>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					<button type="button" class="btn btn-primary" onclick="raspbrew.saveSSRConfig();">Save changes</button>
-				</div>
-              </div>
+				    <div class="modal-footer">
+				    	<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				    	<button type="button" class="btn btn-primary" onclick="raspbrew.saveSSRConfig();">Save changes</button>
+				    </div>
+                </div>
 			</div><!-- /.modal-content -->
 		</div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->

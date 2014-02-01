@@ -10,10 +10,12 @@ from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'probes', views_rest.ProbeViewSet)
 router.register(r'users', views_rest.UserViewSet)
-#router.register(r'statuses', views_rest.ProbeStatusViewSet)
 router.register(r'ssrs', views_rest.SSRViewSet)
+router.register(r'pids', views_rest.PIDViewSet)
 router.register(r'ferms', views_rest.FermConfViewSet)
 router.register(r'brews', views_rest.BrewConfViewSet)
+router.register(r'schedules', views_rest.ScheduleViewSet)
+router.register(r'scheduleSteps', views_rest.ScheduleStepViewSet)
 
 #router.register(r'users', views.UserViewSet)
 

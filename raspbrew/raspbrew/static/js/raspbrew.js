@@ -29,6 +29,8 @@ function RaspBrew() {
 	this.confId = 1;
 
 	this.probes = {}; //cached probes by id
+
+	this.currentSchedule = null; //the currently enabled step schedule
 	
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
@@ -42,6 +44,16 @@ function RaspBrew() {
 			return (9.0/5.0)*temp + 32;
 		} else {
 			return temp;
+		}
+	}
+
+	//gets the temperature as a string format
+	this.getTemperatureFormatted = function(temp) {
+		var temp = _this.getTemperature(temp);
+		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
+			return temp.toFixed(2) + "f";
+		} else {
+			return temp.toFixed(2) + "c";
 		}
 	}
 
@@ -326,17 +338,82 @@ function RaspBrew() {
 
 			//update schedules if any
 			if (probe.schedules) {
+				var len = probe.schedules.length;
+				if (len == 0) {
+					$("#probe" + probe.id + "_nosched").show();
+					$("#probe" + probe.id + "_schedContainer").hide();
+					continue;
+				}
 
-				for (var i=0;i<probe.schedules.length;i++) {
+				$("#probe" + probe.id + "_nosched").hide();
+				$("#probe" + probe.id + "_schedContainer").show();
+
+				var s = $("#probe" + probe.id + "_schedselect");
+				//set up the select
+				if ($("#probe" + probe.id + "_schedselect option").size() != len+1) {
+					s.empty();
+
+					//set up our select
+					$("<option />", {value: null, text: "-- Disabled --"}).appendTo(s);
+					for (var i=0;i<len;i++) {
+						var sched = probe.schedules[i];
+
+						$("<option />", {value: sched.id, text: sched.name}).appendTo(s);
+
+					}
+				}
+
+
+				for (var i=0;i<len;i++) {
 					var sched = probe.schedules[i];
+					if (sched.enabled) {
+						//if we have an active schedule set up the ui
 
-					if (sched.scheduleSteps) {
-						for (var j=0;j<sched.scheduleSteps.length;j++) {
-							var step = sched.scheduleSteps[j];
-							console.log(step);
+						var sched = probe.schedules[i];
+
+						//pick the currently enabled one
+						_this.currentSchedule = sched;
+						$("#probe" + probe.id + "_schedselect").val(i+1);
+						var stepsDiv = $("#probe" + probe.id + "_schedSteps");
+
+						if (sched.scheduleSteps) {
+
+							//sort by step index
+							var steps = sched.scheduleSteps.sort(function(a,b)
+							{
+							   return a.step_index > b.step_index;
+							});
+
+							if ($("#probe" + probe.id + "_schedSteps a").size() != sched.scheduleSteps.length) {
+								stepsDiv.empty();
+							}
+
+							for (var j=0;j<steps.length;j++) {
+								var step = steps[j];
+								var a = $('#step_' + step.id)
+								if (!a.length) {
+									a = $("<a onclick='raspbrew.enableStep(this); return false;' href='#' id='step_" + step.id + "' class='list-group-item'/>");
+									a.appendTo(stepsDiv);
+								}
+
+								//update the a
+								if (step.active) {
+									a.addClass("active");
+									var end=new Date(moment(step.active_time))+step.hold_seconds;
+
+									eta=moment(end).fromNow(true);
+									a.html("Holding at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + eta + "</b>" );
+
+								} else {
+									a.html("Hold at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + step.hold_seconds + "s</b>" );
+									a.removeClass("active");
+								}
+
+							}
+						} else if (sched.scheduleTimes) {
+							//TODO
 						}
-					} else if (sched.scheduleTimes) {
-						//TODO
+
 					}
 				}
 			}
@@ -668,8 +745,14 @@ function RaspBrew() {
 
 		var ssr = _this.findSSR(ssrid);
 
-		$('#ssrEnabled').prop('checked', ssr.enabled)
-		$('#ssrPower').val(ssr.pid.power)
+		$('#ssrEnabled').prop('checked', ssr.enabled);
+		$('#ssrPower').val(ssr.pid.power);
+		$('#ssrK').val(ssr.pid.k_param);
+		$('#ssrI').val(ssr.pid.i_param);
+		$('#ssrD').val(ssr.pid.d_param);
+		$('#ssrCycleTime').val(ssr.pid.cycle_time);
+		$('#ssrPIDEnabled').prop('checked', ssr.pid.enabled)
+
 		$('#ssrModalTitle').html(ssr.name);
 		$('#ssrModal').modal({});
 	}
@@ -681,15 +764,34 @@ function RaspBrew() {
 		}
 		
 		var enabled = $('#ssrEnabled').prop('checked') ? 1 : 0 ;
+		var pidenabled = $('#ssrPIDEnabled').prop('checked') ? 1 : 0 ;
 		var power = $('#ssrPower').val();
+		var k = $('#ssrK').val();
+		var i = $('#ssrI').val();
+		var d = $('#ssrD').val();
+		var cycleTime = $('#ssrCycleTime').val();
+
 		var ssr = _this.findSSR(_this._editingSSR);
 
 		//update our values
 		var pid=ssr.pid;
+		pid.enabled = pidenabled;
 		ssr.enabled = enabled;
 		
 		if (!isNaN(parseInt(power))) {
 			pid.power = power;
+		}
+		if (!isNaN(parseFloat(k))) {
+			pid.k_param = k;
+		}
+		if (!isNaN(parseFloat(i))) {
+			pid.i_param = i;
+		}
+		if (!isNaN(parseFloat(d))) {
+			pid.d_param = d;
+		}
+		if (!isNaN(parseFloat(cycleTime))) {
+			pid.cycle_time = cycleTime;
 		}
 
 		var post = { pk: ssr.id, enabled: enabled, pid: pid };
@@ -745,6 +847,38 @@ function RaspBrew() {
 			// and one output (the HLT temperature). The Gain of this HLT system is then defined as output divided by input and has a unity of °C / %.
 		//Time-constant (tau): the time-constant of the system is another important parameter of the system. It describes how quick the
 			// temperature will increase, given a particular output of the PID controller. Unity is given in seconds.
+	}
+
+	//called when the user wants to use a schedule
+	this.scheduleSelected = function(select) {
+
+		//active this schedule
+		scheduleid = $(select).val()
+		var enabled = true;
+
+		//disabled
+		if (!scheduleid && _this.currentSchedule) {
+			scheduleid = _this.currentSchedule.id;
+			enabled = false;
+		}
+
+		var post = { pk: scheduleid, enabled: enabled };
+
+		$(".schedSteps").empty();
+
+		_this.sendUpdate("/schedules/" + scheduleid + "/", post);
+	}
+
+	//enables a specific step of a schedule
+	this.enableStep = function(step) {
+
+		var stepid = parseInt(step.id.replace(/[^\d]/g,""));
+		var post = { pk: stepid, active: true };
+		_this.sendUpdate("/scheduleSteps/" + stepid + "/", post);
+		console.log($("#step_" + stepid));
+
+		$(".schedSteps a").removeClass("active");
+		$("#step_" + stepid).addClass("active");
 	}
 
 	//on ready

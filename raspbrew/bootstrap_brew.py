@@ -56,16 +56,17 @@ ssr.save()
 bc.ssrs.add(ssr)
 
 #schedules
-s,created=Schedule.objects.get_or_create(name="Stepping", owner=user, probe=probeh)
-bc.schedules.add(s)
+for x in range(2):
+	s,created=Schedule.objects.get_or_create(name="Stepping" + str(x), owner=user, probe=probeh)
+	bc.schedules.add(s)
 
-t=timezone.now()
-for r in range(10):
-	#s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
-	#s.scheduleTime.add(s1)
-	st,created=ScheduleStep.objects.get_or_create(step_index=r,temperature=r, hold_seconds=60)
-	s.scheduleSteps.add(st)
-	s.save()
+	t=timezone.now()
+	for r in range(10):
+		#s1,created=ScheduleTime.objects.get_or_create(start_time=t+timedelta(seconds=r*30), end_time=t+timedelta(seconds=(r+1)*30), start_temperature=r, end_temperature=r+1)
+		#s.scheduleTime.add(s1)
+		st,created=ScheduleStep.objects.get_or_create(step_index=r, start_temperature=r, hold_seconds=60)
+		s.scheduleSteps.add(st)
+		s.save()
 
 
 g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')

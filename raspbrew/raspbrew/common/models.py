@@ -30,17 +30,18 @@ class ScheduleTime(models.Model):
 	start_temperature = models.FloatField()
 	end_temperature = models.FloatField(blank=True, null=True)
 	end_time = models.DateTimeField() #end time of this status
+	active = models.BooleanField(default=False) # this is set to true when we are currently using this step
 
 	def getTargetTemperature(self):
 		#if we just have a start time, return it
-		if (self.start_temperature and not self.end_temperature) or self.start_temperature == self.end_temperature:
+		if self.end_temperature is None or self.start_temperature == self.end_temperature:
 			return self.start_temperature
 
 		#for now, assume it's linear
-		diff = (self.end_time - self.start_time).total_seconds()
+		totaltime = (self.end_time - self.start_time).total_seconds()
 		now = timezone.now()
 		curr = (now - self.start_time).total_seconds()
-		percent = float(curr) / diff
+		percent = float(curr) / totaltime
 
 		tempDiff = self.end_temperature - self.start_temperature
 		temp = self.start_temperature + tempDiff * percent
@@ -58,15 +59,43 @@ class ScheduleTime(models.Model):
 ## A ScheduleStep is one step that is held for x seconds in a Schedule
 ##
 class ScheduleStep(models.Model):
-	name = models.CharField(max_length=30)
+	name = models.CharField(max_length=30,blank=True, null=True)
 	step_index = models.IntegerField()
-	temperature = models.FloatField()
-	active = models.BooleanField(default=False) # this is set to true when we are currently using this step (but not
+	start_temperature = models.FloatField()
+	end_temperature = models.FloatField(blank=True, null=True)
+	active = models.BooleanField(default=False) # this is set to true when we are currently using this step
+
 	active_time = models.DateTimeField(null=True, blank=True) #and internal date to be set when this step starts
 	hold_seconds = models.FloatField(default=60 * 15) #once the temperature is reached, it is held for this long
 
 	def getTargetTemperature(self):
-		return self.temperature
+		#if we just have a start time, return it
+		if self.end_temperature is None or self.start_temperature == self.end_temperature:
+			return self.start_temperature
+
+		#for now, assume it's linear
+		now = timezone.now()
+		curr = (now - self.active_time).total_seconds()
+		percent = float(curr) / self.hold_seconds
+
+		tempDiff = self.end_temperature - self.start_temperature
+		temp = self.start_temperature + tempDiff * percent
+		return round(temp, 1)
+
+	def save(self, *args, **kwargs):
+		# disable all other steps
+		if self.active:
+			for s in ScheduleStep.objects.all():
+				s.active = False
+				s.active_time = None
+				s.save()
+
+			self.active = True
+
+			if not self.active_time:
+				self.active_time=timezone.now()
+
+		super(ScheduleStep, self).save(*args, **kwargs)
 
 	def __unicode__(self):
 		return "%d: %s" % (self.step_index, self.name)
@@ -80,8 +109,18 @@ class Schedule(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
 	scheduleTimes = models.ManyToManyField('common.ScheduleTime', blank=True, null=True)
 	scheduleSteps = models.ManyToManyField('common.ScheduleStep', blank=True, null=True)
+	enabled = models.BooleanField(default=False) # this is set to true when we are currently using this schedule. There can only be one schedule enabled at a time
 
 	probe = models.ForeignKey('common.Probe', null=True, related_name='schedules')
+
+	def save(self, *args, **kwargs):
+		# disable all other schedules
+		if self.enabled:
+			for s in Schedule.objects.all():
+				s.enabled = False
+			self.enabled = True
+
+		super(Schedule, self).save(*args, **kwargs)
 
 	def getTargetTemperature(self):
 		now = timezone.now()
@@ -96,10 +135,7 @@ class Schedule(models.Model):
 
 		#or any ScheduleSteps that are active
 		for _step in self.scheduleSteps.filter(active=True).order_by("step_index"):
-			print "STEP"
-			print _step
 			now = timezone.now()
-			print "active time: " + str(_step.active_time)
 			if not _step.active_time:
 				heating=False
 				ssrs=self.probe.ssrs.all()
@@ -110,29 +146,33 @@ class Schedule(models.Model):
 
 				#check if we should start
 				if heating:
-					print "heating"
-					print "self.probe.temperature >= _step.temperature"
-					print str(self.probe.temperature) + " " + str(_step.temperature)
 					if self.probe.temperature >= _step.temperature:
-						print "YES"
 						_step.active_time=now
 				else:
 					if self.probe.temperature <= _step.temperature:
 						_step.active_time=now
 			else:
-				print "_step.active_time+timedelta(seconds=_step.hold_seconds)"
-				print now
-				print str(_step.active_time+timedelta(seconds=_step.hold_seconds))
+				#set the target temp
+				targetTemp = _step.getTargetTemperature()
+				if targetTemp != self.probe.target_temperature:
+					self.probe.target_temperature = targetTemp
+					self.probe.save()
+
 				#check if we should move on to the next step
 				if now>_step.active_time+timedelta(seconds=_step.hold_seconds):
-					next=self.scheduleSteps.filter(step_index=_step.index+1)
+					next=self.scheduleSteps.filter(step_index=_step.step_index+1)
 					print "next:" + str(next)
 					if next:
 						next = next[0]
 						next.active=True
+						next.save()
 						_step.active=False
 						_step.active_time=None
-
+						_step.save()
+					else:
+						_step.active=False
+						_step.active_time=None
+						_step.save()
 
 	def __unicode__(self):
 		return self.name

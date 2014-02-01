@@ -130,7 +130,6 @@ class Fermentation(BaseThreaded):
 	# called from the main thread to fire the brewing ferm (if configured)
 	#
 	def checkFerm(self):
-		print "Checking Ferm"
 		#do we have any fermentation probes?
 		fermConfs = FermConfiguration.objects.all();
 
@@ -203,15 +202,12 @@ class Fermentation(BaseThreaded):
 										targetFanTemp = fanProbe.target_temperature
 										if not targetFanTemp:
 											targetFanTemp = -1
-										print "Target Fan: " + str(targetFanTemp)
 
 										if float(fanTemp) > float(targetFanTemp) and float(wortTemp) > float(targetTemp):
-											print "heater on"
 											ssr_controller.setEnabled(True);
 											ssr_controller.setState(True)
 											#ssr_controller.updateSSRController(wortTemp, targetTemp, True)
 										else:
-											print "heater off"
 											ssr_controller.setEnabled(False);
 						else:
 							ssr_controller.setEnabled(False)
@@ -268,22 +264,10 @@ class Brewing(BaseThreaded):
 						if _targetTemp:
 							targetTemp = _targetTemp
 
-						# q = Q(schedule=schedule) & Q(start_time__lte=now) & Q(end_time__gte=now)
-						# times = ScheduleTime.objects.filter(q)
-						# steps = ScheduleStep.objects.filter(q)
-						# if times:
-						# 	_time=times[0]
-						# 	targetTemp = _time.getTargetTemperature()
-						# 	if targetTemp != ssr.probe.target_temperature:
-						# 		ssr.probe.target_temperature=targetTemp
-						# 		ssr.probe.save()
-						# elif steps:
-						# 	pass
-
 				ssr_controller=self.getSSRController(ssr)
 				enabled = (targetTemp is not None and currentTemp > -999 and ssr.enabled)
 
-				print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
+				#print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
 					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 				if enabled:
 					ssr_controller.updateSSRController(currentTemp, targetTemp, currentTemp < targetTemp)
@@ -314,7 +298,7 @@ class Raspbrew(object):#threading.Thread):
 		brewConfs = BrewConfiguration.objects.all()
 
 		for brewConf in brewConfs:
-			print "Saving Status for brewConf: " + str(brewConf)
+			#print "Saving Status for brewConf: " + str(brewConf)
 			status=Status(brewconfig=brewConf,date=timezone.now(),owner=self.user)
 			status.save()
 			for probe in brewConf.probes.all():
@@ -326,7 +310,7 @@ class Raspbrew(object):#threading.Thread):
 		fermConfs = FermConfiguration.objects.all();
 
 		for fermConf in fermConfs:
-			print "Saving Status for fermConf: " + str(fermConf)
+			#print "Saving Status for fermConf: " + str(fermConf)
 			#add a status
 			status=Status(fermconfig=fermConf, date=timezone.now(),owner=self.user)
 			status.save()
@@ -369,7 +353,6 @@ class Raspbrew(object):#threading.Thread):
 		self.brew.start()
 
 		while True: #not self.stopped():
-			print "--------"
 			self.updateTemps()
 			self.addBrewStatus()
 			self.addFermStatus()

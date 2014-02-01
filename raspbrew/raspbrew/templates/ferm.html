@@ -60,6 +60,7 @@
 									</div>
 								</dd>
 							</dl>
+
 							<hr/>
 								{% if probe.ssrs.all|dictsort:"name" %}
 								<div class="row">
@@ -74,6 +75,8 @@
     align-content: center;">No SSRs defined for {{ probe.name }}</span></div>
 								{% endif %}
 							</dl>
+                            <hr/>
+                                {% include "schedule.html" with probe=probe%}
 						</div>
 					</div>
 				</div>

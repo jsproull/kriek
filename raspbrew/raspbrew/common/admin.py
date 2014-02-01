@@ -27,5 +27,5 @@ class ScheduleTimeAdmin(admin.ModelAdmin):
 admin.site.register(ScheduleTime, ScheduleTimeAdmin)
 
 class ScheduleStepAdmin(admin.ModelAdmin):
-	fields = ('name', 'step_index', 'temperature', 'active', 'hold_seconds')
+	fields = ('name', 'step_index', 'start_temperature', 'end_temperature', 'active', 'hold_seconds')
 admin.site.register(ScheduleStep, ScheduleStepAdmin)

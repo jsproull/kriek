@@ -4,7 +4,15 @@ body {
 }
 
 hr {
-	margin: 0 0 15px 0;
+	margin: 10px 2px;
+}
+
+.form-group {
+	margin-bottom: 5px;
+}
+
+.panel {
+	margin-bottom: 5px;
 }
 
 a:hover, a:focus {
@@ -23,6 +31,10 @@ button.activessr {
 	position: absolute;
 	top: .9em;
 	right: 1.7em;
+}
+
+.schedSteps {
+	padding: 2px;
 }
 
 /* dts */

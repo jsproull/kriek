@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import viewsets, generics
-from raspbrew.common.serializers import UserSerializer, StatusSerializer, ProbeSerializer, SSRSerializer, PIDSerializer, ProbeStatusSerializer, BrewConfSerializer, FermConfSerializer
-from raspbrew.common.models import PID, Probe, Status, SSR
+from raspbrew.common.serializers import UserSerializer, StatusSerializer, PIDSerializer, ProbeSerializer, SSRSerializer, ScheduleStepSerializer, ScheduleSerializer, ProbeStatusSerializer, BrewConfSerializer, FermConfSerializer
+from raspbrew.common.models import PID, Probe, Status, SSR, Schedule, ScheduleStep
 from raspbrew.status.models import ProbeStatus, SSRStatus
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.ferm.models import FermConfiguration
@@ -16,12 +16,33 @@ from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.csrf import csrf_exempt
 
+class ScheduleViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows users to be viewed or edited.
+	"""
+	queryset = Schedule.objects.all()
+	serializer_class = ScheduleSerializer
+
+class ScheduleStepViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows users to be viewed or edited.
+	"""
+	queryset = ScheduleStep.objects.all().order_by('step_index')
+	serializer_class = ScheduleStepSerializer
+
 class UserViewSet(viewsets.ModelViewSet):
 	"""
 	API endpoint that allows users to be viewed or edited.
 	"""
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
+
+class PIDViewSet(viewsets.ModelViewSet):
+	"""
+	API endpoint that allows users to be viewed or edited.
+	"""
+	queryset = PID.objects.all()
+	serializer_class = PIDSerializer
 
 class ProbeViewSet(viewsets.ModelViewSet):
 	"""
