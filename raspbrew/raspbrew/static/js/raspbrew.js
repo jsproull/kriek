@@ -31,7 +31,10 @@ function RaspBrew() {
 	this.probes = {}; //cached probes by id
 
 	this.currentSchedule = null; //the currently enabled step schedule
-	
+
+	this.enabledSSR = null; //the currently enabled ssr
+	this.enabledProbe = null; //the currently enabled probe (that is, the probe that the enabled ssr is reading)
+
 	//converts to fahrenheit if necessary
 	//all temps are stored in C on the server and converted here to imperial.
 	this.getTemperature = function(temp) {
@@ -173,6 +176,10 @@ function RaspBrew() {
 	// Updates the UI as needed
 	this.updateFromData = function(data, force) {
 
+		//set these as null
+		_this.enabledSSR = null;
+		_this.enabledProbe = null;
+
 		if (!force) {
 			force = false;
 		}
@@ -247,6 +254,11 @@ function RaspBrew() {
 				var ssrid = ssr.id;
 				if (!ssr) {
 					continue;
+				}
+
+				if (ssr.enabled) {
+					_this.enabledSSR = ssr;
+					_this.enabledProbe = probe;
 				}
 
 				//only update if something has changed in this ssr
@@ -465,7 +477,7 @@ function RaspBrew() {
 			}
 			//console.log('d.probes', d.probes);
 
-			for (var index in d.probes) {
+			for (var index=0;index<d.probes.length;index++) {
 				var probe = d.probes[index];
 				var probeid = probe.probe;
 				var probeIndex = _this.findProbeIndex(probeid);
@@ -808,7 +820,7 @@ function RaspBrew() {
 
 	//this method will try to calibrate the heater pid
 	this.calibratePID = function() {
-		if (!_this.latestChartData || _this.latestChartData.length == 0) {
+		if (!_this.latestChartData || _this.latestChartData.length == 0 || _this.enabledProbe == null) {
 			return;
 		}
 
@@ -820,12 +832,31 @@ function RaspBrew() {
 		//go through all of our data points and figure out when we've gone up 10% from the first data point
 		var start = _this.latestChartData[_this.latestChartData.length-1];
 		var end = null;
+
+		var startTemp = null;
+		var endTemp = null;
+		var enabledProbeIndex = 0;
+
 		for (var i=_this.latestChartData.length-1;i>=0;i--) {
 			var data = _this.latestChartData[i];
-			if (data.temperature > start.temperature*1.1) {
+			//find the probe
+			for (var j=0;j<data.probes.length;j++) {
+				var probe = data.probes[j];
+				if (probe.probe == _this.enabledProbe.id) {
+					enabledProbeIndex = j;
+					if (startTemp == null) {
+						startTemp = probe.temperature;
+					} else if (probe.temperature != startTemp && probe.temperature > startTemp*1.1) {
+						endTemp = probe.temperature;
+						end = data;
+						break;
+					}
+				}
+			}
+
+			if (endTemp != null) {
 				break;
 			}
-			end = data;
 		}
 
 		if (!end) {
@@ -833,13 +864,43 @@ function RaspBrew() {
 			return;
 		}
 
-		var deadtime = moment(end.date) - moment(start.date);
+		//go through and find when we hit the provided temperature t
+		var findDataAtTemp = function(t) {
+			for (var i=_this.latestChartData.length-1;i>=0;i--) {
+				var data = _this.latestChartData[i];
+				if (data.probes[enabledProbeIndex].temperature > t) {
+					return data;
+				}
+			}
+		}
 
-		if (deadtime <= 0) {
+
+		var t0 = start.date;
+		var T1 = parseFloat(startTemp);
+		var T2 = parseFloat(_this.latestChartData[0].probes[enabledProbeIndex].temperature);
+
+		var K = T2 - T1 / _this.enabledSSR.pid.power;
+		var d = findDataAtTemp(T1 + .283 * (T2 - T1));
+		tau3 = moment(d.date) - moment(t0);
+
+		var d = findDataAtTemp(T1 + 0.632 * (T2 - T1));
+		tau = moment(d.date) - moment(t0);
+
+		var TD = moment(end.date) - moment(start.date);
+
+		if (TD <= 0) {
 			alert('something wrongo2');
 			return;
 		}
-		console.log('deadtime', deadtime);
+
+		//Integral of Time weighted Absolute Error (ITAE-Load)
+		var kc = (1.357 / K) * Math.pow((TD / tau),-0.947);
+		var ti = (tau / 0.842) * Math.pow((TD / tau), 0.738);
+		var td = (0.381 * tau) * Math.pow((TD / tau), 0.995);
+
+		console.log('deadtime', TD, tau3, tau);
+		console.log(kc, ti, td);
+
 
 		//Normalized slope (a): the normalized slope of the step response is the increase in temperature per second per percentage of the PID controller output.
 			// Stated in a formula: a = change in temperature divided by time-interval divided by PID controller output.
