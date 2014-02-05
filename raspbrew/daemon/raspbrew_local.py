@@ -24,7 +24,6 @@ import os
 import glob
 
 sys.path.insert(0, "../")
-sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
@@ -375,8 +374,7 @@ class Raspbrew(object):#threading.Thread):
 			print "--- sleep ---"
 			time.sleep(1)
 			
-                
-#Pyro4.config.HMAC_KEY='derp'
+
 def main(raspbrew):
 	raspbrew.run()
 	

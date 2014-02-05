@@ -1,3 +1,5 @@
 env-raspbrew/
 env-raspbrew-osx/
+raspbrew/.idea
 *.pyc
+scripts/
