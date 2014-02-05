@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fb33b328-a800-49e7-ab91-c0d6b0a86269" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/common/models.py" afterPath="$PROJECT_DIR$/raspbrew/common/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/static/js/raspbrew.js" afterPath="$PROJECT_DIR$/raspbrew/static/js/raspbrew.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/raspbrew/globalsettings/models.py" afterPath="$PROJECT_DIR$/raspbrew/globalsettings/models.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/raspbrew.iml" afterPath="$PROJECT_DIR$/.idea/raspbrew.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/daemon/raspbrew_local.py" afterPath="$PROJECT_DIR$/daemon/raspbrew_local.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="raspbrew.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,23 +29,10 @@
   <component name="FileEditorManager">
     <leaf>
       <file leaf-file-name="models.py" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/raspbrew/common/models.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="253" column="48" selection-start="8116" selection-end="8118" vertical-scroll-proportion="-8.807693" vertical-offset="3566" max-vertical-offset="5985">
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="models.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="48" column="41" selection-start="1693" selection-end="1693" vertical-scroll-proportion="-8.423077" vertical-offset="501" max-vertical-offset="2340">
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-              </folding>
+            <state line="48" column="41" selection-start="1693" selection-end="1693" vertical-scroll-proportion="0.0" vertical-offset="501" max-vertical-offset="2340">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -51,7 +40,7 @@
       <file leaf-file-name="ssr.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/ssr.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="31" column="12" selection-start="629" selection-end="629" vertical-scroll-proportion="-17.884615" vertical-offset="0" max-vertical-offset="2775">
+            <state line="31" column="12" selection-start="629" selection-end="629" vertical-scroll-proportion="0.0" vertical-offset="465" max-vertical-offset="2775">
               <folding />
             </state>
           </provider>
@@ -60,18 +49,16 @@
       <file leaf-file-name="urls.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/urls.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="13" column="46" selection-start="540" selection-end="550" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1155">
-              <folding>
-                <element signature="e#0#51#0" expanded="true" />
-              </folding>
+            <state line="13" column="46" selection-start="540" selection-end="550" vertical-scroll-proportion="0.0" vertical-offset="195" max-vertical-offset="1155">
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="raspbrew.js" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="raspbrew.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/static/js/raspbrew.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="882" column="0" selection-start="23396" selection-end="23396" vertical-scroll-proportion="0.34687954" vertical-offset="12991" max-vertical-offset="14955">
+            <state line="864" column="9" selection-start="22910" selection-end="22910" vertical-scroll-proportion="0.0" vertical-offset="13276" max-vertical-offset="14955">
               <folding />
             </state>
           </provider>
@@ -80,16 +67,27 @@
       <file leaf-file-name="views_rest.py" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/views_rest.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="2" column="89" selection-start="186" selection-end="186" vertical-scroll-proportion="-1.1538461" vertical-offset="0" max-vertical-offset="3540">
+            <state line="2" column="89" selection-start="186" selection-end="186" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="3540">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="raspbrew_local.py" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="raspbrew_local.py" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/daemon/raspbrew_local.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="323" column="25" selection-start="9595" selection-end="9612" vertical-scroll-proportion="-55.153847" vertical-offset="3396" max-vertical-offset="5925">
+            <state line="351" column="34" selection-start="10531" selection-end="10531" vertical-scroll-proportion="6.964286" vertical-offset="0" max-vertical-offset="6135">
+              <folding>
+                <element signature="e#717#727#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="models.py" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/raspbrew/globalsettings/models.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="14" column="61" selection-start="407" selection-end="407" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
               <folding />
             </state>
           </provider>
@@ -98,7 +96,7 @@
       <file leaf-file-name="brew.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/templates/brew.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="81" column="32" selection-start="3688" selection-end="3733" vertical-scroll-proportion="-5.2" vertical-offset="940" max-vertical-offset="1605">
+            <state line="81" column="32" selection-start="3688" selection-end="3733" vertical-scroll-proportion="0.0" vertical-offset="1215" max-vertical-offset="1620">
               <folding />
             </state>
           </provider>
@@ -107,7 +105,7 @@
       <file leaf-file-name="ssr.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/templates/ssr.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="-0.0" vertical-offset="0" max-vertical-offset="645">
+            <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="645">
               <folding />
             </state>
           </provider>
@@ -116,7 +114,7 @@
       <file leaf-file-name="base.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/raspbrew/templates/base.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="149" column="16" selection-start="6312" selection-end="6312" vertical-scroll-proportion="-7.5641026" vertical-offset="1645" max-vertical-offset="2595">
+            <state line="149" column="16" selection-start="6312" selection-end="6312" vertical-scroll-proportion="0.0" vertical-offset="1645" max-vertical-offset="2595">
               <folding />
             </state>
           </provider>
@@ -140,7 +138,6 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/raspbrew/globalsettings/models.py" />
         <option value="$PROJECT_DIR$/daemon/raspbrew_remote.py" />
         <option value="$PROJECT_DIR$/raspbrew/common/serializers.py" />
         <option value="$PROJECT_DIR$/raspbrew/templates/brew.html" />
@@ -153,9 +150,10 @@
         <option value="$PROJECT_DIR$/raspbrew/templates/base.html" />
         <option value="$PROJECT_DIR$/common/ssr.py" />
         <option value="$PROJECT_DIR$/raspbrew/status/models.py" />
-        <option value="$PROJECT_DIR$/daemon/raspbrew_local.py" />
         <option value="$PROJECT_DIR$/raspbrew/common/models.py" />
         <option value="$PROJECT_DIR$/raspbrew/static/js/raspbrew.js" />
+        <option value="$PROJECT_DIR$/raspbrew/globalsettings/models.py" />
+        <option value="$PROJECT_DIR$/daemon/raspbrew_local.py" />
       </list>
     </option>
   </component>
@@ -347,6 +345,24 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="globalsettings" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raspbrew" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raspbrew" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="raspbrew" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="ferm" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -422,11 +438,11 @@
   <component name="PropertiesComponent">
     <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="options.splitter.main.proportions" value="0.3" />
-    <property name="recentsLimit" value="5" />
     <property name="options.lastSelected" value="editor.preferences.appearance" />
+    <property name="recentsLimit" value="5" />
     <property name="FullScreen" value="false" />
-    <property name="options.searchVisible" value="true" />
     <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="PyConsoleOptionsProvider">
     <option name="myPythonConsoleState">
@@ -670,9 +686,8 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936507" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936507" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936507" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32993513" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25264645" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1559633" sideWeight="0.6005291" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15574348" sideWeight="0.6005291" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32941177" sideWeight="0.5" order="3" side_tool="true" content_ui="tabs" />
@@ -680,12 +695,18 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32993513" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3994709" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
   </component>
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
@@ -705,72 +726,125 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/raspbrew/templates/ferm.html">
+    <entry file="file://$PROJECT_DIR$/raspbrew/common/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="78" column="77" selection-start="3380" selection-end="3380" vertical-scroll-proportion="-8.18" vertical-offset="761" max-vertical-offset="1590">
-          <folding>
-            <element signature="n#style#0;n#div#1;n#div#1;n#div#0;n#div#0;n#div#1;n#div#0;n#div#3;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#span#0;n#div#1;n#div#1;n#div#0;n#div#0;n#div#1;n#div#0;n#div#3;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/templates/chart.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="16" column="38" selection-start="1075" selection-end="1077" vertical-scroll-proportion="0.32180452" vertical-offset="26" max-vertical-offset="1110">
+        <state line="253" column="48" selection-start="8116" selection-end="8118" vertical-scroll-proportion="0.0" vertical-offset="3566" max-vertical-offset="5985">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/static/css/raspbrew.css">
+    <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="36" column="14" selection-start="341" selection-end="341" vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="4335">
+        <state line="48" column="41" selection-start="1693" selection-end="1693" vertical-scroll-proportion="0.0" vertical-offset="501" max-vertical-offset="2340">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/common/admin.py">
+    <entry file="file://$PROJECT_DIR$/common/ssr.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="29" column="76" selection-start="846" selection-end="846" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/templates/schedule.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="29" selection-start="401" selection-end="401" vertical-scroll-proportion="-4.375" vertical-offset="0" max-vertical-offset="330">
-          <folding>
-            <element signature="n#style#0;n#div#1;n#div#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/raspbrew/common/serializers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="27" column="19" selection-start="863" selection-end="876" vertical-scroll-proportion="-5.230769" vertical-offset="164" max-vertical-offset="1455">
+        <state line="31" column="12" selection-start="629" selection-end="629" vertical-scroll-proportion="0.0" vertical-offset="465" max-vertical-offset="2775">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="46" selection-start="540" selection-end="550" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1155">
-          <folding>
-            <element signature="e#0#51#0" expanded="true" />
-          </folding>
+        <state line="13" column="46" selection-start="540" selection-end="550" vertical-scroll-proportion="0.0" vertical-offset="195" max-vertical-offset="1155">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/static/js/raspbrew.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="864" column="9" selection-start="22910" selection-end="22910" vertical-scroll-proportion="0.0" vertical-offset="13276" max-vertical-offset="14955">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/views_rest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="2" column="89" selection-start="186" selection-end="186" vertical-scroll-proportion="-1.1538461" vertical-offset="0" max-vertical-offset="3540">
+        <state line="2" column="89" selection-start="186" selection-end="186" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="3540">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/daemon/raspbrew_local.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="323" column="25" selection-start="9595" selection-end="9612" vertical-scroll-proportion="0.0" vertical-offset="4845" max-vertical-offset="5925">
+          <folding>
+            <element signature="e#717#727#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/brew.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="81" column="32" selection-start="3688" selection-end="3733" vertical-scroll-proportion="0.0" vertical-offset="1215" max-vertical-offset="1620">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/ssr.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="645">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/base.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="149" column="16" selection-start="6312" selection-end="6312" vertical-scroll-proportion="0.0" vertical-offset="1645" max-vertical-offset="2595">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/ferm.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="78" column="77" selection-start="3380" selection-end="3380" vertical-scroll-proportion="-8.18" vertical-offset="761" max-vertical-offset="1590" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/chart.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="38" selection-start="1075" selection-end="1077" vertical-scroll-proportion="0.32180452" vertical-offset="26" max-vertical-offset="1110" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/static/css/raspbrew.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="36" column="14" selection-start="341" selection-end="341" vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="4335" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/common/admin.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="29" column="76" selection-start="846" selection-end="846" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="555" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/templates/schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="29" selection-start="401" selection-end="401" vertical-scroll-proportion="-4.375" vertical-offset="0" max-vertical-offset="330" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/common/serializers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="27" column="19" selection-start="863" selection-end="876" vertical-scroll-proportion="-5.230769" vertical-offset="164" max-vertical-offset="1455" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="13" column="46" selection-start="540" selection-end="550" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="1155">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/views_rest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="2" column="89" selection-start="186" selection-end="186" vertical-scroll-proportion="0.0" vertical-offset="30" max-vertical-offset="3540">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/templates/brew.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="81" column="32" selection-start="3688" selection-end="3733" vertical-scroll-proportion="-5.2" vertical-offset="940" max-vertical-offset="1605">
+        <state line="81" column="32" selection-start="3688" selection-end="3733" vertical-scroll-proportion="0.0" vertical-offset="1215" max-vertical-offset="1620">
           <folding />
         </state>
       </provider>
@@ -784,47 +858,52 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/templates/base.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="149" column="16" selection-start="6312" selection-end="6312" vertical-scroll-proportion="-7.5641026" vertical-offset="1645" max-vertical-offset="2595">
+        <state line="149" column="16" selection-start="6312" selection-end="6312" vertical-scroll-proportion="0.0" vertical-offset="1645" max-vertical-offset="2595">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/common/ssr.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="31" column="12" selection-start="629" selection-end="629" vertical-scroll-proportion="-17.884615" vertical-offset="0" max-vertical-offset="2775">
+        <state line="31" column="12" selection-start="629" selection-end="629" vertical-scroll-proportion="0.0" vertical-offset="465" max-vertical-offset="2775">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/status/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="48" column="41" selection-start="1693" selection-end="1693" vertical-scroll-proportion="-8.423077" vertical-offset="501" max-vertical-offset="2340">
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/daemon/raspbrew_local.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="323" column="25" selection-start="9595" selection-end="9612" vertical-scroll-proportion="-55.153847" vertical-offset="3396" max-vertical-offset="5925">
+        <state line="48" column="41" selection-start="1693" selection-end="1693" vertical-scroll-proportion="0.0" vertical-offset="501" max-vertical-offset="2340">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/common/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="253" column="48" selection-start="8116" selection-end="8118" vertical-scroll-proportion="-8.807693" vertical-offset="3566" max-vertical-offset="5985">
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
+        <state line="253" column="48" selection-start="8116" selection-end="8118" vertical-scroll-proportion="0.0" vertical-offset="3566" max-vertical-offset="5985">
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/raspbrew/static/js/raspbrew.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="882" column="0" selection-start="23396" selection-end="23396" vertical-scroll-proportion="0.34687954" vertical-offset="12991" max-vertical-offset="14955">
+        <state line="864" column="9" selection-start="22910" selection-end="22910" vertical-scroll-proportion="0.0" vertical-offset="13276" max-vertical-offset="14955">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/raspbrew/globalsettings/models.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="61" selection-start="407" selection-end="407" vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="540">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/daemon/raspbrew_local.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="351" column="34" selection-start="10531" selection-end="10531" vertical-scroll-proportion="6.964286" vertical-offset="0" max-vertical-offset="6135">
+          <folding>
+            <element signature="e#717#727#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

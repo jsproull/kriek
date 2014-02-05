@@ -21,6 +21,7 @@
 
 import sys
 import os
+import glob
 
 sys.path.insert(0, "../")
 sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
@@ -28,7 +29,6 @@ sys.path.insert(0, "/home/pi/t/raspbrew/raspbrew/")
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "raspbrew.settings")
 
 from django.utils import timezone
-from django.db.models import Q
 from django.contrib.auth.models import User
 
 from datetime import timedelta
@@ -344,11 +344,24 @@ class Raspbrew(object):#threading.Thread):
 						statuses=statuses[1+c:]
 						_len=len(statuses)
 
+	def update_probes(self):
+		"""
+		creates Probe ojbects for probes in /sys/bus/w1/devices/ if none currently exist in the db
+		"""
+		if Probe.objects.count() == 0:
+			for dir in glob.glob("/sys/bus/w1/devices/28*"):
+				file = os.path.basename(dir)
+				print "Adding probe with one-wire id: " + str(file)
+				user=User.objects.get(pk=1)
+				probe=Probe(one_wire_Id=file,name=file,owner=user)
+				probe.save()
+
 
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps
 	#
 	def run(self):
+		self.update_probes()
 		self.ferm.start()
 		self.brew.start()
 

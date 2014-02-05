@@ -8,7 +8,13 @@ class GlobalSettingsManager(models.Manager):
 		try:
 			setting = GlobalSettings.objects.get(key=key)
 		except:
-			raise Exception
+			#defaults
+			if key == 'UNITS':
+				g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
+				g.save()
+				setting = GlobalSettings.objects.get(key=key)
+			else:
+				raise Exception
 		return setting
 
 class GlobalSettings(models.Model):
