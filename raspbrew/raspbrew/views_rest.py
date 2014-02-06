@@ -166,11 +166,6 @@ class StatusList(generics.ListAPIView):
 
 		total = Status.objects.count()
 		number_to_return = int(number_to_return)
-		#print "Getting Statuses : " + str(numberToReturn)
-
-		j = []
-		#if startDate == -1:
-		#	startDate = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 		if number_to_return > 1 and total > 0:
 			#print str(timezone.now())
