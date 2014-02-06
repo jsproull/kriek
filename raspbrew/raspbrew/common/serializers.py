@@ -1,11 +1,11 @@
-from rest_framework import serializers, generics
-from django.contrib.auth.models import User, Group
-import datetime, time
+from rest_framework import serializers
+from django.contrib.auth.models import User
 
 from .models import Probe, SSR, PID, Schedule, ScheduleStep, ScheduleTime
 from raspbrew.status.models import ProbeStatus, Status
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.ferm.models import FermConfiguration
+
 
 class UnixEpochDateField(serializers.DateTimeField):
 	def to_native(self, value):
@@ -20,29 +20,36 @@ class UnixEpochDateField(serializers.DateTimeField):
 		import datetime
 		return datetime.datetime.fromtimestamp(int(value))
 
+
 class UserSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = User
 		fields = ('url', 'username', 'email', 'groups')
+
 
 class PIDSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = PID
 		fields = ('cycle_time', 'k_param', 'i_param', 'd_param', 'power', 'enabled')
 
+
 class SSRSerializer(serializers.ModelSerializer):
 	pid = PIDSerializer(many=False)
+
 	class Meta:
 		model = SSR
-		fields = ('id', 'name', 'pin', 'probe', 'pid', 'enabled', 'state', 'heater_or_chiller', 'owner', 'eta', 'degreesPerMinute')
+		fields = ('id', 'name', 'pin', 'probe', 'pid', 'enabled', 'state', 'heater_or_chiller', 'owner', 'eta', 'degrees_per_minute')
+
 
 class ScheduleStepSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ScheduleStep
 
+
 class ScheduleTimeSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = ScheduleTime
+
 
 class ScheduleSerializer(serializers.ModelSerializer):
 	scheduleTimes = ScheduleTimeSerializer(many=True)
@@ -51,6 +58,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = Schedule
 
+
 class ProbeSerializer(serializers.ModelSerializer):
 	last_temp_date  = UnixEpochDateField(source='last_temp_date')
 	ssrs = SSRSerializer(many=True)
@@ -58,15 +66,17 @@ class ProbeSerializer(serializers.ModelSerializer):
 
 	class Meta:
 		model = Probe
-		fields = ('id', 'name', 'one_wire_Id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs', 'schedules')
+		fields = ('id', 'name', 'one_wire_id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs', 'schedules')
 
 
 class BrewConfSerializer(serializers.ModelSerializer):
 	ssrs = SSRSerializer(many=True)
 	probes = ProbeSerializer(many=True)
+
 	class Meta:
 		model = BrewConfiguration
 		fields = ('id', 'name', 'probes', 'ssrs', 'enabled', 'allow_multiple_ssrs', 'schedule')
+
 
 class FermConfSerializer(serializers.ModelSerializer):
 	ssrs = SSRSerializer(many=True)
@@ -83,16 +93,20 @@ class FermConfSerializer(serializers.ModelSerializer):
 #update the probe here because.. python
 SSRSerializer.probe = ProbeSerializer(many=False)
 
+
 ## status
-class ProbeStatusSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer): 
+class ProbeStatusSerializer(serializers.ModelSerializer):
 	#probe = ProbeSerializer(many=False)
+
 	class Meta:
 		model = ProbeStatus
-		fields = ('id', 'name', 'one_wire_Id', 'type', 'temperature', 'target_temperature', 'probe', 'owner')
+		fields = ('id', 'name', 'one_wire_id', 'type', 'temperature', 'target_temperature', 'probe', 'owner')
 
-class StatusSerializer(serializers.ModelSerializer): #HyperlinkedModelSerializer): 
+
+class StatusSerializer(serializers.ModelSerializer):
 	probes = ProbeStatusSerializer(many=True)
+
 	class Meta:
 		model = Status
-		fields = ('id', 'fermconfig', 'brewconfig', 'probes', 'date', 'owner' )
+		fields = ('id', 'fermconfig', 'brewconfig', 'probes', 'date', 'owner')
 

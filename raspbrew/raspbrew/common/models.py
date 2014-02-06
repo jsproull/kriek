@@ -1,38 +1,25 @@
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.db import models
 from django.utils import timezone
-
-from raspbrew.globalsettings.models import GlobalSettings
-from raspbrew.status.models import Status, ProbeStatus
-
 from django.db.models import Q
 
-#import numpy as np
+from raspbrew.status.models import Status, ProbeStatus
 
-def unix_time(dt):
-	dt = dt.replace(tzinfo=None)
-	epoch = datetime.fromtimestamp(0)
-	delta = dt - epoch
-	return delta.total_seconds()
-
-
-def unix_time_millis(dt):
-	return unix_time(dt) * 1000.0
 
 ##
 ## A ScheduleTime is one step by date in a Schedule
 ##
 class ScheduleTime(models.Model):
 	name = models.CharField(max_length=30)
-	start_time = models.DateTimeField() #time of this status
+	start_time = models.DateTimeField()  # time of this status
 	start_temperature = models.FloatField()
 	end_temperature = models.FloatField(blank=True, null=True)
-	end_time = models.DateTimeField() #end time of this status
-	active = models.BooleanField(default=False) # this is set to true when we are currently using this step
+	end_time = models.DateTimeField()  # end time of this status
+	active = models.BooleanField(default=False)  # this is set to true when we are currently using this step
 
-	def getTargetTemperature(self):
+	def get_target_temperature(self):
 		#if we just have a start time, return it
 		if self.end_temperature is None or self.start_temperature == self.end_temperature:
 			return self.start_temperature
@@ -43,32 +30,31 @@ class ScheduleTime(models.Model):
 		curr = (now - self.start_time).total_seconds()
 		percent = float(curr) / totaltime
 
-		tempDiff = self.end_temperature - self.start_temperature
-		temp = self.start_temperature + tempDiff * percent
+		tempdiff = self.end_temperature - self.start_temperature
+		temp = float(self.start_temperature) + tempdiff * percent
 		return round(temp, 1)
-
 
 	#TODO
 	#we have to add the ability to 'ramp up' over time
 	#type = hold, linear, ease in, ease out
-
 	def __unicode__(self):
 		return "%s - %s" % (self.start_time, self.end_time)
+
 
 ##
 ## A ScheduleStep is one step that is held for x seconds in a Schedule
 ##
 class ScheduleStep(models.Model):
-	name = models.CharField(max_length=30,blank=True, null=True)
+	name = models.CharField(max_length=30, blank=True, null=True)
 	step_index = models.IntegerField()
 	start_temperature = models.FloatField()
 	end_temperature = models.FloatField(blank=True, null=True)
-	active = models.BooleanField(default=False) # this is set to true when we are currently using this step
+	active = models.BooleanField(default=False)  # this is set to true when we are currently using this step
 
-	active_time = models.DateTimeField(null=True, blank=True) #and internal date to be set when this step starts
-	hold_seconds = models.FloatField(default=60 * 15) #once the temperature is reached, it is held for this long
+	active_time = models.DateTimeField(null=True, blank=True)  # and internal date to be set when this step starts
+	hold_seconds = models.FloatField(default=60 * 15)  # once the temperature is reached, it is held for this long
 
-	def getTargetTemperature(self):
+	def get_target_temperature(self):
 		#if we just have a start time, return it
 		if self.end_temperature is None or self.start_temperature == self.end_temperature:
 			return self.start_temperature
@@ -76,10 +62,10 @@ class ScheduleStep(models.Model):
 		#for now, assume it's linear
 		now = timezone.now()
 		curr = (now - self.active_time).total_seconds()
-		percent = float(curr) / self.hold_seconds
+		percent = float(curr) / float(self.hold_seconds)
 
-		tempDiff = self.end_temperature - self.start_temperature
-		temp = self.start_temperature + tempDiff * percent
+		tempdiff = self.end_temperature - self.start_temperature
+		temp = float(self.start_temperature) + tempdiff * percent
 		return round(temp, 1)
 
 	def save(self, *args, **kwargs):
@@ -93,12 +79,12 @@ class ScheduleStep(models.Model):
 			self.active = True
 
 			if not self.active_time:
-				self.active_time=timezone.now()
+				self.active_time = timezone.now()
 
 		super(ScheduleStep, self).save(*args, **kwargs)
 
 	def __unicode__(self):
-		return "%d: %s" % (self.step_index, self.name)
+		return "%d: %s" % (int(self.step_index), self.name)
 
 
 ##
@@ -109,7 +95,9 @@ class Schedule(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='schedules', blank=True, null=True)
 	scheduleTimes = models.ManyToManyField('common.ScheduleTime', blank=True, null=True)
 	scheduleSteps = models.ManyToManyField('common.ScheduleStep', blank=True, null=True)
-	enabled = models.BooleanField(default=False) # this is set to true when we are currently using this schedule. There can only be one schedule enabled at a time
+
+	#  this is set to true when we are currently using this schedule. There can only be one schedule enabled at a time
+	enabled = models.BooleanField(default=False)
 
 	probe = models.ForeignKey('common.Probe', null=True, related_name='schedules')
 
@@ -122,60 +110,61 @@ class Schedule(models.Model):
 
 		super(Schedule, self).save(*args, **kwargs)
 
-	def getTargetTemperature(self):
+	def get_target_temperature(self):
 		now = timezone.now()
 
 		#check if we have any scheduleTimes
 		q = Q(start_time__lte=now) & Q(end_time__gte=now)
 		for _time in self.scheduleTimes.filter(q):
-			targetTemp = _time.getTargetTemperature()
-			if targetTemp != self.probe.target_temperature:
-				self.probe.target_temperature = targetTemp
+			targettemp = _time.get_target_temperature()
+			if targettemp != self.probe.target_temperature:
+				self.probe.target_temperature = targettemp
 				self.probe.save()
 
 		#or any ScheduleSteps that are active
 		for _step in self.scheduleSteps.filter(active=True).order_by("step_index"):
 			now = timezone.now()
 			if not _step.active_time:
-				heating=False
-				ssrs=self.probe.ssrs.all()
+				heating = False
+				ssrs = self.probe.ssrs.all()
 				#are we heating or cooling? TODO - figure out if this is coolbot mode
 				for ssr in ssrs:
-					heating=(ssr.heater_or_chiller == 0) # heater
-					break #for now, just use the first one
+					heating = (ssr.heater_or_chiller == 0)  # heater
+					break  # for now, just use the first one
 
 				#check if we should start
 				if heating:
 					if self.probe.temperature >= _step.temperature:
-						_step.active_time=now
+						_step.active_time = now
 				else:
 					if self.probe.temperature <= _step.temperature:
-						_step.active_time=now
+						_step.active_time = now
 			else:
 				#set the target temp
-				targetTemp = _step.getTargetTemperature()
-				if targetTemp != self.probe.target_temperature:
-					self.probe.target_temperature = targetTemp
+				targettemp = _step.get_target_temperature()
+				if targettemp != self.probe.target_temperature:
+					self.probe.target_temperature = targettemp
 					self.probe.save()
 
 				#check if we should move on to the next step
-				if now>_step.active_time+timedelta(seconds=_step.hold_seconds):
-					next=self.scheduleSteps.filter(step_index=_step.step_index+1)
-					print "next:" + str(next)
-					if next:
-						next = next[0]
-						next.active=True
-						next.save()
-						_step.active=False
-						_step.active_time=None
+				if now > _step.active_time+timedelta(seconds=_step.hold_seconds):
+					_next = self.scheduleSteps.filter(step_index=_step.step_index+1)
+					print "next:" + str(_next)
+					if _next:
+						_next = _next[0]
+						_next.active = True
+						_next.save()
+						_step.active = False
+						_step.active_time = None
 						_step.save()
 					else:
-						_step.active=False
-						_step.active_time=None
+						_step.active = False
+						_step.active_time = None
 						_step.save()
 
 	def __unicode__(self):
 		return self.name
+
 
 # Each Probe.
 class Probe(models.Model):
@@ -202,26 +191,25 @@ class Probe(models.Model):
 
 	#the correction factor if neeced
 	correction_factor = models.DecimalField(default=0.0, decimal_places=2,
-											max_digits=6) #a correction factor to apply (if any)
+											max_digits=6)  # a correction factor to apply (if any)
 
 	#the date of the last good reading for self.temperature
-	last_temp_date = models.DateTimeField(null=True, blank=True) #time of this status
+	last_temp_date = models.DateTimeField(null=True, blank=True)  # time of this status
 
 	#returns the current temperature of this probe.
-	def getCurrentTemp(self, returnlatest=False):
-		units = GlobalSettings.objects.get_setting('UNITS')
+	def get_current_temp(self, returnlatest=False):
 
 		if returnlatest and self.temperature:
 			return self.temperature
 
-		updateNeeded = True
+		updateneeded = True
 		# we only update every 10 seconds. maybe this could be a global conf
 		if self.last_temp_date and self.temperature:
 			now = timezone.now()
 			if now < self.last_temp_date + timedelta(seconds=10):
-				updateNeeded = False
+				updateneeded = False
 
-		if not updateNeeded:
+		if not updateneeded:
 			return self.temperature
 
 		temp = None
@@ -231,21 +219,21 @@ class Probe(models.Model):
 		while count < 10 and not temp:
 
 			try:
-				f = open('/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave", 'r')
+				f = open('/sys/bus/w1/devices/' + str(self.one_wire_Id) + "/w1_slave", 'r')
 				lines = f.readlines()
 				crcline = lines[0]
-				tempLine = lines[1]
-				result_list = tempLine.split("=")
+				templine = lines[1]
+				result_list = templine.split("=")
 				count += 1
 				if crcline.find("YES") > -1:
-					temp = float(result_list[-1]) / 1000 # temp in Celcius
+					temp = float(result_list[-1]) / 1000  # temp in Celcius
 
 					if self.correction_factor is not None:
-						temp += float(self.correction_factor)# correction factor
+						temp += float(self.correction_factor)  # correction factor
 
 			except IOError:
-				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_Id + "/w1_slave does not exist.";
-				if self.temperature == None:
+				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_id + "/w1_slave does not exist.";
+				if self.temperature is None:
 					temp = 0
 				else:
 					temp = float(self.temperature) + .01
@@ -255,7 +243,7 @@ class Probe(models.Model):
 		#if units.value == 'imperial':
 		#	temp = (9.0/5.0)*float(temp) + 32  #convert to F
 
-		if (self.temperature != temp):
+		if self.temperature != temp:
 			#update the last good date if we have a good reading
 			if not temp is None:
 				self.last_temp_date = timezone.now()
@@ -272,6 +260,7 @@ class Probe(models.Model):
 		verbose_name = "Probe"
 		verbose_name_plural = "Probes"
 
+
 # An internal PID class to contain PID values for each SSR
 class PID(models.Model):
 	cycle_time = models.FloatField(default=2.0)
@@ -279,7 +268,7 @@ class PID(models.Model):
 	i_param = models.FloatField(default=80.0)
 	d_param = models.FloatField(default=4.0)	
 	power = models.IntegerField(default=100)
-	enabled = models.BooleanField(default=True) #enabled
+	enabled = models.BooleanField(default=True)  # enabled
 	
 
 # An SSR has probe and PID information
@@ -291,12 +280,12 @@ class SSR(models.Model):
 	pin = models.IntegerField()
 	probe = models.ForeignKey(Probe, null=True, related_name='ssrs')
 	pid = models.OneToOneField(PID, null=True, related_name='ssrs')
-	enabled = models.BooleanField(default=True) #enabled
-	state = models.BooleanField(default=False) #on/off
+	enabled = models.BooleanField(default=True)  # enabled
+	state = models.BooleanField(default=False)  # on/off
 
 	#these are updated on demand
 	eta = models.FloatField(null=True, blank=True)
-	degreesPerMinute = models.FloatField(null=True, blank=True)
+	degrees_per_minute = models.FloatField(null=True, blank=True)
 
 	#an ssr is a heater or a chiller
 	HEATER_OR_CHILLER = (
@@ -304,8 +293,7 @@ class SSR(models.Model):
 		(1, 'Chiller'),
 	)
 	heater_or_chiller = models.IntegerField(default=0, choices=HEATER_OR_CHILLER)
-	
-	
+
 	def __unicode__(self):
 		return self.name
 	
@@ -313,7 +301,7 @@ class SSR(models.Model):
 		# create a PID
 		if not self.pid:
 			self.pid = PID.objects.create()
-        
+
 		super(SSR, self).save(*args, **kwargs)
 		
 	class Meta:
@@ -322,14 +310,13 @@ class SSR(models.Model):
 
 	#returns a tuple of the ETA epoch of the current target temp
 	# as well as the degrees per minute
-	def getETA(self):
+	def get_eta(self):
 		"""
-
 
 		@return:
 		"""
-		eta=None
-		degreesPerMinute=None
+		eta = None
+		degreesperminute = None
 		#print "Get ETA:"
 		#print str(self.pk) + " " + str(self.state)
 		#print str(self.probe.target_temperature)
@@ -342,18 +329,19 @@ class SSR(models.Model):
 			#default to one hour
 			startdate = now + timedelta(hours=-1)
 			
-			currentTemp=self.probe.temperature
-			currentTemp=float(currentTemp)
+			currenttemp = self.probe.temperature
+			currenttemp = float(currenttemp)
 				
 			#filter when the ssr state is true
 			statuses = Status.objects.filter(date__gte=startdate, date__lte=now, probes__ssrstatus__state=True)
 
 			if statuses and len(statuses) >= 2:
 				
-				starttemp=None
+				starttemp = None
 
 				# first, find the starting probe status
 				for status in statuses:
+					pp = None
 					if status.probes:
 						try:
 							pp = status.probes.get(probe__id=self.probe.id)
@@ -361,33 +349,32 @@ class SSR(models.Model):
 							continue
 
 					if (not starttemp) and pp.temperature:
-						startdate=status.date
-						starttemp=float(pp.temperature)
+						startdate = status.date
+						starttemp = float(pp.temperature)
 						break
 
 				# find the difference between when we started and where we are now
-				if starttemp and currentTemp:
-					tempDiff=float(currentTemp)-float(starttemp)
-					timeDiff=float((now-startdate).seconds)/60
-					degreesPerMinute=0
-					if timeDiff>0:
-						degreesPerMinute=tempDiff/timeDiff
+				if starttemp and currenttemp:
+					tempdiff = float(currenttemp)-float(starttemp)
+					timediff = float((now-startdate).seconds)/60
+					degreesperminute = 0
+					if timediff > 0:
+						degreesperminute = tempdiff/timediff
 						
 					#print "delta (min) %f" % timeDiff
 					#print "%d : target: %f tempdiff: %f starttemp: %f currenttemp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiff), float(startTemp), float(currentTemp), float(degreesPerMinute));
 
 				# and now see how long it will take to get to the target temperature based on the degreesPerMinute
-				if currentTemp and self.probe.target_temperature and degreesPerMinute:
-					diff=float(self.probe.target_temperature)-currentTemp
+				if currenttemp and self.probe.target_temperature and degreesperminute:
+					diff = float(self.probe.target_temperature)-currenttemp
 					#print "diff: " + str(diff) + " degreesPerMinute:" + str(degreesPerMinute)
-					eta=abs(diff/degreesPerMinute)
+					eta = abs(diff/degreesperminute)
 					#print "minutes: " + str(eta)
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
 					eta = time.mktime(eta.timetuple())*1000
 					self.eta = eta
-					self.degreesPerMinute = degreesPerMinute
+					self.degrees_per_minute = degreesperminute
 					self.save()
 
-		return eta, degreesPerMinute
-			
+		return eta, degreesperminute

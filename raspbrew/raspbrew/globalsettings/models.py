@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 # Global (application) settings
 
+
 class GlobalSettingsManager(models.Manager):
 	def get_setting(self, key):
 		try:
@@ -10,12 +11,13 @@ class GlobalSettingsManager(models.Manager):
 		except:
 			#defaults
 			if key == 'UNITS':
-				g,created=GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
+				g, created = GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
 				g.save()
 				setting = GlobalSettings.objects.get(key=key)
 			else:
 				raise Exception
 		return setting
+
 
 class GlobalSettings(models.Model):
 	key = models.CharField(unique=True, max_length=255)

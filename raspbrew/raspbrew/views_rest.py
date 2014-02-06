@@ -1,20 +1,17 @@
-from django.contrib.auth.models import User, Group
+import datetime
+
+from django.contrib.auth.models import User
 from rest_framework import viewsets, generics
+from django.db.models import Q
+from django.core.exceptions import ObjectDoesNotExist
+
 from raspbrew.common.serializers import UserSerializer, StatusSerializer, PIDSerializer, ProbeSerializer, SSRSerializer, ScheduleStepSerializer, ScheduleSerializer, ProbeStatusSerializer, BrewConfSerializer, FermConfSerializer
 from raspbrew.common.models import PID, Probe, Status, SSR, Schedule, ScheduleStep
 from raspbrew.status.models import ProbeStatus, SSRStatus
 from raspbrew.brew.models import BrewConfiguration
 from raspbrew.ferm.models import FermConfiguration
-from rest_framework import permissions
-from .permissions import IsOwnerOrReadOnly, IsOwner, IsAnyone
-from django.utils import timezone
-from raspbrew.dates import unix_time, unix_time_millis
+from .permissions import IsAnyone
 
-import datetime
-
-from django.db.models import Q
-from django.core.exceptions import ObjectDoesNotExist
-from django.views.decorators.csrf import csrf_exempt
 
 class ScheduleViewSet(viewsets.ModelViewSet):
 	"""
@@ -23,12 +20,14 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 	queryset = Schedule.objects.all()
 	serializer_class = ScheduleSerializer
 
+
 class ScheduleStepViewSet(viewsets.ModelViewSet):
 	"""
 	API endpoint that allows users to be viewed or edited.
 	"""
 	queryset = ScheduleStep.objects.all().order_by('step_index')
 	serializer_class = ScheduleStepSerializer
+
 
 class UserViewSet(viewsets.ModelViewSet):
 	"""
@@ -37,12 +36,14 @@ class UserViewSet(viewsets.ModelViewSet):
 	queryset = User.objects.all()
 	serializer_class = UserSerializer
 
+
 class PIDViewSet(viewsets.ModelViewSet):
 	"""
 	API endpoint that allows users to be viewed or edited.
 	"""
 	queryset = PID.objects.all()
 	serializer_class = PIDSerializer
+
 
 class ProbeViewSet(viewsets.ModelViewSet):
 	"""
@@ -57,6 +58,7 @@ class ProbeViewSet(viewsets.ModelViewSet):
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
+
 
 class SSRViewSet(viewsets.ModelViewSet):
 	"""
@@ -78,8 +80,9 @@ class SSRViewSet(viewsets.ModelViewSet):
 				for ssr in bc.ssrs.all():
 					if not obj.id == ssr.id:
 						print "Disabling: " + str(ssr.id)
-						ssr.enabled=False
+						ssr.enabled = False
 						ssr.save()
+
 
 class BrewConfViewSet(viewsets.ModelViewSet):
 	"""
@@ -95,6 +98,7 @@ class BrewConfViewSet(viewsets.ModelViewSet):
 	def pre_save(self, obj):
 		obj.owner = self.request.user
 
+
 class FermConfViewSet(viewsets.ModelViewSet):
 	"""
 	This viewset automatically provides `list`, `create`, `retrieve`,
@@ -108,6 +112,7 @@ class FermConfViewSet(viewsets.ModelViewSet):
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
+
 
 class ProbeStatusViewSet(viewsets.ModelViewSet):
 	"""
@@ -131,6 +136,7 @@ class ProbeStatusViewSet(viewsets.ModelViewSet):
 	# def pre_save(self, obj):
 	# 	obj.owner = self.request.user
 
+
 class StatusList(generics.ListAPIView):
 	"""
 		Returns a list of statuses filtered by date and number requested
@@ -152,78 +158,78 @@ class StatusList(generics.ListAPIView):
 
 		#get our options
 		_type = self.request.QUERY_PARAMS.get('type', None)
-		confId = int(self.request.QUERY_PARAMS.get('confId', -1))
-		numberToReturn = int(self.request.QUERY_PARAMS.get('numberToReturn', 10))
-		startDate = self.request.QUERY_PARAMS.get('startDate', None) #unix_time_millis(timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)))
+		confid = int(self.request.QUERY_PARAMS.get('confId', -1))
+		number_to_return = int(self.request.QUERY_PARAMS.get('numberToReturn', 10))
+		startdate = self.request.QUERY_PARAMS.get('startDate', None)  # unix_time_millis(timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)))
 
-		endDate = self.request.QUERY_PARAMS.get('endDate', None)
+		enddate = self.request.QUERY_PARAMS.get('endDate', None)
 
-		total=Status.objects.count()
-		numberToReturn = int(numberToReturn)
+		total = Status.objects.count()
+		number_to_return = int(number_to_return)
 		#print "Getting Statuses : " + str(numberToReturn)
 
-		j=[]
+		j = []
 		#if startDate == -1:
 		#	startDate = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-		if numberToReturn > 1 and total > 0:
+		if number_to_return > 1 and total > 0:
 			#print str(timezone.now())
-			numberToReturn -= 1
+			number_to_return -= 1
 
 			try:
-				if confId and _type=="brew":
-					q=Q(brewconfig=BrewConfiguration.objects.get(pk=confId))
-				elif confId and _type=="ferm":
-					q=Q(fermconfig=FermConfiguration.objects.get(pk=confId))
+				if confid and _type == "brew":
+					q = Q(brewconfig=BrewConfiguration.objects.get(pk=confid))
+				elif confid and _type == "ferm":
+					q = Q(fermconfig=FermConfiguration.objects.get(pk=confid))
 				else:
 					return []
 			except ObjectDoesNotExist:
 				return []
 
 			#zerotime = timezone.make_aware(datetime.datetime.fromtimestamp(0),timezone.get_default_timezone())
-			if startDate and endDate:
-				startDate=float(startDate)/1000
-				endDate=float(endDate)/1000
-				startDate = datetime.datetime.fromtimestamp(startDate)
-				endDate = datetime.datetime.fromtimestamp(endDate)
-				q = q & Q(date__gte=startDate) & Q(date__lte=endDate)
-			elif startDate:
-				startDate=float(startDate)/1000
-				startDate = datetime.datetime.fromtimestamp(startDate)
-				q = q & Q(date__gte=startDate)
+			if startdate and enddate:
+				startdate = float(startdate)/1000
+				enddate = float(enddate)/1000
+				startdate = datetime.datetime.fromtimestamp(startdate)
+				enddate = datetime.datetime.fromtimestamp(enddate)
+				q = q & Q(date__gte=startdate) & Q(date__lte=enddate)
+			elif startdate:
+				startdate = float(startdate)/1000
+				startdate = datetime.datetime.fromtimestamp(startdate)
+				q = q & Q(date__gte=startdate)
 
 			statuses = Status.objects.filter(q).order_by("-date")
 			#print "got all statues from db"
 			#print str(timezone.now())
 
 			#get the number of items requested
-			total=len(statuses)
-			allStatuses=statuses
+			total = len(statuses)
+			allstatuses = statuses
 
-			if total > numberToReturn:
-				step=total/numberToReturn
-				allStatuses=statuses[step:total-step:step]
+			if total > number_to_return:
+				step = total/number_to_return
+				allstatuses = statuses[step:total-step:step]
 
 				#add the first and last one on everytime
 				if len(statuses) > 1:
-					allStatuses.insert(0, statuses[0])
-					allStatuses.append(statuses[len(statuses)-1])
+					allstatuses.insert(0, statuses[0])
+					allstatuses.append(statuses[len(statuses)-1])
 
 			#print "filtered statues from db"
 			#print str(timezone.now())
 
-			if (allStatuses and len(allStatuses) > 0) :
-				for probe in allStatuses[0].probes.all():
+			if allstatuses and len(allstatuses) > 0:
+				for probe in allstatuses[0].probes.all():
 					for ssrstat in SSRStatus.objects.filter(probe=probe):
-						ssrstat.ssr.getETA
+						ssrstat.ssr.get_eta()
 
 			#print "Done"
 			#print str(timezone.now())
 			#print "-----------"
 
-			return allStatuses
+			return allstatuses
 
-		elif numberToReturn == 1 and total > 0:
+		elif number_to_return == 1 and total > 0:
 			status = Status.objects.order_by('-date')[0]
 			return [status]
 

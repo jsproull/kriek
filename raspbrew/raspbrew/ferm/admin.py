@@ -4,6 +4,7 @@ from django.contrib import admin
 
 from .models import FermConfiguration
 
+
 class FermConfigurationAdmin(admin.ModelAdmin):
     pass
 admin.site.register(FermConfiguration, FermConfigurationAdmin)

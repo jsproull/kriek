@@ -1,24 +1,10 @@
 from django.db import models
-from raspbrew import settings
 #from raspbrew.common.models import Probe, SSR, PID
-from raspbrew.globalsettings.models import GlobalSettings
-from copy import deepcopy
-from django.core.serializers.json import DjangoJSONEncoder 
-import os, time, json, time
-from datetime import datetime
 from django.utils import timezone
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-def unix_time(dt):
-	dt=dt.replace(tzinfo=None)
-	epoch = datetime.fromtimestamp(0)
-	delta = dt - epoch
-	return delta.total_seconds()
 
-def unix_time_millis(dt):
-	return unix_time(dt) * 1000.0
-	
 #this class stores the current status
 class ProbeStatus(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='probestatuses')
@@ -39,11 +25,11 @@ class ProbeStatus(models.Model):
 	probe = models.ForeignKey('common.Probe', null=True)
 
 	@classmethod
-	def cloneFrom(cls, probe):
-		p=cls()
+	def clone_from(cls, probe):
+		p = cls()
 		p.probe = probe
 		p.owner = probe.owner
-		p.one_wire_Id = probe.one_wire_Id
+		p.one_wire_id = probe.one_wire_Id
 		p.name = probe.name
 		p.type = probe.type
 		p.temperature = probe.temperature
@@ -54,11 +40,12 @@ class ProbeStatus(models.Model):
 		
 		for ssr in probe.ssrs.all():
 			#update the ssrs
-			newssr = SSRStatus.cloneFrom(ssr)
+			newssr = SSRStatus.clone_from(ssr)
 			p.ssrstatus_set.add(newssr)
 		
 		p.save()
 		return p
+
 
 class PIDStatus(models.Model):
 	cycle_time = models.FloatField(default=2.0)
@@ -66,13 +53,13 @@ class PIDStatus(models.Model):
 	i_param = models.FloatField(default=80.0)
 	d_param = models.FloatField(default=4.0)
 	power = models.IntegerField(default=100)
-	enabled = models.BooleanField(default=True) #enabled
+	enabled = models.BooleanField(default=True)  # enabled
 	
 	#the original pid
 	pid = models.ForeignKey('common.PID', null=True)
 	
 	@classmethod
-	def cloneFrom(cls,_pid):
+	def clone_from(cls, _pid):
 		pid = cls()
 		pid.pid = _pid
 		pid.cycle_time = _pid.cycle_time
@@ -84,14 +71,15 @@ class PIDStatus(models.Model):
 		
 		pid.save()
 		return pid
-		
+
+
 class SSRStatus(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='ssrstatuses')
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
 	pin = models.IntegerField()
-	enabled = models.BooleanField(default=True) #enabled
-	state = models.BooleanField(default=False) #on/off
+	enabled = models.BooleanField(default=True)  # enabled
+	state = models.BooleanField(default=False)  # on/off
 	heater_or_chiller = models.IntegerField(default=0)
 	
 	probe = models.ForeignKey(ProbeStatus, null=True)
@@ -101,8 +89,8 @@ class SSRStatus(models.Model):
 	ssr = models.ForeignKey('common.SSR', null=True)
 
 	@classmethod
-	def cloneFrom(cls,_ssr):
-		ssr = cls()#deepcopy(_ssr)
+	def clone_from(cls, _ssr):
+		ssr = cls()
 		ssr.ssr = _ssr
 		ssr.name = _ssr.name
 		ssr.pin = _ssr.pin
@@ -112,7 +100,7 @@ class SSRStatus(models.Model):
 		ssr.heater_or_chiller = _ssr.heater_or_chiller
 		
 		if _ssr.pid:
-			ssr.pid = PIDStatus.cloneFrom(_ssr.pid)
+			ssr.pid = PIDStatus.clone_from(_ssr.pid)
 		ssr.save()
 		
 		return ssr
@@ -122,16 +110,16 @@ class Status(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='statuses')
 
 	#status can be for a FermConfiguration
-	fermconfig = models.ForeignKey('ferm.FermConfiguration',null=True, blank=True)
+	fermconfig = models.ForeignKey('ferm.FermConfiguration', null=True, blank=True)
 	#or a BrewConfiguration
-	brewconfig = models.ForeignKey('brew.BrewConfiguration',null=True, blank=True)
+	brewconfig = models.ForeignKey('brew.BrewConfiguration', null=True, blank=True)
 	
 	#and contains copies of probes
-	probes = models.ManyToManyField(ProbeStatus,null=True, blank=True)
+	probes = models.ManyToManyField(ProbeStatus, null=True, blank=True)
 	
-	date = models.DateTimeField(default=timezone.now()) #time of this status
+	date = models.DateTimeField(default=timezone.now())  # time of this status
 	
-	status = models.CharField(max_length=10000,null=True, blank=True)
+	status = models.CharField(max_length=10000, null=True, blank=True)
 
 
 #pre_delete receivers

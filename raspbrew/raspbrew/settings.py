@@ -8,7 +8,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.6/ref/settings/
 """
 from django.conf.global_settings import TEMPLATE_CONTEXT_PROCESSORS as TCP
-from raspbrew.disable import DisableCSRF
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -37,7 +36,7 @@ INSTALLED_APPS = (
     'raspbrew.common',
     'raspbrew.status',
     'raspbrew.globalsettings',
-	'rest_framework',
+    'rest_framework',
     'gunicorn',
     'suit',
     'django.contrib.admin',
@@ -61,18 +60,18 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-	#TODO REMOVE THIS!!
-	'raspbrew.disable.DisableCSRF',
+    #TODO REMOVE THIS!!
+    #'raspbrew.disable.DisableCSRF',
 )
 
-APPEND_SLASH=False
+APPEND_SLASH = False
 
 ROOT_URLCONF = 'raspbrew.urls'
 
 WSGI_APPLICATION = 'raspbrew.wsgi.application'
 
 TEMPLATE_DIRS = (
-	 os.path.join(SITE_ROOT , 'templates').replace('\\','/')
+    os.path.join(SITE_ROOT, 'templates').replace('\\', '/')
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = TCP + (
@@ -99,13 +98,13 @@ REST_FRAMEWORK = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2', #postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',  # postgresql_psycopg2', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
         'NAME': 'raspbrew',                      # Or path to database file if using sqlite3.
         # The following settings are not used with sqlite3:
         'USER': 'postgres',
         'PASSWORD': 'pi',
-        'HOST': '127.0.0.1',                      # Empty for localhost through domain sockets or           '127.0.0.1' for localhost through TCP.
-        'PORT': '',                      # Set to empty string for default.
+        'HOST': '127.0.0.1',  # Empty for localhost through domain sockets or '127.0.0.1' for localhost through TCP.
+        'PORT': '',  # Set to empty string for default.
     }
 }
 
@@ -134,7 +133,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
 #STATIC_URL = os.path.join(SITE_ROOT , 'static/').replace('\\','/')
-STATICFILES_DIRS = (os.path.join(SITE_ROOT , 'static/'),)
+STATICFILES_DIRS = (os.path.join(SITE_ROOT, 'static/'),)
 MEDIA_ROOT = '/var/www/media/'
 MEDIA_URL = '/media/'
 STATIC_ROOT = '/var/www/static/'

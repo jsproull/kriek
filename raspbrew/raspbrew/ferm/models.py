@@ -1,14 +1,13 @@
 from django.db import models
-from raspbrew import settings
-import os
+
 
 # Create your models here.
 class FermConfiguration(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='fermconfs')
 
 	name = models.CharField(max_length=30)
-	probes = models.ManyToManyField('common.Probe',null=True, blank=True)
-	ssrs = models.ManyToManyField('common.SSR',null=True, blank=True)
+	probes = models.ManyToManyField('common.Probe', null=True, blank=True)
+	ssrs = models.ManyToManyField('common.SSR', null=True, blank=True)
 	enabled = models.BooleanField(default=True)
 	
 	FERMENTATION_MODE = (
@@ -18,7 +17,7 @@ class FermConfiguration(models.Model):
 	mode = models.IntegerField(default=0, choices=FERMENTATION_MODE)
 		
 	#a schedule for this brew session
-	schedules = models.ManyToManyField('common.Schedule',null=True, blank=True)
+	schedules = models.ManyToManyField('common.Schedule', null=True, blank=True)
 	
 	def __unicode__(self):
 		return self.name

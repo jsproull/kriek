@@ -26,6 +26,7 @@ class IsOwner(permissions.BasePermission):
         # Write permissions are only allowed to the owner of the snippet.
         return obj.owner == request.user
 
+
 class IsAnyone(permissions.BasePermission):
     """
     Custom permission to only allow anyone
