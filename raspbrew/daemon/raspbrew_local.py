@@ -355,7 +355,6 @@ class Raspbrew(object):#threading.Thread):
 				probe=Probe(one_wire_Id=file,name=file,owner=user)
 				probe.save()
 
-
 	#
 	# starts fermpi and starts reading temperatures and will set the heaters on/off based on current/target temps
 	#
