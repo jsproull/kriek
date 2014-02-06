@@ -1,5 +1,5 @@
-env-raspbrew/
-env-raspbrew-osx/
-raspbrew/.idea
+env-kriek/
+env-kriek-osx/
+kriek/.idea
 *.pyc
 scripts/

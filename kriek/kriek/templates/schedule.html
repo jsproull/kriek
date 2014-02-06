@@ -1,0 +1,17 @@
+<!-- schedules -->
+<div class="text-center" id="probe{{probe.pk}}_schedule">
+    <div id="probe{{probe.pk}}_nosched">No schedules defined</div>
+    <div class="row" style="display:none;" id="probe{{probe.pk}}_schedContainer">
+        <div class="col-md-12">
+            <div id="" class="panel panel-small panel-info disabled">
+                <div class="panel-heading">
+                    Schedule:
+                    <span class="text-center small"><select onchange="kriek.scheduleSelected(this);" id="probe{{probe.pk}}_schedselect"></select></span>
+                </div>
+                <div class="panel-body">
+                    <div class="schedSteps" id="probe{{probe.pk}}_schedSteps" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
