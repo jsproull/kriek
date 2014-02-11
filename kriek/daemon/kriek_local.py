@@ -1,21 +1,21 @@
 #!../../env-kriek/bin/python
-##                      _                       
-##                     | |                      
-##  _ __ __ _ ___ _ __ | |__  _ __ _____      __
-## | '__/ _` / __| '_ \| '_ \| '__/ _ \ \ /\ / /
-## | | | (_| \__ \ |_) | |_) | | |  __/\ V  V / 
-## |_|  \__,_|___/ .__/|_.__/|_|  \___| \_/\_/  
-##               | |                            
-##               |_|                            
 ##
-##  RaspBrew v3.0 
+##  _         _      _
+## | |       (_)    | |
+## | | ___ __ _  ___| | __
+## | |/ / '__| |/ _ \ |/ /
+## |   <| |  | |  __/   <
+## |_|\_\_|  |_|\___|_|\_\
+##
+##
+##  kriek v1.0 alpha 1
 ##
 ##  This class controls a fermentation chamber. It is responsible for reading 2 temp probes and logging both to sqlite.
 ##  It will also turn on a cooling/heating unit
 ##
 ##  This version stores everything locally
 ##
-##  December 26, 2013 - V3.0 for Raspberry Pi
+##  Februrary 9, 2014 - v1.0 alpha 1 renamed to 'kriek'. initial alpha version.
 ##
 
 
@@ -23,6 +23,7 @@ import sys
 import os
 import glob
 
+sys.path.append('/home/pi/kriek/kriek')
 sys.path.insert(0, "../")
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kriek.settings")

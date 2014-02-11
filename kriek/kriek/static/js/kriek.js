@@ -301,8 +301,8 @@ function RaspBrew() {
 					$('#ssr' + ssrid + '_eta').html('--');
 				}
 
-				if (ssr.degreesPerMinute) {
-					var dpm = parseFloat(ssr.degreesPerMinute).toFixed(3);
+				if (ssr.degrees_per_minute) {
+					var dpm = parseFloat(ssr.degrees_per_minute).toFixed(3);
 					//$('#probe' + probeid + '_dpm').parent().removeClass("hidden");
 					$('#ssr' + ssrid + '_dpm').html(dpm);
 				} else {
@@ -408,17 +408,18 @@ function RaspBrew() {
 									a.appendTo(stepsDiv);
 								}
 
-								//update the a
+								//update the active steps
 								if (step.active) {
-									a.addClass("active");
-									var end=new Date(moment(step.active_time))+step.hold_seconds;
-
-									eta=moment(end).fromNow(true);
-									a.html("Holding at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + eta + "</b>" );
+										a.addClass("active");
+										var start=new Date(moment(step.active_time))
+										var end=moment(start).add('seconds', step.hold_seconds);
+										eta=end.fromNow(true);
+										a.html("Holding at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + eta + "</b>" );
 
 								} else {
-									a.html("Hold at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + step.hold_seconds + "s</b>" );
-									a.removeClass("active");
+										end=moment(new Date()).add('seconds', step.hold_seconds)
+										a.html("Hold at: <b>" + _this.getTemperatureFormatted(step.start_temperature) + "</b> For: <b>" + end.from(moment(new Date()), true) + "</b>" );
+										a.removeClass("active");
 								}
 
 							}
