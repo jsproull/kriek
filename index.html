@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Kriek : Kriek is the easiest to use brewing control software for the raspberry pi." />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Kriek</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/jsproull/kriek">View on GitHub</a>
+
+          <h1 id="project_title">Kriek</h1>
+          <h2 id="project_tagline">Kriek is the easiest to use brewing control software for the raspberry pi.</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/jsproull/kriek/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/jsproull/kriek/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="kriek" class="anchor" href="#kriek"><span class="octicon octicon-link"></span></a>kriek</h1>
+
+<p>Kriek is the easiest to use brewing control software for the raspberry pi.</p>
+
+<h2>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h2>
+
+<p>A Raspberry Pi or BeagleBone Black.
+DS18B20 temperature probes.
+Solid State Relays.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>These instructions assume a debian-based install (raspbian, ubuntu, etc) on the pi or BBB.</p>
+
+<p><strong>Debian Setup</strong></p>
+
+<ul>
+<li>sudo apt-get update</li>
+<li>sudo apt-get upgrade -y</li>
+<li>sudo apt-get install libpq-dev python-dev postgresql-server-dev-9.1  postgresql postgresql-contrib nginx supervisor python-virtualenv -y</li>
+</ul><p><strong>For BBB</strong></p>
+
+<ul>
+<li>sudo apt-get install build-essential python-setuptools python-pip python-smbus -y</li>
+</ul><p><strong>Create a virutalenv for kriek</strong></p>
+
+<ul>
+<li>sudo mkdir /opt/kriek</li>
+<li>sudo chown pi /opt/kriek</li>
+<li>virtualenv /opt/kriek/env-kriek</li>
+</ul><p><strong>pip requirements</strong></p>
+
+<ul>
+<li>/opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework South</li>
+</ul><p><strong>We use either wiringpi or Adafruit_BBIO depending on the platform</strong></p>
+
+<p><strong>for Pi</strong></p>
+
+<ul>
+<li>/opt/kriek/env-kriek/bin/pip install wiringpi</li>
+</ul><p><strong>for BBB</strong></p>
+
+<ul>
+<li>/opt/kriek/env-kriek/bin/pip install Adafruit_BBIO</li>
+</ul><p><strong>Configure postgres</strong></p>
+
+<ul>
+<li>sudo su - postgres</li>
+<li>createdb kriek</li>
+<li>psql -d kriek -c "CREATE user pi with password 'pi';"</li>
+<li>psql -d kriek -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";</li>
+<li>exit</li>
+</ul><p><strong>clone the source code</strong></p>
+
+<ul>
+<li>cd /opt/kriek/</li>
+<li>git clone <a href="https://github.com/jsproull/kriek.git">https://github.com/jsproull/kriek.git</a>
+</li>
+</ul><p><strong>Configure the django kriek installation</strong></p>
+
+<ul>
+<li>cd /opt/kriek/kriek</li>
+<li>./manage.py syncdb</li>
+<li> create a user named '<strong>pi</strong>' with password '<strong>pi</strong>'</li>
+<li>./manage.py migrate common</li>
+<li>./manage.py migrate brew</li>
+<li>./manage.py migrate ferm</li>
+<li>./manage.py migrate globalsettings</li>
+<li>./manage.py migrate status</li>
+<li>sudo ./manage.py collectstatic</li>
+</ul><p><strong>then set up gunicorn, supervisord and nginx</strong></p>
+
+<ul>
+<li>sudo cp -R /opt/kriek/kriek/conf/ngnix/* /etc/nginx/</li>
+<li>sudo cp -R /opt/kriek/kriek/conf/supervisor/conf.d/* /etc/supervisor/conf.d/</li>
+</ul><p><strong>And set up the required modules</strong></p>
+
+<p><strong>For Pi</strong></p>
+
+<ul>
+<li>sudo sh -c "echo 'w1_gpio\nw1_therm\n' &gt;&gt; /etc/modules"</li>
+</ul><p><strong>For BBB</strong></p>
+
+<p><strong>TODO</strong></p>
+
+<p><strong>Reboot</strong>
+sudo reboot</p>
+
+<p>Once rebooted, you should be able to go to http:// and sign in using username: <strong>pi</strong> with password: <strong>pi</strong></p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Kriek maintained by <a href="https://github.com/jsproull">jsproull</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
