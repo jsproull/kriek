@@ -21,7 +21,7 @@ SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 SECRET_KEY = '5f33(*om^u1c87+uc$)uc(+$6mziwncc676dq4x30=d)!vh=cv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
@@ -39,6 +39,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'gunicorn',
     'suit',
+    'south',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

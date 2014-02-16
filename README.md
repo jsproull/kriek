@@ -31,7 +31,7 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 **pip requirements**
 
-* /opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework
+* /opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework South
 
 **We use either wiringpi or Adafruit_BBIO depending on the platform**
 
@@ -48,16 +48,17 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * sudo su - postgres
 * createdb kriek
-* createuser -P
-* psql 
-* CREATE user pi with password 'pi';
-* GRANT ALL PRIVILEGES ON DATABASE kriek to pi;
+* createuser pi -s
+* psql -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";
+* exit
 
 **clone the source code**
 
+* git clone https://github.com/jsproull/kriek.git
+
 **Configure the django kriek installation**
 
-* cd /opt/kriek/
+* cd /opt/kriek/kriek
 * ./manage syncdb
 * sudo ./manage collectstatic
 
