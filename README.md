@@ -30,36 +30,47 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 * virtualenv /opt/kriek/env-kriek
 
 **pip requirements**
-/opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework
+
+* /opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework
 
 **We use either wiringpi or Adafruit_BBIO depending on the platform**
 
 **for Pi**
+
 * /opt/kriek/env-kriek/bin/pip install wiringpi
+
 **for BBB**
+
 * /opt/kriek/env-kriek/bin/pip install Adafruit_BBIO
 
+
 **Configure postgres**
-sudo su - postgres
-createdb kriek
-createuser -P
-psql 
-CREATE user pi with password 'pi';
-GRANT ALL PRIVILEGES ON DATABASE kriek to pi;
+
+* sudo su - postgres
+* createdb kriek
+* createuser -P
+* psql 
+* CREATE user pi with password 'pi';
+* GRANT ALL PRIVILEGES ON DATABASE kriek to pi;
 
 **clone the source code**
 
 **Configure the django kriek installation**
-cd /opt/kriek/
-./manage syncdb
-sudo ./manage collectstatic
+
+* cd /opt/kriek/
+* ./manage syncdb
+* sudo ./manage collectstatic
 
 **then set up gunicorn, supervisord and nginx**
-.. TODO ..
+
+**TODO**
 
 **And set up the required modules**
+
 **For Pi**
-sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules"
+
+* sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules"
 
 **For BBB**
+
 **TODO**
