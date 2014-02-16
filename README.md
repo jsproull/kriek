@@ -50,21 +50,23 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 * createdb kriek
 * psql -d kriek -c "CREATE user pi with password 'pi';"
 * psql -d kriek -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";
+* exit
 
 **clone the source code**
 
+* cd /opt/kriek/
 * git clone https://github.com/jsproull/kriek.git
 
 **Configure the django kriek installation**
 
 * cd /opt/kriek/kriek
-* ./manage syncdb
+* ./manage.py syncdb
 *  create a user named '**pi**' with password '**pi**'
-* ./manage.py schemamigration common --initial
-* ./manage.py schemamigration brew --initial
-* ./manage.py schemamigration ferm --initial
-* ./manage.py schemamigration globalsettings --initial
-* ./manage.py schemamigration status --initial
+* ./manage.py migrate common
+* ./manage.py migrate brew
+* ./manage.py migrate ferm
+* ./manage.py migrate globalsettings
+* ./manage.py migrate status
 * sudo ./manage.py collectstatic
 
 **then set up gunicorn, supervisord and nginx**
