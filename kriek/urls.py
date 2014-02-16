@@ -28,6 +28,8 @@ urlpatterns = patterns('',
     url(r'^$', TemplateView.as_view(template_name='index.html'), name="index"),
     url(r'^ferm$', views.ferm, {}, name='ferm'),
     url(r'^brew$', views.brew, {}, name='brew'),
+	url(r'^help$', TemplateView.as_view(template_name='help.html'), name="help"),
+	url(r'^about$', TemplateView.as_view(template_name='about.html'), name="about"),
 
     #rest calls
     url(r'^', include(router.urls)),

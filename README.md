@@ -59,16 +59,18 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * cd /opt/kriek/kriek
 * ./manage syncdb
+*  create a user named '**pi**' with password '**pi**'
 * ./manage.py schemamigration common --initial
 * ./manage.py schemamigration brew --initial
 * ./manage.py schemamigration ferm --initial
 * ./manage.py schemamigration globalsettings --initial
 * ./manage.py schemamigration status --initial
-* sudo ./manage collectstatic
+* sudo ./manage.py collectstatic
 
 **then set up gunicorn, supervisord and nginx**
 
-**TODO**
+* sudo cp -R /opt/kriek/kriek/conf/ngnix/* /etc/nginx/
+* sudo cp -R /opt/kriek/kriek/conf/supervisor/conf.d/* /etc/supervisor/conf.d/
 
 **And set up the required modules**
 
@@ -79,3 +81,8 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 **For BBB**
 
 **TODO**
+
+**Reboot**
+sudo reboot
+
+Once rebooted, you should be able to go to http://<yourip> and sign in using username: **pi** with password: **pi**

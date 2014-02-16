@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}kriek - About{% endblock %}
+
+{% block script %}
+{% endblock %}
+
+{% block container %}
+
+<div class="jumbotron">
+  <h1>kriek</h1>
+  <p>&copy; 2014 - <a href="mailto:info@kriek.ca">John Sproull</a></p>
+   <p><a href="https://github.com/jsproull/kriek">https://github.com/jsproull/kriek</a></p>
+  <h1 style="padding-top:20px;">Donate</h1>
+  <p>If you like this software, consider donating:</p>
+  <hr>
+  <p>
+    <img title="Bitcoin" src="/static/images/BC_Logotype.png" style="width: 200px; margin-right:20px; vertical-align:middle">
+    <span style="display:inline-block; vertical-align:middle;">
+      <b>1Ae22tgGvCHrZJie4hLkXHUFrE4jxi21kW</b>
+    </span>
+  </p>
+  <hr>
+  <p>
+    <img title="Much Doge" src="/static/images/doge.png" style="height: 100px; margin-left:50px; margin-right: 70px; vertical-align:middle">
+    <span style="display:inline-block; vertical-align:middle;">
+      <b>DEwEMPjSVkHdEy2WGtbBdVBgYLEWxaDFik</b>
+    </span>
+  </p>
+  <hr>
+  <p>
+    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+    <img title="Much Doge" src="/static/images/Paypal.png" style="width: 200px; margin-right: 20px; vertical-align:middle">
+    <input type="hidden" name="cmd" value="_s-xclick">
+    <input type="hidden" name="hosted_button_id" value="A76864NGBVT5Y">
+    <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+    <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+    </form>
+  </p>
+  <hr>
+
+</div>
+
+{% endblock %}
