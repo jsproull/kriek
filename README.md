@@ -24,9 +24,10 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 * sudo apt-get install build-essential python-setuptools python-pip python-smbus -y
 
 **Create a virutalenv for kriek**
-sudo mkdir /opt/kriek
-sudo chown pi /opt/kriek
-virtualenv /opt/kriek/env-kriek
+
+* sudo mkdir /opt/kriek
+* sudo chown pi /opt/kriek
+* virtualenv /opt/kriek/env-kriek
 
 **pip requirements**
 /opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework
