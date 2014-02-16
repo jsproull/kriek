@@ -3,3 +3,4 @@ env-kriek-osx/
 kriek/.idea
 *.pyc
 scripts/
+.DS_Store
