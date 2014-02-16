@@ -23,8 +23,8 @@ import sys
 import os
 import glob
 
-sys.path.append('/home/pi/kriek/kriek')
-sys.path.insert(0, "../")
+#sys.path.append('/opt/kriek/kriek')
+sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "kriek.settings")
 
@@ -41,6 +41,7 @@ from kriek.common.models import Probe
 from kriek.ferm.models import FermConfiguration
 from kriek.brew.models import BrewConfiguration
 from kriek.status.models import ProbeStatus, Status
+from kriek.globalsettings.models import GlobalSettings
 
 
 class BaseThreaded(threading.Thread):
@@ -352,8 +353,10 @@ class Kriek(object):
 
 		while True:  # not self.stopped():
 			self.update_temps()
-			self.add_brew_status()
-			self.add_ferm_status()
+			updates = GlobalSettings.objects.get_setting('UPDATES_ENABLED').value
+			if (updates == True or updates == "True"):
+				self.add_brew_status()
+				self.add_ferm_status()
 
 			#remove old fermentation statuses
 			self.remove_old_statuses()

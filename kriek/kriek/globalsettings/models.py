@@ -14,6 +14,10 @@ class GlobalSettingsManager(models.Manager):
 				g, created = GlobalSettings.objects.get_or_create(key='UNITS', value='metric')
 				g.save()
 				setting = GlobalSettings.objects.get(key=key)
+			if key == 'UPDATES_ENABLED':
+				g, created = GlobalSettings.objects.get_or_create(key='UPDATES_ENABLED', value='True')
+				g.save()
+				setting = GlobalSettings.objects.get(key=key)
 			else:
 				raise Exception
 		return setting

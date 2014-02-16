@@ -44,24 +44,9 @@ urlpatterns = patterns('',
     url(r'^logout$', views.logout_view, {}, name='logoutView'),
     url(r'^accounts/login/$', TemplateView.as_view(template_name='index.html')), # 'django.contrib.auth.views.login'),
 
-    #update
-    #url(r'^update$', views.update, {}, name='update'),
-    
-    #all temp statuses
-    #url(r'^status/(?P<numberToReturn>\d+)$', views.jsonStatus, {}, name='jsonStatus'),
-    #url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>[0-9.]+)$', views.jsonStatus, {}, name='jsonStatus_withStartDate'),
-    #url(r'^status/(?P<numberToReturn>\d+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonStatus, {}, name='jsonStatus_withDate'),
-    
-    #ferm temp status
-    #url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus'),
-    #url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withStartDate'),
-    #url(r'^status/ferm/(?P<fermConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonFermStatus, {}, name='jsonFermStatus_withDate'),
-    
-    #brew temp status
-    #url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus'),
-    #url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withStartDate'),
-    #url(r'^status/brew/(?P<brewConfId>\d+)/(?P<numberToReturn>[0-9.]+)/(?P<startDate>[0-9.]+)/(?P<endDate>[0-9.]+)$', views.jsonBrewStatus, {}, name='jsonBrewStatus_withDate'),
-    
+    #update global settings
+    url(r'^update_global_setting', views.update_global_setting, {}, name='update_global_setting'),
+
     #system conf
     url(r'^system/status/$', views.system_status, {}, name='system_status'),
     

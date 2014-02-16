@@ -59,8 +59,18 @@ def system_status(request):
 	units = GlobalSettings.objects.get_setting('UNITS')
 	j['units'] = units.value
 	j['serverrunning'] = is_kriek_running()
+	j['updatesenabled'] = GlobalSettings.objects.get_setting('UPDATES_ENABLED').value == "True"
+
 	return HttpResponse(json.dumps(j), content_type='application/json')
 
+# Updates a global setting via post
+def update_global_setting(request):
+	key = request.POST['key']
+	value = request.POST['value']
+	g, created = GlobalSettings.objects.get_or_create(key=key)
+	g.value = value
+	g.save()
+	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 
 #login
 def login_view(request):

@@ -8,22 +8,15 @@
     <link href="/static/js/thirdparty/bootstrap/css/bootstrap_flatly.css" rel="stylesheet">
 
 	<!-- third party css -->
-	<link href="/static/js/thirdparty/nvd3/src/nv.d3.min.css" rel="stylesheet" type="text/css"/>
-	<link href="//code.jquery.com/ui/jquery-ui-git.css" rel="stylesheet" type="text/css"/>
-	<link href="/static/css/thirdparty/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css"/>
+	<link href="/static/css/thirdparty/nvd3/nv.d3.min.css" rel="stylesheet" type="text/css"/>
+	<link href="/static/css/thirdparty/jquery/jquery-ui.css" rel="stylesheet" type="text/css"/>
+	<link href="/static/css/thirdparty/jquery/jquery-ui-timepicker-addon.css" rel="stylesheet" type="text/css"/>
 	<link href="/static/css/thirdparty/font-awesome-4.0.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
 	
 	<!-- third party scripts -->	
 	<script src="/static/js/thirdparty/moment.min.js"></script>
 	<script src="/static/js/thirdparty/nvd3/lib/d3.v2.min.js"></script>
 	<script src="/static/js/thirdparty/nvd3/nv.d3.min.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/tooltip.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/utils.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/models/legend.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/models/axis.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/models/scatter.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/models/line.js"></script>
-	<script src="/static/js/thirdparty/nvd3/src/models/lineChart.js"></script>
 	
 	<!-- custom css -->
 	<link href="/static/css/kriek.css" rel="stylesheet">
@@ -39,12 +32,6 @@
     <div class="navbar navbar-default navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
-          <!--<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>-->
           <a class="active navbar-brand" href="{% url 'index' %}"><i class="fa fa-beer fa-shadow fa-lg"></i> kriek</a>
         </div>
         <div class="navbar-collapse collapse">
@@ -58,11 +45,17 @@
             <li><a href="/admin/">Config</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
+                  <ul class="dropdown-menu">
+                    <li><a href="#" onclick="kriek.toggleUpdatesEnabled(); return false;"><input checked="true" id="updatesEnabledCheckbox" type="checkbox"> System Enabled</a></li>
+                  </ul>
+                </li>
              {% if user.is_authenticated %}
-                     <p class="navbar-text navbar-right">
-                         Signed in as <em>{{user.username}}</em> -
-                         <a href="/logout">Logout</a>
-                     </p>
+                <p class="navbar-text navbar-right">
+                  Signed in as <em>{{user.username}}</em> - <a href="/logout">Logout</a>
+                </p>
+                <p class="navbar-text navbar-right"></p>
              {% endif %}
           </ul>
         </div><!--/.nav-collapse -->
@@ -152,13 +145,13 @@
 	</div><!-- /.modal -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="//code.jquery.com/jquery.js"></script>
-    <script src="//code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script src="/static/js/thirdparty/jquery/jquery.min.js"></script>
+    <script src="/static/js/thirdparty/jquery/jquery-ui.min.js"></script>
     
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="/static/js/thirdparty/bootstrap/js/bootstrap.min.js"></script>
-    <script src="/static/js/thirdparty/jquery-ui-timepicker-addon.js"></script>
-    <script src="/static/js/thirdparty/jquery.color-2.1.2.min.js"></script>
+    <script src="/static/js/thirdparty/jquery/jquery-ui-timepicker-addon.js"></script>
+    <script src="/static/js/thirdparty/jquery/jquery.color-2.1.2.min.js"></script>
     
 	{% block script %}{% endblock %}
 	

@@ -23,7 +23,9 @@ function RaspBrew() {
 	this.chartPoints = 50;
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
+
 	this._chartUpdatesEnabled = true;
+	this._updatesEnabled = true;
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
 	this.confId = 1;
@@ -85,6 +87,10 @@ function RaspBrew() {
 
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
+
+		if (!_this.confId) {
+			return;
+		}
 
 		var url =  _this.baseURL + '&confId=' + _this.confId + '&numberToReturn=' + _this.chartPoints;
 
@@ -152,6 +158,11 @@ function RaspBrew() {
 					} else {
 						$('#serverstatus').removeClass('hidden');
 					}
+
+					//update the global settings
+					debugger;
+					_this._updatesEnabled = data.updatesenabled;
+					$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
 				}
 				
 				if (data.units) {
@@ -673,6 +684,7 @@ function RaspBrew() {
 		_this.sendUpdate("/probes/" + probeid + "/", post);
 	}
 
+	//sends a generic patch update
 	this.sendUpdate = function(url, post, callback, errcallback) {
 		_this._writingData = true;
 
@@ -697,11 +709,47 @@ function RaspBrew() {
 
 		_this.updateFromData(_this.lastLoadedData, true);
 	}
+
+	//update global setting with a key/value
+	this.updateGlobalSetting = function(key, value, callback, errcallback) {
+		url = '/update_global_setting'
+		_this._writingData = true;
+		debugger;
+		$.ajax({
+			url: url,
+			type: 'POST',
+			data: { key: key, value: value },
+			success: function(data){
+				debugger;
+				setTimeout(function(){_this._writingData = false;}, 1000);
+				if (callback) { callback(data); }
+			},
+			error: function(data) {
+				debugger;
+				_this._writingData = false;
+				if (errcallback) { errcallback(data); }
+			}
+		});
+	}
 	
-	//this sets wether or not we should be updating the char
+	//this sets whether or not we should be updating the chart
 	this.toggleChartUpdatesEnabled = function(enabled) {
 		this._chartUpdatesEnabled = !this._chartUpdatesEnabled;
-		enabled = $('#chartEnabledCheckbox').prop('checked', this._chartUpdatesEnabled);
+		$('#chartEnabledCheckbox').prop('checked', this._chartUpdatesEnabled);
+	}
+
+	//this sets whether or not we should be updating the char
+	this.toggleUpdatesEnabled = function(enabled) {
+		debugger;
+		if (enabled !== undefined) {
+			_this._updatesEnabled = enabled;
+		} else {
+			_this._updatesEnabled = !_this._updatesEnabled;
+		}
+
+		_this.updateGlobalSetting('UPDATES_ENABLED', _this._updatesEnabled ? "True" : "False");
+		$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
+
 	}
 
 	//finds the requested probe by id from the latest loaded data

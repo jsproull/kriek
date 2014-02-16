@@ -19,12 +19,21 @@ a:hover, a:focus {
 	color: #005C6C;
 }
 
+h1, h2 {
+	margin-top: 0px;
+	margin-bottom: 10.5px;
+}
+
 h3 {
 	margin: 5px 0;
 }
 
 h4 {
 	margin: 5px 0;
+}
+
+.jumbotron {
+	margin-bottom: 0;
 }
 
 button.activessr {
