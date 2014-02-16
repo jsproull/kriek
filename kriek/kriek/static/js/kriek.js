@@ -537,6 +537,8 @@ function RaspBrew() {
 
 
 		//console.log('chart data', datum);
+		// remove all undefined array objects
+		datum = datum.filter(function(n){return n});
 
 		this.lastChartData = datum;
 		
