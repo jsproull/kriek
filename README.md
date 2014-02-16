@@ -48,9 +48,8 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * sudo su - postgres
 * createdb kriek
-* createuser pi -s
-* psql -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";
-* exit
+* psql -d kriek -c "CREATE user pi with password 'pi';"
+* psql -d kriek -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";
 
 **clone the source code**
 
@@ -60,6 +59,11 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * cd /opt/kriek/kriek
 * ./manage syncdb
+* ./manage.py schemamigration common --initial
+* ./manage.py schemamigration brew --initial
+* ./manage.py schemamigration ferm --initial
+* ./manage.py schemamigration globalsettings --initial
+* ./manage.py schemamigration status --initial
 * sudo ./manage collectstatic
 
 **then set up gunicorn, supervisord and nginx**
