@@ -1,6 +1,6 @@
 env-kriek/
 env-kriek-osx/
-kriek/.idea
+.idea
 *.pyc
 scripts/
 .DS_Store
