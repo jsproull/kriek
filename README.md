@@ -85,6 +85,11 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 **TODO**
 
 **Reboot**
+
 sudo reboot
 
-Once rebooted, you should be able to go to http://<yourip> and sign in using username: **pi** with password: **pi**
+Once rebooted, you should be able to go to http://yourip and sign in using username: **pi** with password: **pi**
+
+Configuration
+-------------
+
