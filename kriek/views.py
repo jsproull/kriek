@@ -72,6 +72,10 @@ def update_global_setting(request):
 	g.save()
 	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 
+# config
+def config(request):
+	return render_to_response('config.html', {}, context_instance=RequestContext(request))
+
 #login
 def login_view(request):
 	username = request.POST['username']

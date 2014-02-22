@@ -39,7 +39,10 @@ urlpatterns = patterns('',
     #url(r'^probes/(?P<pk>[0-9]+)/$', views_rest.ProbeDetail.as_view()),
 
     #admin
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/*', include(admin.site.urls)),
+
+    #custom configuration
+    url(r'^config/*', views.config, {} , name='configView'),
 
     #login/logout
     url(r'^login$', views.login_view, {}, name='loginView'),
