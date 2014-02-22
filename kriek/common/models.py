@@ -317,10 +317,10 @@ class SSR(models.Model):
 		"""
 		eta = None
 		degreesperminute = None
-		print "Get ETA:"
-		print str(self.pk) + " " + str(self.state)
-		print str(self.probe.target_temperature)
-		print str(self.probe.temperature)
+		#print "Get ETA:"
+		#print str(self.pk) + " " + str(self.state)
+		#print str(self.probe.target_temperature)
+		#print str(self.probe.temperature)
 		
 		if self.probe.target_temperature and self.probe.temperature:
 			#get the temps for this probe for the last 60 minutes
@@ -361,7 +361,7 @@ class SSR(models.Model):
 					if timediff > 0:
 						degreesperminute = tempdiff/timediff
 						
-					print "delta (min) %f" % timeDiff
+					#print "delta (min) %f" % timeDiff
 					#print "%d : target: %f tempdiff: %f starttemp: %f currenttemp: %f dpm: %f" % (self.probe.pk , float(self.probe.target_temperature), float(tempDiff), float(startTemp), float(currentTemp), float(degreesPerMinute));
 
 				# and now see how long it will take to get to the target temperature based on the degreesPerMinute
@@ -373,7 +373,7 @@ class SSR(models.Model):
 					#print "now: " + str(now)
 					eta = now + timedelta(minutes=eta)
 					eta = time.mktime(eta.timetuple())*1000
-					print "eta" + str(eta)
+					#print "eta" + str(eta)
 					self.eta = eta
 					self.degrees_per_minute = degreesperminute
 					self.save()

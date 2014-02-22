@@ -7,7 +7,6 @@ class BrewConfiguration(models.Model):
 
 	name = models.CharField(max_length=30)
 	probes = models.ManyToManyField('common.Probe', null=True, blank=True)
-	ssrs = models.ManyToManyField('common.SSR', null=True, blank=True)
 	enabled = models.BooleanField(default=True)
 	
 	#if this is set, we only allow one ssr to be fired at once

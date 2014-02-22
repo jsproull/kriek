@@ -227,40 +227,41 @@ class Brewing(BaseThreaded):
 		brew_confs = BrewConfiguration.objects.all()
 
 		for brewConf in brew_confs:
-			#safety check to ensure we don't have more than one ssr enabled
-			if not brewConf.allow_multiple_ssrs:
-				enabled = False
-				for ssr in brewConf.ssrs.all():
-					if enabled and ssr.enabled:
-						ssr_controller = self.get_ssr_controller(ssr)
-						ssr.enabled = False
-						ssr.save()
+			for probe in brewConf.probes.all():
+				#safety check to ensure we don't have more than one ssr enabled
+				if not brewConf.allow_multiple_ssrs:
+					enabled = False
+					for ssr in probe.ssrs.all():
+						if enabled and ssr.enabled:
+							ssr_controller = self.get_ssr_controller(ssr)
+							ssr.enabled = False
+							ssr.save()
+							ssr_controller.set_enabled(False)
+
+						elif not enabled:
+							enabled = ssr.enabled
+
+				for ssr in probe.ssrs.all():
+					currenttemp = ssr.probe.get_current_temp()
+
+					targettemp = ssr.probe.target_temperature
+
+					#if we have schedules assigned, use those
+					if brewConf.schedules:
+						for schedule in brewConf.schedules.filter(probe=ssr.probe):
+							_targetTemp = schedule.get_target_temperature()
+							if _targetTemp:
+								targettemp = _targetTemp
+
+					ssr_controller = self.get_ssr_controller(ssr)
+					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
+
+					#print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
+						#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
+					if enabled:
+						ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
+					else:
 						ssr_controller.set_enabled(False)
-
-					elif not enabled:
-						enabled = ssr.enabled
-
-			for ssr in brewConf.ssrs.all():
-				currenttemp = ssr.probe.get_current_temp()
-
-				targettemp = ssr.probe.target_temperature
-
-				#if we have schedules assigned, use those
-				if brewConf.schedules:
-					for schedule in brewConf.schedules.filter(probe=ssr.probe):
-						_targetTemp = schedule.get_target_temperature()
-						if _targetTemp:
-							targettemp = _targetTemp
-
-				ssr_controller = self.get_ssr_controller(ssr)
-				enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
-
-				#print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
-					#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
-				if enabled:
-					ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
-				else:
-					ssr_controller.set_enabled(False)
 
 
 class Kriek(object):
