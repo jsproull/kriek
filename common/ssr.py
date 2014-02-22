@@ -63,7 +63,7 @@ class SSRController(threading.Thread):
 		#if the pid isn't enabled, set the power to 100%, but still use its cycletime
 		if not ssr.pid.enabled:
 			power = 100
-			cycle_time = 100
+			cycle_time = 1
 			self.update_ssr(power, cycle_time)
 		else:	
 			if ssr.pid.power < 100:
@@ -128,9 +128,6 @@ class SSRController(threading.Thread):
 				on_time, off_time = self.getonofftime(self.cycle_time, self.power)
 			elif self.duty_cycle < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.duty_cycle)
-			elif not self.ssr.pid.enabled:
-				on_time = 1
-				off_time = 0
 
 			if on_time > 0:
 				if self.verbose:
