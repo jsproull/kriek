@@ -160,7 +160,6 @@ function RaspBrew() {
 					}
 
 					//update the global settings
-					debugger;
 					_this._updatesEnabled = data.updatesenabled;
 					$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
 				}
