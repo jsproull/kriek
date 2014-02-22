@@ -55,5 +55,5 @@ urlpatterns = patterns('',
     #static content
     url(r'^js/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.STATIC_URL + '/js'}),
     url(r'^css/(?P<path>.*)$','django.views.static.serve',{'document_root': settings.STATIC_URL + '/css'}),
-	url(r'^(favicon.ico)$', 'django.views.static.serve', {'document_root': settings.STATIC_URL }),
+    url(r'^(favicon.ico)$', 'django.views.static.serve', {'document_root': settings.STATIC_URL }),
 )
