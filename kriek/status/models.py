@@ -77,7 +77,7 @@ class SSRStatus(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='ssrstatuses')
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
-	pin = models.IntegerField()
+	pin = models.CharField(max_length=10)
 	enabled = models.BooleanField(default=True)  # enabled
 	state = models.BooleanField(default=False)  # on/off
 	heater_or_chiller = models.IntegerField(default=0)
