@@ -19,7 +19,7 @@ import common.pidpy as pid_controller
 class SSRController(threading.Thread):
 	def __init__(self, ssr):
 		
-		self.verbose = True
+		self.verbose = False
 		
 		self.ssr = ssr
 		
