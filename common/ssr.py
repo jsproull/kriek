@@ -7,7 +7,13 @@ try:
 	wiringpi_available = True
 except ImportError:
 	wiringpi_available = False
-	
+
+try:
+	import Adafruit_BBIO.GPIO as GPIO
+	bbb_available = True
+except ImportError:
+	bbb_available = False
+
 import time
 
 #from threading import Thread
@@ -38,7 +44,10 @@ class SSRController(threading.Thread):
 			
 			#set the pinmode
 			wiringpi.pinMode(ssr.pin, 1)
-		
+		elif bbb_available:
+			GPIO.setup(ssr.pin, GPIO.OUT)
+			GPIO.cleanup()
+
 		self.daemon = True
 		self.duty_cycle = 0
 		self.cycle_time = 0
@@ -186,7 +195,13 @@ class SSRController(threading.Thread):
 		
 		if wiringpi_available:
 			wiringpi.digitalWrite(self.ssr.pin, _state)
-			
+
+		if bbb_available:
+			if _state:
+				GPIO.output(self.ssr.pin, GPIO.HIGH)
+			else:
+				GPIO.output(self.ssr.pin, GPIO.LOW)
+
 		if self.ssr.state != state:
 			self.ssr.state = state
 			self.ssr.save()
