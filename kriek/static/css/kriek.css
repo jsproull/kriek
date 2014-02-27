@@ -29,6 +29,10 @@ h1, h2 {
 	margin: 20px 0;
 }
 
+.form-horizontal .input-group {
+	padding: 5px 0;
+}
+
 h3 {
 	margin: 5px 0;
 }
