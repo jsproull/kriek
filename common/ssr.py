@@ -26,7 +26,7 @@ import common.pidpy as pid_controller
 class SSRController(threading.Thread):
 	def __init__(self, ssr):
 		
-		self.verbose = False
+		self.verbose = True
 		
 		self.ssr = ssr
 		
@@ -146,6 +146,7 @@ class SSRController(threading.Thread):
 		if self.ssr.pid.enabled and self.ssr.enabled:
 			if self.verbose:
 				print " pid enabled.. setting on/off time"
+				print " power: " + str(self.power) + " duty_cycle" + str(self.duty_cycle)
 
 			if self.power < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.power)
