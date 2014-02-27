@@ -206,12 +206,10 @@ class SSRController(threading.Thread):
 			print "digitalWrite: " + str(self.ssr.pin) + " " + str(_state)
 		
 		if wiringpi_available:
-			print "PI"
 			wiringpi.digitalWrite(self.ssr.pin, _state)
 
 		elif bbb_available:
 			if _state:
-				print "HI"
 				GPIO.output(self.ssr.pin, GPIO.HIGH)
 			else:
 				GPIO.output(self.ssr.pin, GPIO.LOW)
