@@ -152,10 +152,10 @@ class SSRController(threading.Thread):
 			elif self.duty_cycle < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.duty_cycle)
 
+			if self.verbose:
+				print " " + str(self.ssr.pin) + " ON for: " + str(on_time) + " OFF for: " + str(off_time)
+
 			if on_time > 0:
-				if self.verbose:
-					print " " + str(self.ssr.pin) + " ON for: " + str(on_time)
-				
 				self.set_state(True)
 				time.sleep(on_time)
 		
