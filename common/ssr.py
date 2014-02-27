@@ -14,6 +14,7 @@ try:
 except ImportError:
 	bbb_available = False
 
+
 import time
 
 #from threading import Thread
@@ -25,7 +26,7 @@ import common.pidpy as pid_controller
 class SSRController(threading.Thread):
 	def __init__(self, ssr):
 		
-		self.verbose = False
+		self.verbose = True
 		
 		self.ssr = ssr
 		
@@ -46,7 +47,7 @@ class SSRController(threading.Thread):
 			wiringpi.pinMode(ssr.pin, 1)
 		elif bbb_available:
 			GPIO.setup(ssr.pin, GPIO.OUT)
-			GPIO.cleanup()
+			#GPIO.cleanup()
 
 		self.daemon = True
 		self.duty_cycle = 0
@@ -62,21 +63,25 @@ class SSRController(threading.Thread):
 
 	#updates this controller with a settemp/targettemp and includes an enabled override
 	def update_ssr_controller(self, settemp, target_temp, enabled=True):
+		#update the ssr object
+		self.ssr = SSR.objects.get(pk=self.ssr.pk)
+
 		ssr = self.ssr
 
-		#print "current " + str(settemp) + " : " + str(target_temp) + " " + str(ssr.pid.power)
+		#print "update_ssr current " + str(settemp) + " : " + str(target_temp) + " " + str(ssr.pid.power)
+
 		self.set_enabled(enabled)
-		power = ssr.pid.power
-		cycle_time = ssr.pid.cycle_time
+		self.power = ssr.pid.power
+		self.cycle_time = ssr.pid.cycle_time
 
 		#if the pid isn't enabled, set the power to 100%, but still use its cycletime
 		if not ssr.pid.enabled:
-			power = 100
-			cycle_time = 1
-			self.update_ssr(power, cycle_time)
+			#self.power = 100
+			#self.cycle_time = 1
+			self.update_ssr(self.power, self.cycle_time)
 		else:	
 			if ssr.pid.power < 100:
-				self.update_ssr(power, cycle_time)
+				self.update_ssr(self.power, self.cycle_time)
 			else:
 				duty_cycle = self.pid_controller.calcPID_reg4(float(settemp), float(target_temp), True)
 				self.update_ssr(duty_cycle, ssr.pid.cycle_time)
@@ -105,8 +110,6 @@ class SSRController(threading.Thread):
 			if not self.enabled:
 				time.sleep(2)
 
-			#update the ssr object
-			self.ssr = SSR.objects.get(pk=self.ssr.pk)
 
 		self.set_state(False)
 
@@ -151,7 +154,7 @@ class SSRController(threading.Thread):
 
 			if on_time > 0:
 				if self.verbose:
-					print str(self.ssr.pin) + " ON for: " + str(on_time)
+					print " " + str(self.ssr.pin) + " ON for: " + str(on_time)
 				
 				self.set_state(True)
 				time.sleep(on_time)
@@ -159,12 +162,21 @@ class SSRController(threading.Thread):
 			if off_time > 0:
 				self.set_state(False)
 				time.sleep(off_time)
+
 		elif (not self.ssr.pid.enabled and self.ssr.enabled) or (self.ssr.enabled and self.duty_cycle == 100):
-			if self.verbose:
-				print " pid disabled.. setting on/off time"
 
 			self.set_state(True)
-			time.sleep(self.cycle_time)	
+			on = float(self.cycle_time) * float(self.power)/100
+			off = self.cycle_time - on;
+	
+			if self.verbose:
+				print " pid disabled.. setting on/off time"
+				print " " + str(on) + " " + str(off)
+
+			time.sleep(on)
+			self.set_state(False)
+			time.sleep(off)
+			
 		else:
 			self.set_state(False)
 			time.sleep(self.cycle_time)			
@@ -194,10 +206,12 @@ class SSRController(threading.Thread):
 			print "digitalWrite: " + str(self.ssr.pin) + " " + str(_state)
 		
 		if wiringpi_available:
+			print "PI"
 			wiringpi.digitalWrite(self.ssr.pin, _state)
 
-		if bbb_available:
+		elif bbb_available:
 			if _state:
+				print "HI"
 				GPIO.output(self.ssr.pin, GPIO.HIGH)
 			else:
 				GPIO.output(self.ssr.pin, GPIO.LOW)
