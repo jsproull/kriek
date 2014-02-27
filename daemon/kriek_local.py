@@ -279,7 +279,7 @@ class Kriek(object):
 		probes = Probe.objects.all()
 		for probe in probes:
 			temp = probe.get_current_temp()
-			print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
+			#print str(probe) + " " + str(temp) + " target:" + str(probe.target_temperature)
 
 	#
 	# Adds a Status object for all brewconf

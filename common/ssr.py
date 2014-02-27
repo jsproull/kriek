@@ -19,7 +19,7 @@ import common.pidpy as pid_controller
 class SSRController(threading.Thread):
 	def __init__(self, ssr):
 		
-		self.verbose = False
+		self.verbose = True
 		
 		self.ssr = ssr
 		
@@ -116,14 +116,25 @@ class SSRController(threading.Thread):
 	def fire_ssr(self):
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
-			print "Fire: enabled:" + str(self.enabled) + " pid enabled:" + str(self.ssr.pid.enabled)
+			print self.ssr.name
+			print " Fire: enabled:" + str(self.enabled) + " pid enabled:" + str(self.ssr.pid.enabled)
 			print " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle)
 			print " ct:" + str(self.cycle_time)
+
+		#just return if not enabled
+		if not self.enabled:
+			self.set_state(False)
+			time.sleep(self.cycle_time)			
+			return
+
 
 		on_time = 0
 		off_time = 0
 
 		if self.ssr.pid.enabled and self.ssr.enabled and (self.power < 100 or self.duty_cycle < 100):
+			if self.verbose:
+				print " pid enabled.. setting on/off time"
+
 			if self.power < 100:
 				on_time, off_time = self.getonofftime(self.cycle_time, self.power)
 			elif self.duty_cycle < 100:
@@ -140,6 +151,9 @@ class SSRController(threading.Thread):
 				self.set_state(False)
 				time.sleep(off_time)
 		elif (not self.ssr.pid.enabled and self.ssr.enabled) or (self.ssr.enabled and self.duty_cycle == 100):
+			if self.verbose:
+				print " pid disabled.. setting on/off time"
+
 			self.set_state(True)
 			time.sleep(self.cycle_time)	
 		else:

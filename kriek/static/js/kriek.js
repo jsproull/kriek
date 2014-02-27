@@ -18,7 +18,7 @@ function RaspBrew() {
 	this.latestChartData = null; 	// an array of results from the server
 	this._systemStatus = null;
 	
-	this.updateTime = 2000;
+	this.updateTime = 1000;
 	this.updateSystemSettingsTime = 20000;
 	this.chartPoints = 50;
 	
