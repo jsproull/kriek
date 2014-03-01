@@ -713,18 +713,16 @@ function RaspBrew() {
 	this.updateGlobalSetting = function(key, value, callback, errcallback) {
 		url = '/update_global_setting'
 		_this._writingData = true;
-		debugger;
+
 		$.ajax({
 			url: url,
 			type: 'POST',
 			data: { key: key, value: value },
 			success: function(data){
-				debugger;
 				setTimeout(function(){_this._writingData = false;}, 1000);
 				if (callback) { callback(data); }
 			},
 			error: function(data) {
-				debugger;
 				_this._writingData = false;
 				if (errcallback) { errcallback(data); }
 			}
@@ -739,7 +737,6 @@ function RaspBrew() {
 
 	//this sets whether or not we should be updating the char
 	this.toggleUpdatesEnabled = function(enabled) {
-		debugger;
 		if (enabled !== undefined) {
 			_this._updatesEnabled = enabled;
 		} else {
