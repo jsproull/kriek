@@ -81,7 +81,7 @@ class SSRStatus(models.Model):
 	enabled = models.BooleanField(default=True)  # enabled
 	state = models.BooleanField(default=False)  # on/off
 	heater_or_chiller = models.IntegerField(default=0)
-	
+	manual_mode = models.BooleanField(default=False)  # on/off
 	probe = models.ForeignKey(ProbeStatus, null=True)
 	pid = models.OneToOneField(PIDStatus, null=True)
 	
@@ -98,7 +98,8 @@ class SSRStatus(models.Model):
 		ssr.state = _ssr.state
 		ssr.owner = _ssr.owner
 		ssr.heater_or_chiller = _ssr.heater_or_chiller
-		
+		ssr.manual_mode = _ssr.manual_mode
+
 		if _ssr.pid:
 			ssr.pid = PIDStatus.clone_from(_ssr.pid)
 		ssr.save()

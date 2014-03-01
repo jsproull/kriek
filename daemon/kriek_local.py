@@ -226,20 +226,22 @@ class Brewing(BaseThreaded):
 		#do we have any fermentation probes?
 		brew_confs = BrewConfiguration.objects.all()
 
+
 		for brewConf in brew_confs:
 			for probe in brewConf.probes.all():
 				#safety check to ensure we don't have more than one ssr enabled
-				if not brewConf.allow_multiple_ssrs:
-					enabled = False
-					for ssr in probe.ssrs.all():
-						if enabled and ssr.enabled:
-							ssr_controller = self.get_ssr_controller(ssr)
-							ssr.enabled = False
-							ssr.save()
-							ssr_controller.set_enabled(False)
-
-						elif not enabled:
-							enabled = ssr.enabled
+				# TODO
+				# if not brewConf.allow_multiple_ssrs:
+				# 	enabled = False
+				# 	for ssr in probe.ssrs.all():
+				# 		if enabled and ssr.enabled:
+				# 			ssr_controller = self.get_ssr_controller(ssr)
+				# 			ssr.enabled = False
+				# 			ssr.save()
+				# 			ssr_controller.set_enabled(False)
+				#
+				# 		elif not enabled:
+				# 			enabled = ssr.enabled
 
 				for ssr in probe.ssrs.all():
 					currenttemp = ssr.probe.get_current_temp()
@@ -254,10 +256,14 @@ class Brewing(BaseThreaded):
 								targettemp = _targetTemp
 
 					ssr_controller = self.get_ssr_controller(ssr)
+
+					#it's always enabled if it's in manual mode and was set 'enabled'
+					if ssr.manual_mode:
+						ssr_controller.update_ssr_controller(currenttemp, targettemp, True)
+						return
+
 					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
 
-					#print "ssr " + str(ssr) + " " + str(enabled) + " " + str(ssr.enabled)
-						#or (brewConf.allow_multiple_ssrs == False and brewConf.current_ssr == ssr))
 					if enabled:
 						ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
 					else:
@@ -361,7 +367,7 @@ class Kriek(object):
 
 			#remove old fermentation statuses
 			self.remove_old_statuses()
-			print "--- sleep ---"
+			#print "--- sleep ---"
 			time.sleep(1)
 			
 

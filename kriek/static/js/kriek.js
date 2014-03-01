@@ -619,7 +619,8 @@ function RaspBrew() {
 	//sets the ssr as 'current'
 	this.toggleSSR = function(ssrid) {
 		if (ssrid) {
-			var enabled = !$('#ssr' + ssrid + '_setCurrent').hasClass('enabled')
+			//var enabled = !$('#ssr' + ssrid + '_setCurrent').hasClass('enabled')
+			var enabled = $('#ssr' + ssrid + '_enabled').hasClass('label-enabled')
 			var ssr = _this.findSSR(ssrid);
 			if (!ssr) {
 				return;
@@ -636,14 +637,14 @@ function RaspBrew() {
 				}
 			}
 
-			ssr.enabled = enabled;
+			ssr.enabled = !enabled;
 
 			//update the local data and refresh
 			if (_this.lastLoadedData) {
 				_this.updateFromData(_this.lastLoadedData, true);
 			}
 
-			var post = { pk: ssrid, enabled:enabled };
+			var post = { pk: ssrid, enabled:ssr.enabled };
 			_this.sendUpdate("/ssrs/" + ssr.id + "/", post);
 		}
 	}
@@ -796,6 +797,13 @@ function RaspBrew() {
 				}
 			}
 		}
+	}
+
+	//called when the user enables/disables pids
+	this.onPidCheckboxChanged = function() {
+		var pidenabled = $('#ssrPIDEnabled').prop('checked');
+		//if the pid is not enabled, disable the inputs
+		$("input.pid").prop('disabled', ! pidenabled);
 	}
 	
 	//shows a configuration dialog for a given ssr

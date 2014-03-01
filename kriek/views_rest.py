@@ -73,15 +73,16 @@ class SSRViewSet(viewsets.ModelViewSet):
 
 	def pre_save(self, obj):
 		obj.owner = self.request.user
+		print "????? " + str(obj.enabled)
+		#find any brew configurations and disable all other ssrs if allow_multiple_ssrs is False
+		for bc in BrewConfiguration.objects.all():
+			if not bc.allow_multiple_ssrs:
 
-		#TODO disable all the other ssrs
-		#for bc in obj.brewconfiguration_set.all():
-		#	if not bc.allow_multiple_ssrs:
-		#		for ssr in bc.ssrs.all():
-		#			if not obj.id == ssr.id:
-		#				print "Disabling: " + str(ssr.id)
-		#				ssr.enabled = False
-		#				ssr.save()
+				for ssr in SSR.objects.all():
+					if not obj.id == ssr.id:
+						print "Disabling: " + str(ssr.id)
+						ssr.enabled = False
+						ssr.save()
 
 
 class BrewConfViewSet(viewsets.ModelViewSet):

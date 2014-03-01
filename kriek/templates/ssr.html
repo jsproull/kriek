@@ -3,9 +3,11 @@
 	<div class="panel-heading">
 		<h4 class="text-center">{{ssr.name}}</h4>
         <div class="text-center small">{%ifequal ssr.heater_or_chiller 0%}(heater){%else%}(chiller){%endifequal%}</div>
-		<div class="config">
+		{% if not ssr.manual_mode %}
+        <div class="config">
 			<a href="#" title="configure SSR" onclick="kriek.configureSSR({{ssr.id}}, '{{ssr.name}}'); return null;"><i class="fa fa-gear fa-lg"></i></a>
 		</div>
+        {% endif %}
 	</div>
 	<div class="panel-body">
 		<dl class="dl-horizontal">
@@ -13,13 +15,13 @@
 			<dd class="">
 				<span id="ssr{{ssr.pk}}_state" class="label"></span>
 			</dd>
-            {% if showenabled %}
-			<dt class="">Enabled:</dt>
+
+            {% if not ssr.manual_mode %}
+            <dt class="">Enabled:</dt>
 			<dd class="">
-				<span id="ssr{{ssr.pk}}_enabled" class="label"></span>
+				<button id="ssr{{ssr.pk}}_enabled" onclick="kriek.toggleSSR({{ssr.pk}}); return false;"  type="button" class="btn btn-sm ">No</button>
 			</dd>
-            {% endif %}
-			<dt class="">Power:</dt>
+            <dt class="">Power:</dt>
 			<dd class="small">
 				<span id="ssr{{ssr.pk}}_power" class=""></span>
 			</dd>
@@ -31,6 +33,13 @@
 			<dd class="small">
 				<span id="ssr{{ssr.pk}}_eta" class=""></span>
 			</dd>
+            {% else %}
+            <dt class="">On:</dt>
+			<dd class="">
+				<button id="ssr{{ssr.pk}}_enabled" onclick="kriek.toggleSSR({{ssr.pk}}); return false;"  type="button" class="btn btn-sm ">No</button>
+			</dd>
+
+            {% endif %}
 		</dl>
 		
 	</div>

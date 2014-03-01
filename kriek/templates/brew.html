@@ -45,7 +45,7 @@
  						<div class="panel-heading c{{forloop.counter0}}">
 							<h3 class="panel-title text-center">{{ probe.name }}</h3>
                             {% if probe.ssrs.all|dictsort:"name" %}
-                                <button type="button" onclick="kriek.toggleSSR({{probe.ssrs.all.0.pk}}); return false;" id="ssr{{probe.ssrs.all.0.pk}}_setCurrent" class="btn btn-sm {% if probe.ssr.current_ssr and probe.ssr.enabled %} btn-warning {%else%} btn-primary {% endif %}activessr">Off</button>
+                               <!-- <button type="button" onclick="kriek.toggleSSR({{probe.ssrs.all.0.pk}}); return false;" id="ssr{{probe.ssrs.all.0.pk}}_setCurrent" class="btn btn-sm {% if probe.ssr.current_ssr and probe.ssr.enabled %} btn-warning {%else%} btn-primary {% endif %}activessr">Off</button> -->
 						    {% endif %}
                         </div>
 						<div class="panel-body">

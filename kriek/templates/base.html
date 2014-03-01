@@ -116,26 +116,26 @@
                             <div class="col-sm-offset-2 col-sm-10">
 							    <div class="checkbox">
 							        <label>
-								        <input type="checkbox" id="ssrPIDEnabled"> PID Enabled
+								        <input onchange="raspbrew.onPidCheckboxChanged()" type="checkbox" id="ssrPIDEnabled"> PID Enabled
 							        </label>
 							    </div>
 						    </div>
                             <label for="ssrK" class="col-sm-2 col-md-offset-2 control-label">K Param</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-								  <input type="text" class="form-control" id="ssrK">
+								  <input type="text" class="form-control pid" id="ssrK">
 								</div>
 							</div>
                             <label for="ssrI" class="col-sm-2 col-md-offset-2 control-label">I Param</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-								  <input type="text" class="form-control" id="ssrI">
+								  <input type="text" class="form-control pid" id="ssrI">
 								</div>
 							</div>
                             <label for="ssrD" class="col-sm-2 col-md-offset-2 control-label">D Param</label>
 							<div class="col-sm-8">
 								<div class="input-group">
-								  <input type="text" class="form-control" id="ssrD">
+								  <input type="text" class="form-control pid" id="ssrD">
 								</div>
 							</div>
 				        </div>

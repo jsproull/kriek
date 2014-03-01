@@ -19,6 +19,18 @@ a:hover, a:focus {
 	color: #005C6C;
 }
 
+.btn:hover {
+	color: #EEEEEE;
+}
+
+.btn-sm {
+	color: white;
+	height: 25px;
+	padding: 0 9px;
+	font-weight: bold;
+	border-color: transparent;
+}
+
 h1, h2 {
 	margin-top: 0px;
 	margin-bottom: 10.5px;
