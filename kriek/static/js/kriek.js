@@ -24,7 +24,7 @@ function RaspBrew() {
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 
-	this._chartUpdatesEnabled = null;
+	this._chartUpdatesEnabled = true;
 	this._updatesEnabled = true;
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
