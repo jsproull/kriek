@@ -24,7 +24,7 @@ function RaspBrew() {
 	
 	this.colourList = ['#DD6E2F','#DD992F','#285890','#1F9171','#7A320A','#7A4F0A','#082950','#06503C'];
 
-	this._chartUpdatesEnabled = true;
+	this._chartUpdatesEnabled = null;
 	this._updatesEnabled = true;
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
@@ -162,7 +162,9 @@ function RaspBrew() {
 					//update the global settings
 					_this._updatesEnabled = data.updatesenabled;
 					$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
-					_this._chartUpdatesEnabled = _this._updatesEnabled;
+					if (_this._chartUpdatesEnabled == null) {
+					 	_this._chartUpdatesEnabled = _this._updatesEnabled;
+					}
 				}
 				
 				if (data.units) {
