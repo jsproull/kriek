@@ -162,9 +162,6 @@ function RaspBrew() {
 					//update the global settings
 					_this._updatesEnabled = data.updatesenabled;
 					$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
-					if (_this._chartUpdatesEnabled == null) {
-					 	_this._chartUpdatesEnabled = _this._updatesEnabled;
-					}
 				}
 				
 				if (data.units) {
