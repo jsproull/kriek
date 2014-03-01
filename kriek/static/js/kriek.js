@@ -94,7 +94,7 @@ function RaspBrew() {
 
 		var url =  _this.baseURL + '&confId=' + _this.confId + '&numberToReturn=' + _this.chartPoints;
 
-		if ($("#startDate").is(":focus") || $("#endDate").is(":focus")) {
+		if (! _this._chartUpdatesEnabled || $("#startDate").is(":focus") || $("#endDate").is(":focus")) {
 			setTimeout(_this.updateStatus, _this.updateTime);
 			return;
 		}
