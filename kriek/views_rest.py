@@ -77,7 +77,7 @@ class SSRViewSet(viewsets.ModelViewSet):
 		#find any brew configurations and disable all other ssrs if allow_multiple_ssrs is False
 		for bc in BrewConfiguration.objects.all():
 			if not bc.allow_multiple_ssrs:
-
+				# TODO - add ssrs back to brew conf
 				for ssr in SSR.objects.all():
 					if not obj.id == ssr.id:
 						print "Disabling: " + str(ssr.id)

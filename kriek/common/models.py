@@ -233,10 +233,10 @@ class Probe(models.Model):
 
 			except IOError:
 				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_id + "/w1_slave does not exist.";
-				if self.temperature is None:
-					temp = 0
-				else:
-					temp = float(self.temperature) + .01
+				#if self.temperature is None:
+				#	temp = 0
+				#else:
+				#	temp = float(self.temperature) + .01
 				break
 
 		#this is now all done on the client side
