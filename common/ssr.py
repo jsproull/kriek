@@ -179,18 +179,20 @@ class SSRController(threading.Thread):
 		# else if the pid is disabled, but the ssr is enabled
 		elif not self.ssr.pid.enabled and self.ssr.enabled:
 
-			self.set_state(True)
-			on = float(self.cycle_time) * float(self.power)/100
-			off = self.cycle_time - on;
+			on_time = float(self.cycle_time) * float(self.power)/100
+			off_time = self.cycle_time - on_time;
 	
 			if self.verbose:
 				print " pid disabled.. setting on/off time"
-				print " " + str(on) + " " + str(off)
+				print " " + str(on_time) + " " + str(off_time)
 
-			time.sleep(on)
-			self.set_state(False)
-			time.sleep(off)
-			
+			if on_time > 0:
+				self.set_state(True)
+				time.sleep(on_time)
+
+			if off_time > 0:
+				self.set_state(False)
+				time.sleep(off_time)
 		else:
 			self.set_state(False)
 			time.sleep(self.cycle_time)			
