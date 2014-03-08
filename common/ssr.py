@@ -158,14 +158,16 @@ class SSRController(threading.Thread):
 
 					duty = period*self.ssr.pid.power/100
 					duty = int(period-duty) #duty is reversed
-					print "duty"
+					print "duty: " + str(duty)
 					file = open(dir + "/duty", "w")
 					file.write(str(duty))
 					file.close()
 
-					print "peruod"
+					print "peruod" + str(period)
 					file = open(dir + "/period", "w")
+					print "peruod"
 					file.write(str(period))
+					print "peruod"
 					file.close()
 
 				else:
