@@ -343,12 +343,12 @@ class Kriek(object):
 		"""
 		creates Probe ojbects for probes in /sys/bus/w1/devices/ if none currently exist in the db
 		"""
-		if Probe.objects.count() == 0:
-			for _dir in glob.glob("/sys/bus/w1/devices/28*"):
-				_file = os.path.basename(_dir)
-				print "Adding probe with one-wire id: " + str(_file)
-				user = User.objects.get(pk=1)
-				probe = Probe(one_wire_id=_file, name=_file, owner=user)
+		for _dir in glob.glob("/sys/bus/w1/devices/28*"):
+			_file = os.path.basename(_dir)
+			print "Adding probe with one-wire id: " + str(_file)
+			user = User.objects.get(pk=1)
+			probe,created = Probe.objects.get_or_create(one_wire_id=_file, name=_file, owner=user)
+			if created:
 				probe.save()
 
 	#
