@@ -149,25 +149,29 @@ class SSRController(threading.Thread):
 
 			try:
 				if self.enabled:
-					file = open(self.ssr.pin + "/run", "w").write("1")
+					print "run"
+					file = open(dir + "/run", "w").write("1")
 					file.close()
 
 					period = int(self.ssr.pwm_period*1000000000)
 
 					duty = period*self.ssr.pid.power/100
 					duty = int(period-duty) #duty is reversed
-					file = open(self.ssr.pin + "/duty", "w").write(str(duty))
+					print "duty"
+					file = open(dir + "/duty", "w").write(str(duty))
 					file.close()
 
-					file = open(self.ssr.pin + "/period", "w").write(str(period))
+					print "peruod"
+					file = open(dir + "/period", "w").write(str(period))
 					file.close()
 
 				else:
-					file = open(self.ssr.pin + "/run", "w").write("0")
+					print "run2"
+					file = open(dir + "/run", "w").write("0")
 					file.close()
 
 			except IOError:
-				print "cat open file in " + dir
+				print "can't open file in " + dir
 
 			#only check if we have to modify this setting every 5 seconds
 			time.sleep(5)

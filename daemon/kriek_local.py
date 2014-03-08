@@ -263,7 +263,7 @@ class Brewing(BaseThreaded):
 						return
 
 					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
-					print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
+					#print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
 
 					if enabled:
 						ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
@@ -345,10 +345,10 @@ class Kriek(object):
 		"""
 		for _dir in glob.glob("/sys/bus/w1/devices/28*"):
 			_file = os.path.basename(_dir)
-			print "Adding probe with one-wire id: " + str(_file)
 			user = User.objects.get(pk=1)
 			probe,created = Probe.objects.get_or_create(one_wire_id=_file, name=_file, owner=user)
 			if created:
+				print "Adding probe with one-wire id: " + str(_file)
 				probe.save()
 
 	#
