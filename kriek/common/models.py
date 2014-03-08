@@ -237,7 +237,6 @@ class Probe(models.Model):
 				#	temp = 0
 				#else:
 				#	temp = float(self.temperature) + .01
-				temp = 1
 				break
 
 		#this is now all done on the client side
