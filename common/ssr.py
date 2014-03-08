@@ -150,7 +150,7 @@ class SSRController(threading.Thread):
 			try:
 				if self.enabled:
 					print "run"
-					file = open(dir + "/run", "w")\
+					file = open(dir + "/run", "w")
 					file.write("1")
 					file.close()
 
@@ -159,18 +159,18 @@ class SSRController(threading.Thread):
 					duty = period*self.ssr.pid.power/100
 					duty = int(period-duty) #duty is reversed
 					print "duty"
-					file = open(dir + "/duty", "w")\
+					file = open(dir + "/duty", "w")
 					file.write(str(duty))
 					file.close()
 
 					print "peruod"
-					file = open(dir + "/period", "w")\
+					file = open(dir + "/period", "w")
 					file.write(str(period))
 					file.close()
 
 				else:
 					print "run2"
-					file = open(dir + "/run", "w")\
+					file = open(dir + "/run", "w")
 					file.write("0")
 					file.close()
 
