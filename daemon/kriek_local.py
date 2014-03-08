@@ -263,6 +263,7 @@ class Brewing(BaseThreaded):
 						return
 
 					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
+					print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
 
 					if enabled:
 						ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)

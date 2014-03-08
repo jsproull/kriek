@@ -77,14 +77,18 @@ class SSRStatus(models.Model):
 	owner = models.ForeignKey('auth.User', related_name='ssrstatuses')
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
-	pin = models.CharField(max_length=10)
+	pin = models.CharField(max_length=30)
 	enabled = models.BooleanField(default=True)  # enabled
 	state = models.BooleanField(default=False)  # on/off
 	heater_or_chiller = models.IntegerField(default=0)
 	manual_mode = models.BooleanField(default=False)  # on/off
 	probe = models.ForeignKey(ProbeStatus, null=True)
 	pid = models.OneToOneField(PIDStatus, null=True)
-	
+
+	#PWM on beaglebone black
+	pwm_mode = models.BooleanField(default=False)  # on/off
+	pwm_period = models.IntegerField(default=0, blank=True)
+
 	#the original ssr
 	ssr = models.ForeignKey('common.SSR', null=True)
 
@@ -99,6 +103,10 @@ class SSRStatus(models.Model):
 		ssr.owner = _ssr.owner
 		ssr.heater_or_chiller = _ssr.heater_or_chiller
 		ssr.manual_mode = _ssr.manual_mode
+
+		#PWM on beaglebone black
+		ssr.pwm_mode = _ssr.pwm_mode
+		ssr.pwm_period = _ssr.pwm_period
 
 		if _ssr.pid:
 			ssr.pid = PIDStatus.clone_from(_ssr.pid)

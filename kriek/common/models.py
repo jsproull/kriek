@@ -237,6 +237,7 @@ class Probe(models.Model):
 				#	temp = 0
 				#else:
 				#	temp = float(self.temperature) + .01
+				temp = 1
 				break
 
 		#this is now all done on the client side
@@ -277,11 +278,15 @@ class SSR(models.Model):
 
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
-	pin = models.CharField(max_length=10)
+	pin = models.CharField(max_length=30)
 	probe = models.ForeignKey(Probe, null=True, blank=True, related_name='ssrs')
 	pid = models.OneToOneField(PID, null=True, related_name='ssrs')
 	enabled = models.BooleanField(default=True)  # enabled
 	state = models.BooleanField(default=False)  # on/off
+
+	#PWM on beaglebone black
+	pwm_mode = models.BooleanField(default=False)  # kernel pwm
+	pwm_period = models.FloatField(default=0, blank=True)  # period between 0 - 1s
 
 	#if manual_mode is set to True, the user has to turn it on/off manually
 	manual_mode = models.BooleanField(default=False)  # on/off
