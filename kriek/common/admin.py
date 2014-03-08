@@ -13,7 +13,7 @@ admin.site.register(Probe, ProbeAdmin)
 
 
 class SSRAdmin(admin.ModelAdmin):
-	fields = ('name', 'manual_mode', 'pwm_mode', 'pwm_period', 'enabled', 'pin', 'heater_or_chiller', 'probe', 'owner')
+	fields = ('name', 'manual_mode', 'pwm_mode', 'enabled', 'pin', 'heater_or_chiller', 'probe', 'owner')
 admin.site.register(SSR, SSRAdmin)
 
 

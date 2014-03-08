@@ -142,6 +142,7 @@ class SSRController(threading.Thread):
 			print self.ssr.name + " ct:" + str(self.cycle_time)
 
 		#special case for pwm mode
+		# todo, incorporate this in set_state
 		if self.ssr.pwm_mode:
 			#the ssr name has to be something like ocp.3/pwm_test_P9_42.16
 
@@ -149,29 +150,23 @@ class SSRController(threading.Thread):
 
 			try:
 				if self.enabled:
-					print "run"
 					file = open(dir + "/run", "w")
 					file.write("1")
 					file.close()
 
-					period = int(self.ssr.pwm_period*1000000000)
+					period = int(self.ssr.pid.cycle_time*1000000000)
 
 					duty = period*self.ssr.pid.power/100
 					duty = int(period-duty) #duty is reversed
-					print "duty: " + str(duty)
 					file = open(dir + "/duty", "w")
 					file.write(str(duty))
 					file.close()
 
-					print "peruod" + str(period)
 					file = open(dir + "/period", "w")
-					print "peruod"
 					file.write(str(period))
-					print "peruod"
 					file.close()
 
 				else:
-					print "run2"
 					file = open(dir + "/run", "w")
 					file.write("0")
 					file.close()

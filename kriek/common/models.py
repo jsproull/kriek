@@ -285,7 +285,6 @@ class SSR(models.Model):
 
 	#PWM on beaglebone black
 	pwm_mode = models.BooleanField(default=False)  # kernel pwm
-	pwm_period = models.FloatField(default=0, blank=True)  # period between 0 - 1s
 
 	#if manual_mode is set to True, the user has to turn it on/off manually
 	manual_mode = models.BooleanField(default=False)  # on/off

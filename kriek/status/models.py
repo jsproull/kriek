@@ -87,7 +87,6 @@ class SSRStatus(models.Model):
 
 	#PWM on beaglebone black
 	pwm_mode = models.BooleanField(default=False)  # on/off
-	pwm_period = models.IntegerField(default=0, blank=True)
 
 	#the original ssr
 	ssr = models.ForeignKey('common.SSR', null=True)
@@ -106,7 +105,6 @@ class SSRStatus(models.Model):
 
 		#PWM on beaglebone black
 		ssr.pwm_mode = _ssr.pwm_mode
-		ssr.pwm_period = _ssr.pwm_period
 
 		if _ssr.pid:
 			ssr.pid = PIDStatus.clone_from(_ssr.pid)
