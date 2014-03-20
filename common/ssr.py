@@ -264,9 +264,9 @@ class SSRController(threading.Thread):
 
 		elif bbb_available:
 			if _state:
-				GPIO.output(int(self.ssr.pin), GPIO.HIGH)
+				GPIO.output(self.ssr.pin, GPIO.HIGH)
 			else:
-				GPIO.output(int(self.ssr.pin), GPIO.LOW)
+				GPIO.output(self.ssr.pin, GPIO.LOW)
 
 		if self.ssr.state != state:
 			self.ssr.state = state
