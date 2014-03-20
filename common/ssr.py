@@ -44,7 +44,7 @@ class SSRController(threading.Thread):
 			#wiringpi.wiringPiSetupGpio()
 			
 			#set the pinmode
-			wiringpi.pinMode(ssr.pin, 1)
+			wiringpi.pinMode(int(ssr.pin), 1)
 		elif bbb_available:
 			GPIO.setup(ssr.pin, GPIO.OUT)
 			#GPIO.cleanup()
@@ -260,13 +260,13 @@ class SSRController(threading.Thread):
 			print str(self.ssr.name) + " digitalWrite: " + str(self.ssr.pin) + " " + str(_state)
 		
 		if wiringpi_available:
-			wiringpi.digitalWrite(self.ssr.pin, _state)
+			wiringpi.digitalWrite(int(self.ssr.pin), _state)
 
 		elif bbb_available:
 			if _state:
-				GPIO.output(self.ssr.pin, GPIO.HIGH)
+				GPIO.output(int(self.ssr.pin), GPIO.HIGH)
 			else:
-				GPIO.output(self.ssr.pin, GPIO.LOW)
+				GPIO.output(int(self.ssr.pin), GPIO.LOW)
 
 		if self.ssr.state != state:
 			self.ssr.state = state
