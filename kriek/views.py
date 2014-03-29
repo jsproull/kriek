@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 
-from kriek.common.models import Probe
+from kriek.common.models import Probe, Status
 from kriek.globalsettings.models import GlobalSettings
 from kriek.ferm.models import FermConfiguration
 from kriek.brew.models import BrewConfiguration
@@ -71,6 +71,24 @@ def update_global_setting(request):
 	g.value = value
 	g.save()
 	g, created = GlobalSettings.objects.get_or_create(key=key)
+	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
+
+def purge_all_data(request):
+	confirm = request.POST['confirm']
+	if confirm == "true":
+		#turn off updates
+		g, created = GlobalSettings.objects.get_or_create(key='UPDATES_ENABLED')
+		g.value = False
+		g.save()
+
+		#delete all objects
+		Status.objects.all().delete();
+
+		#turn updates back on
+		g.value = True
+		g.save()
+
+
 	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 
 # config

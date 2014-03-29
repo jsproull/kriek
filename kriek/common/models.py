@@ -232,7 +232,7 @@ class Probe(models.Model):
 						temp += float(self.correction_factor)  # correction factor
 
 			except IOError:
-				print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_id + "/w1_slave does not exist.";
+				#print "Error: File " '/sys/bus/w1/devices/' + self.one_wire_id + "/w1_slave does not exist.";
 				if self.temperature is None:
 					temp = 0
 				else:
@@ -282,6 +282,7 @@ class SSR(models.Model):
 	pid = models.OneToOneField(PID, null=True, related_name='ssrs')
 	enabled = models.BooleanField(default=True)  # enabled
 	state = models.BooleanField(default=False)  # on/off
+	reverse_polarity = models.BooleanField(default=False)  # whether or not the ssr is reversed (always on/off)
 
 	#PWM on beaglebone black
 	pwm_mode = models.BooleanField(default=False)  # kernel pwm

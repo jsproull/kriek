@@ -74,12 +74,13 @@
 									{% endfor %}
 								</div>
 								{% else %}
-								<div style="text-align: center;"><span class="text-center label label-default" style="
-    align-content: center;">No SSRs defined for {{ probe.name }}</span></div>
+								<div style="text-align: center;"><span class="text-center label label-default" style="align-content: center;">No SSRs defined for {{ probe.name }}</span></div>
 								{% endif %}
 							</dl>
                             <hr/>
-                                {% include "schedule.html" with probe=probe%}
+                            
+                            {% include "schedule.html" with probe=probe %}
+
 						</div>
 					</div>
 				</div>

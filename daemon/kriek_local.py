@@ -37,7 +37,7 @@ from common.ssr import SSRController as ssrController
 import threading
 import time
 
-from kriek.common.models import Probe
+from kriek.common.models import Probe, SSR
 from kriek.ferm.models import FermConfiguration
 from kriek.brew.models import BrewConfiguration
 from kriek.status.models import ProbeStatus, Status
@@ -226,22 +226,9 @@ class Brewing(BaseThreaded):
 		#do we have any fermentation probes?
 		brew_confs = BrewConfiguration.objects.all()
 
-
 		for brewConf in brew_confs:
 			for probe in brewConf.probes.all():
-				#safety check to ensure we don't have more than one ssr enabled
-				# TODO
-				# if not brewConf.allow_multiple_ssrs:
-				# 	enabled = False
-				# 	for ssr in probe.ssrs.all():
-				# 		if enabled and ssr.enabled:
-				# 			ssr_controller = self.get_ssr_controller(ssr)
-				# 			ssr.enabled = False
-				# 			ssr.save()
-				# 			ssr_controller.set_enabled(False)
-				#
-				# 		elif not enabled:
-				# 			enabled = ssr.enabled
+				
 
 				for ssr in probe.ssrs.all():
 					currenttemp = ssr.probe.get_current_temp()
@@ -257,18 +244,26 @@ class Brewing(BaseThreaded):
 
 					ssr_controller = self.get_ssr_controller(ssr)
 
+					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
+
 					#it's always enabled if it's in manual mode and was set 'enabled'
 					if ssr.manual_mode:
 						ssr_controller.update_ssr_controller(currenttemp, targettemp, True)
-						return
+					else:
+						#print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
 
-					enabled = (targettemp is not None and currenttemp > -999 and ssr.enabled)
-					#print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
+						if enabled:
+							ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
+						else:
+							ssr_controller.set_enabled(False)
 
 					if enabled:
-						ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
-					else:
-						ssr_controller.set_enabled(False)
+						#safety check to ensure we don't have more than one ssr enabled
+						if not brewConf.allow_multiple_ssrs:
+							for _ssr in SSR.objects.all():
+								if not ssr.id == _ssr.id:
+									_ssr.enabled = False
+									_ssr.save()
 
 
 class Kriek(object):

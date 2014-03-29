@@ -52,6 +52,9 @@ urlpatterns = patterns('',
     #update global settings
     url(r'^update_global_setting', views.update_global_setting, {}, name='update_global_setting'),
 
+    #purge all data
+    url(r'^purgeAllData', views.purge_all_data, {}, name='purge_all_data'),
+
     #system conf
     url(r'^system/status/$', views.system_status, {}, name='system_status'),
     

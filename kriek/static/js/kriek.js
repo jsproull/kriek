@@ -82,9 +82,9 @@ function RaspBrew() {
 
 	//loads all the probes and caches them in this.probes
 	this.loadProbes = function() {
-
-		//wait for when we have a system status
-		if (_this._systemStatus == null) {
+	
+		//wait for when we have a system status or if we're writing data
+		if (_this._systemStatus == null || _this._writingData) {
 			setTimeout(_this.loadProbes, _this.updateTime);
 			return;
 		}
@@ -113,7 +113,7 @@ function RaspBrew() {
 	// This is constantly called to update the data via ajax.
 	this.updateStatus = function() {
 
-		if (!_this.confId) {
+		if (!_this.confId || _this._writingData) {
 			return;
 		}
 
@@ -233,11 +233,6 @@ function RaspBrew() {
 			force = false;
 		}
 
-		//we are waiting for the server to update the data
-		if (this._writingData && !force) {
-			return;
-		}
-	
 		if (!data) {
 			$('.kriek-updateable').html('--');
 			this.emptyChart();
@@ -556,7 +551,7 @@ function RaspBrew() {
 						endDate=date;
 					}
 					//console.log(temp);
-					temp=_this.getTemperature(probe.temperature)
+					temp=parseFloat(_this.getTemperature(probe.temperature));
 					dd[probeIndex].push({x: date, y: temp});
 				}
 
@@ -710,7 +705,7 @@ function RaspBrew() {
 		if (val == "") {
 			val = null;
 		} else {
-			var val=parseInt(val);
+			var val=parseFloat(val);
 			if (isNaN(val) || val > 999) {
 				input.parent().addClass('has-error');
 				return;
@@ -742,12 +737,12 @@ function RaspBrew() {
 			contentType:"application/json",
 			success: function(data){
 				$('.kriek-updateable').attr('disabled', false);
-				setTimeout(function(){_this._writingData = false;}, 1000);
+				setTimeout(function(){_this._writingData = false;}, 2000);
 				if (callback) { callback(data); }
 			},
 			error: function(data) {
 				$('.kriek-updateable').attr('disabled', false);
-				_this._writingData = false;
+				//_this._writingData = false;
 				if (errcallback) { errcallback(data); }
 			}
 		});
@@ -773,6 +768,27 @@ function RaspBrew() {
 				if (errcallback) { errcallback(data); }
 			}
 		});
+	}
+
+	//purge all data
+	this.purgeAllData = function() {
+		if (confirm("Delete All Data (this cannot be undone)")) {
+			$('#pleaseWaitDialog').modal();
+
+			$.ajax({
+				url: "/purgeAllData",
+				type: 'POST',
+				data: { confirm: true },
+				success: function(data){
+					$('#pleaseWaitDialog').modal('hide');
+					alert("data purge successful.");
+				},
+				error: function(data) {
+					$('#pleaseWaitDialog').modal('hide');
+					alert("data purge was NOT successful.");
+				}
+			});
+		}
 	}
 	
 	//this sets whether or not we should be updating the chart
@@ -865,7 +881,14 @@ function RaspBrew() {
 	}
 	
 	//shows a configuration dialog for a given ssr
-	this.configureSSR = function(ssrid) {
+	this.configureSSR = function(ssrid,manual_mode) {
+		
+		if (manual_mode) {
+			$("#advancedPID").hide();
+		} else {
+			$("#advancedPID").show();
+		}
+
 		_this._editingSSR = ssrid;
 
 		var ssr = _this.findSSR(ssrid);

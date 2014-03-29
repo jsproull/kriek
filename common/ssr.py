@@ -69,18 +69,13 @@ class SSRController(threading.Thread):
 		ssr = self.ssr
 
 		#print ssr.name + " update_ssr current " + str(settemp) + " : " + str(target_temp) + " " + str(ssr.pid.power)
-
 		self.set_enabled(enabled)
-
-		# we don't have to do anything
-		if ssr.manual_mode:
-			return
 
 		self.power = ssr.pid.power
 		self.cycle_time = ssr.pid.cycle_time
 
 		#if the pid isn't enabled, set the power to 100%, but still use its cycletime
-		if not ssr.pid.enabled:
+		if not ssr.pid.enabled or ssr.manual_mode:
 			#self.power = 100
 			#self.cycle_time = 1
 			self.update_ssr(self.power, self.cycle_time)
@@ -133,13 +128,22 @@ class SSRController(threading.Thread):
 			self.cycle_time = cycle_time
 							
 	def fire_ssr(self):
+		
+		self.ssr = SSR.objects.get(pk=self.ssr.pk)
 
 		#self.duty_cycle = duty_cycle;
 		if self.verbose:
+			print "-------------------------"
 			print self.ssr.name
 			print self.ssr.name + " Fire: self.enabled:" + str(self.enabled) + " ssr.enabled: " + str(self.ssr.enabled) + " pid enabled:" + str(self.ssr.pid.enabled)
 			print self.ssr.name + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle)
-			print self.ssr.name + " ct:" + str(self.cycle_time)
+			print self.ssr.name + " cycle_time:" + str(self.cycle_time)
+
+		#just return if not enabled
+		if not self.enabled or not self.ssr.enabled:
+			self.set_state(False)
+			time.sleep(self.cycle_time)
+			return
 
 		#special case for pwm mode
 		# todo, incorporate this in set_state
@@ -179,22 +183,11 @@ class SSRController(threading.Thread):
 
 			return
 
-		#just return if not enabled
-		if not self.enabled:
-			self.set_state(False)
-			time.sleep(self.cycle_time)
-			return
-
 		on_time = 0
 		off_time = 0
 
-		# if the ssr is in manual mode, the user turns it on/off by the 'enabled' propery
-		if self.ssr.manual_mode:
-			self.set_state(self.ssr.enabled)
-			return
-
 		# if the pid and the ssr are both enabled, use the PID algorithm
-		elif self.ssr.pid.enabled and self.ssr.enabled:
+		if (not self.ssr.manual_mode) and self.ssr.pid.enabled and self.ssr.enabled:
 			if self.verbose:
 				print " pid enabled.. setting on/off time"
 
@@ -215,7 +208,7 @@ class SSRController(threading.Thread):
 				time.sleep(off_time)
 
 		# else if the pid is disabled, but the ssr is enabled
-		elif not self.ssr.pid.enabled and self.ssr.enabled:
+		elif (self.ssr.manual_mode or not self.ssr.pid.enabled) and self.ssr.enabled:
 
 			on_time = float(self.cycle_time) * float(self.power)/100
 			off_time = self.cycle_time - on_time;
@@ -251,6 +244,7 @@ class SSRController(threading.Thread):
 		return ret
 		
 	def set_state(self, state):
+
 		self._On = state
 		_state = 0
 		if state:
@@ -259,6 +253,15 @@ class SSRController(threading.Thread):
 		if self.verbose:
 			print str(self.ssr.name) + " digitalWrite: " + str(self.ssr.pin) + " " + str(_state)
 		
+		#save the state
+		if self.ssr.state != _state:
+			self.ssr.state = _state
+			self.ssr.save()
+
+		#reverse if needed
+		if self.ssr.reverse_polarity and self.enabled:
+			_state = not _state
+
 		if wiringpi_available:
 			wiringpi.digitalWrite(int(self.ssr.pin), _state)
 
@@ -268,6 +271,3 @@ class SSRController(threading.Thread):
 			else:
 				GPIO.output(self.ssr.pin, GPIO.LOW)
 
-		if self.ssr.state != state:
-			self.ssr.state = state
-			self.ssr.save()
