@@ -70,6 +70,7 @@ def update_global_setting(request):
 	g, created = GlobalSettings.objects.get_or_create(key=key)
 	g.value = value
 	g.save()
+	g, created = GlobalSettings.objects.get_or_create(key=key)
 	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 
 # config

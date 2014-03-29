@@ -49,10 +49,16 @@
             <li><a href="/admin/">Config</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          		<p class="navbar-text navbar-right" id="updatesEnabled" style="display: none;"><span class="label label-danger">System updates disabled</span></p>
                 <li class="dropdown">
                   <a href="#" class="dropdown-toggle" data-toggle="dropdown">Settings <b class="caret"></b></a>
                   <ul class="dropdown-menu">
+                  	<li role="presentation" class="dropdown-header">Global Settings</li>
                     <li><a href="#" onclick="kriek.toggleUpdatesEnabled(); return false;"><input checked="true" id="updatesEnabledCheckbox" type="checkbox"> System Enabled</a></li>
+                    <li role="presentation" class="divider"></li>
+                    <li role="presentation" class="dropdown-header">Units</li>
+                    <li><a href="#" onclick="kriek.toggleUnits(this); return true;"><input checked="true" id="metric" type="radio" name="units"> Metric</a></li>
+                    <li><a href="#" onclick="kriek.toggleUnits(this); return true;"><input checked="true" id="imperial" type="radio" name="units"> Imperial</a></li>
                   </ul>
                 </li>
              {% if user.is_authenticated %}

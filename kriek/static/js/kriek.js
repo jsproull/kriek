@@ -46,17 +46,35 @@ function RaspBrew() {
         }
 
 		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
-			return (9.0/5.0)*temp + 32;
+			temp = (9.0/5.0)*temp + 32;
+			return temp.toFixed(1);
 		} else {
-			return temp;
+			temp = temp;
+			return temp.toFixed(2);
+		}
+	}
+
+	//converts to celsius if needed
+	this.convertToCelsiusIfNeeded = function(temp) {
+		temp = parseFloat(temp);
+        if (isNaN(temp)) {
+            return 0.0;
+        }
+
+		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
+			temp = (temp - 32) * 5/9;
+			return temp.toFixed(1);
+		} else {
+			return temp.toFixed(2);
 		}
 	}
 
 	//gets the temperature as a string format
 	this.getTemperatureFormatted = function(temp) {
-		var temp = _this.getTemperature(temp);
+		var temp = parseFloat(_this.getTemperature(temp));
+
 		if (_this._systemStatus && _this._systemStatus.units != 'metric') {
-			return temp.toFixed(2) + "f";
+			return temp.toFixed(1) + "f";
 		} else {
 			return temp.toFixed(2) + "c";
 		}
@@ -64,6 +82,13 @@ function RaspBrew() {
 
 	//loads all the probes and caches them in this.probes
 	this.loadProbes = function() {
+
+		//wait for when we have a system status
+		if (_this._systemStatus == null) {
+			setTimeout(_this.loadProbes, _this.updateTime);
+			return;
+		}
+
 		var url = "/probes/";
 		$.ajax({
 			url: url,
@@ -162,9 +187,23 @@ function RaspBrew() {
 					//update the global settings
 					_this._updatesEnabled = data.updatesenabled;
 					$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
+
+					if (!_this._updatesEnabled) {
+						$('#updatesEnabled').show();
+					} else {
+						$('#updatesEnabled').hide();
+					}
+					
 				}
 				
 				if (data.units) {
+					
+					if (data.units == 'metric') {
+						$('#metric').prop('checked', true);
+					} else {
+						$('#imperial').prop('checked', true);
+					}
+
 					//update all the temp labels
 					$('.templabel').each(function(index, item) { 
 						var h = $(item).html();
@@ -225,18 +264,21 @@ function RaspBrew() {
 
 			var tempInput = $('#probe' + probeid + '_temp');
 			var ttempInput = $('#probe' + probeid + '_target');
-			
+
 			var temp = _this.getTemperature(probe.temperature);
+			
 			var targetTemp = NaN;
 			if (probe.target_temperature) {
-				targetTemp = parseFloat(probe.target_temperature);
+				targetTemp = _this.getTemperature(probe.target_temperature);
 			}
-			
-			if (! tempInput.is(":focus"))
-				tempInput.html(temp.toFixed(2));
+
+			if (! tempInput.is(":focus")) {
+				tempInput.html(temp);
+			}
+
 			if (! ttempInput.is(":focus") && ! ttempInput.parent().hasClass('has-success')) {
-				if (probe.target_temperature) {
-					ttempInput.val(targetTemp.toFixed(2));
+				if (targetTemp) {
+					ttempInput.val(targetTemp);
 				} else {
 					ttempInput.val("");
 				}
@@ -248,7 +290,7 @@ function RaspBrew() {
 			} else {
 				ttempInput.attr('disabled', false);
 			}*/
-			
+
 			//how close are we to the target temp?
 			if (!isNaN(temp) && !isNaN(targetTemp)) {
 				var percent = Math.min(temp, targetTemp)/Math.max(temp, targetTemp);
@@ -269,6 +311,10 @@ function RaspBrew() {
 				if (ssr.enabled) {
 					_this.enabledSSR = ssr;
 					_this.enabledProbe = probe;
+
+					var title = document.title.match(/.* - \w+/);
+					title = title + " (" + _this.getTemperatureFormatted(probe.temperature) + ")";
+					document.title = title;
 				}
 
 				//only update if something has changed in this ssr
@@ -530,7 +576,6 @@ function RaspBrew() {
 				//console.log(index, dd[index])
 			}
 		}
-
 		//udpate the time axis
 		var diffInHours = moment(startDate).diff(moment(endDate),'hours');
 		if (diffInHours > 24) {
@@ -665,18 +710,18 @@ function RaspBrew() {
 		if (val == "") {
 			val = null;
 		} else {
-			var val=parseFloat(val);
+			var val=parseInt(val);
 			if (isNaN(val) || val > 999) {
 				input.parent().addClass('has-error');
 				return;
 			} 
-			input.val(val.toFixed(2));
+			input.val(val.toFixed( _this._systemStatus.units == "metric" ? 2 : 1 ));
 		}
 
 		//update the actual data
 		var probe = _this.probes[probeid];
 		if (probe) {
-			probe.target_temperature = val;
+			probe.target_temperature = this.convertToCelsiusIfNeeded(val);
 		}
 
 		var post = { pk: probeid, target_temperature: probe.target_temperature  };
@@ -744,9 +789,22 @@ function RaspBrew() {
 			_this._updatesEnabled = !_this._updatesEnabled;
 		}
 
+		if (!_this._updatesEnabled) {
+			$('#updatesEnabled').show();
+		} else {
+			$('#updatesEnabled').hide();
+		}
+
 		_this.updateGlobalSetting('UPDATES_ENABLED', _this._updatesEnabled ? "True" : "False");
 		$('#updatesEnabledCheckbox').prop('checked', _this._updatesEnabled);
+	}
 
+	//udpates the units imperia/metic
+	this.toggleUnits = function(units) {
+		var u = $('input', $(units));
+		u.prop('checked',true);
+		_this.updateGlobalSetting('UNITS', u.prop('id'));
+		_this._systemStatus.units = u.prop('id');
 	}
 
 	//finds the requested probe by id from the latest loaded data
