@@ -277,7 +277,7 @@ class SSR(models.Model):
 
 	#an ssr is directly tied to a probe and a pid
 	name = models.CharField(max_length=30)
-	pin = models.CharField(max_length=30)
+	pin = models.CharField(max_length=30, unique=True)
 	probe = models.ForeignKey(Probe, null=True, blank=True, related_name='ssrs')
 	pid = models.OneToOneField(PID, null=True, related_name='ssrs')
 	enabled = models.BooleanField(default=True)  # enabled
