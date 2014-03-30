@@ -114,7 +114,7 @@ function RaspBrew() {
 	this.updateStatus = function() {
 
 		if (!_this.confId || _this._writingData) {
-			return;
+			setTimeout(_this.updateStatus, _this.updateTime);
 		}
 
 		var url =  _this.baseURL + '&confId=' + _this.confId + '&numberToReturn=' + _this.chartPoints;
