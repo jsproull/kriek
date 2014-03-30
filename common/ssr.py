@@ -157,6 +157,11 @@ class SSRController(threading.Thread):
 					file = open(dir + "/run", "w")
 					file.write("1")
 					file.close()
+					
+					if (self.ssr.pid.cycle_time > 1.0) {
+						self.ssr.pid.cycle_time = 1.0;
+						self.ssr.pid.save()
+					}
 
 					period = int(self.ssr.pid.cycle_time*1000000000)
 
