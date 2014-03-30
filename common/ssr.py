@@ -139,11 +139,6 @@ class SSRController(threading.Thread):
 			print self.ssr.name + " pin:" + str(self.ssr.pin) + " power:" + str(self.power) + " dc:" + str(self.duty_cycle)
 			print self.ssr.name + " cycle_time:" + str(self.cycle_time)
 
-		#just return if not enabled
-		if not self.enabled or not self.ssr.enabled:
-			self.set_state(False)
-			time.sleep(self.cycle_time)
-			return
 
 		#special case for pwm mode
 		# todo, incorporate this in set_state
@@ -188,6 +183,12 @@ class SSRController(threading.Thread):
 
 			return
 
+		#just return if not enabled
+		if not self.enabled or not self.ssr.enabled:
+			self.set_state(False)
+			time.sleep(self.cycle_time)
+			return
+			
 		on_time = 0
 		off_time = 0
 
