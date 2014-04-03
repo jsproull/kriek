@@ -95,7 +95,7 @@ function RaspBrew() {
 			type: 'GET',
 			dataType: 'json',
 			success: function(data){
-				if (data && data.results) {
+				if (data && data.results && !_this._writingData) {
 					for (var i=0;i<data.results.length;i++){
 						var probe = data.results[i];
 						_this.probes[probe.id] = probe;
