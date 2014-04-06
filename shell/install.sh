@@ -25,7 +25,7 @@ cd /opt/kriek
 git clone https://github.com/jsproull/kriek.git
 
 #pippy
-/opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework south
+/opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework south celery django-celery
 
 # for Pi
 /opt/kriek/env-kriek/bin/pip install wiringpi

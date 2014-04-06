@@ -13,6 +13,8 @@ from kriek.globalsettings.models import GlobalSettings
 from kriek.ferm.models import FermConfiguration
 from kriek.brew.models import BrewConfiguration
 
+from kriek.common.tasks import purgeAllData
+
 #
 # main index page
 #
@@ -93,21 +95,12 @@ def update_global_setting(request):
 	g, created = GlobalSettings.objects.get_or_create(key=key)
 	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 
+# removes ALL data
 def purge_all_data(request):
-	confirm = request.POST['confirm']
-	if confirm == "true":
-		#turn off updates
-		g, created = GlobalSettings.objects.get_or_create(key='UPDATES_ENABLED')
-		g.value = False
-		g.save()
-
-		#delete all objects
-		Status.objects.all().delete();
-
-		#turn updates back on
-		g.value = True
-		g.save()
-
+	if request.method == "POST":
+		confirm = request.POST['confirm']
+		if confirm == "true":
+			purgeAllData.delay()
 
 	return HttpResponse(json.dumps({"success": True}), content_type='application/json')
 

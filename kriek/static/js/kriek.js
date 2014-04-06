@@ -773,7 +773,7 @@ function RaspBrew() {
 	//purge all data
 	this.purgeAllData = function() {
 		if (confirm("Delete All Data (this cannot be undone)")) {
-			$('#pleaseWaitDialog').modal();
+			//$('#pleaseWaitDialog').modal();
 			_this._writingData = true;
 
 			$.ajax({
@@ -783,7 +783,7 @@ function RaspBrew() {
 				success: function(data){
 					_this._writingData = false;
 					$('#pleaseWaitDialog').modal('hide');
-					alert("data purge successful.");
+					alert("data purge has been started. This may take a while.");
 				},
 				error: function(data) {
 					_this._writingData = false;

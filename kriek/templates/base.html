@@ -51,7 +51,7 @@
 		            	</ul>
 		            </li>
 	            {% elif allBrewConfs.count > 0 %}
-	            	<li class="{% active request "/brew/" brewConf.pk %}"><a href="{% url 'brew' conf=brewConf.pk %}">Brewing</a></li>
+	            	<li class="{% active request "/brew/" brewConf.pk %}"><a href="{% url 'brew' conf=allBrewConfs.0.pk %}">Brewing</a></li>
 	            {% endif %}
 
 	            {% if allFermConfs.count > 1 %}
@@ -64,7 +64,7 @@
 		            	</ul>
 		            </li>
 	            {% elif allFermConfs.count > 0 %}
-	            	<li class="{% active request "/ferm/" fermConf.pk %}"><a href="{% url 'ferm' conf=1 %}">Fermenting</a></li>
+	            	<li class="{% active request "/ferm/" fermConf.pk %}"><a href="{% url 'ferm' conf=allFermConfs.0.pk %}">Fermenting</a></li>
 	            {% endif %}
 	            
             {% endif %}

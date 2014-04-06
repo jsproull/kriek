@@ -21,7 +21,7 @@ SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 SECRET_KEY = '5f33(*om^u1c87+uc$)uc(+$6mziwncc676dq4x30=d)!vh=cv'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 TEMPLATE_DEBUG = True
 
@@ -39,6 +39,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'gunicorn',
     'suit',
+    'djcelery',
+    'kombu.transport.django',
     #'south',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -46,6 +48,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
 )
 
 LOGGING = {
@@ -64,6 +67,9 @@ MIDDLEWARE_CLASSES = (
     #TODO REMOVE THIS!!
     'kriek.disable.DisableCSRF',
 )
+
+BROKER_URL = 'django://'
+
 
 APPEND_SLASH = False
 
