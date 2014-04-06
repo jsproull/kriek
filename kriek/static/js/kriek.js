@@ -28,7 +28,11 @@ function RaspBrew() {
 	this._updatesEnabled = true;
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
-	this.confId = window.location.href.match(/\/(\d+)/)[1];
+
+	this.confId = 1;
+	if (window.location.pathname.match(/\/(\d+)/)) {
+		this.confId = window.location.pathname.match(/\/(\d+)/)[1];
+	}
 
 	this.probes = {}; //cached probes by id
 
