@@ -28,7 +28,7 @@ function RaspBrew() {
 	this._updatesEnabled = true;
 
 	this.baseURL = '/status/?type=' + ($('#brew').length > 0 ? 'brew' : 'ferm');
-	this.confId = 1;
+	this.confId = window.location.href.match(/\/(\d+)/)[1];
 
 	this.probes = {}; //cached probes by id
 
@@ -1102,20 +1102,6 @@ function RaspBrew() {
 				return false; // prevent the button click from happening
 			}
 		});
-
-		//ensure we have a confId
-		if ($('.kriek-tab').length > 0) {
-			_this.confId = $('.kriek-tab').attr('data-confid');
-		} else {
-			_this.confId = $('#confid').attr('data-confid');
-		}
-
-		//set up tabs on click
-		$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-			_this.confId = $(e.target).attr('data-confid');
-			_this.updateStatus();
-		  //e.relatedTarget // previous tab
-		})
 
 		//start our updates
 		_this.updateStatus();

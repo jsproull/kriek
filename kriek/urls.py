@@ -25,9 +25,9 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 
-    url(r'^$', TemplateView.as_view(template_name='index.html'), name="index"),
-    url(r'^ferm$', views.ferm, {}, name='ferm'),
-    url(r'^brew$', views.brew, {}, name='brew'),
+    url(r'^$', 'kriek.views.index', name='index'), #TemplateView.as_view(template_name='index.html'), name="index"),
+    url(r'^ferm/(?P<conf>\d+)/$', 'kriek.views.ferm', name='ferm'),
+    url(r'^brew/(?P<conf>\d+)/$', 'kriek.views.brew', name='brew'),
 	url(r'^help$', TemplateView.as_view(template_name='help.html'), name="help"),
 	url(r'^about$', TemplateView.as_view(template_name='about.html'), name="about"),
 

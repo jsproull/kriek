@@ -13,30 +13,50 @@ from kriek.globalsettings.models import GlobalSettings
 from kriek.ferm.models import FermConfiguration
 from kriek.brew.models import BrewConfiguration
 
+#
+# main index page
+#
+def index(request):
+	try:
+		allFermConfs = FermConfiguration.objects.all().order_by('name')
+		allBrewConfs = BrewConfiguration.objects.all().order_by('name')
+	except:
+		allFermConfs = None
+		allBrewConfs = None
+		#fermConf=None
+	
+	return render_to_response('index.html', {'allFermConfs':allFermConfs, 'allBrewConfs': allBrewConfs }, context_instance=RequestContext(request))
+
 
 #
 # returns the ferm.html template
 #
 @login_required
-def ferm(request):
+def ferm(request, conf=1):
 	try:
-		p = FermConfiguration.objects.all().order_by('pk')
-	except Probe.DoesNotExist:
+		allFermConfs = FermConfiguration.objects.all().order_by('name')
+		allBrewConfs = BrewConfiguration.objects.all().order_by('name')
+		fermConf = FermConfiguration.objects.get(pk=int(conf))
+	except FermConfiguration.DoesNotExist:
 		raise Http404
-		
-	return render_to_response('ferm.html', {'fermConfs': p, 'status': {'serverrunning': is_kriek_running()}}, context_instance=RequestContext(request))
+		#fermConf=None
+
+	return render_to_response('ferm.html', {'fermConf': fermConf, 'allFermConfs':allFermConfs, 'allBrewConfs': allBrewConfs }, context_instance=RequestContext(request))
 
 #
 # returns the brew.html template
 #
 @login_required
-def brew(request):
+def brew(request, conf=1):
 	try:
-		p = BrewConfiguration.objects.all().order_by('name')
-	except Probe.DoesNotExist:
+		allBrewConfs = BrewConfiguration.objects.all().order_by('name')
+		allFermConfs = FermConfiguration.objects.all().order_by('name')
+		brewConf = BrewConfiguration.objects.get(pk=int(conf))
+	except BrewConfiguration.DoesNotExist:
 		raise Http404
+		#fermConf=None
 
-	return render_to_response('brew.html', {'brewConfs': p}, context_instance=RequestContext(request))
+	return render_to_response('brew.html', {'brewConf': brewConf, 'allBrewConfs': allBrewConfs, 'allFermConfs':allFermConfs}, context_instance=RequestContext(request))
 
 #returns true if kriek.py is running
 def is_kriek_running():

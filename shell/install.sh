@@ -33,7 +33,7 @@ git clone https://github.com/jsproull/kriek.git
 # /opt/kriek/env-kriek/bin/pip install Adafruit_BBIO
 
 #conf postgres
-sudo su postgres -c ./psql.sh
+sudo su postgres -c ~pi/psql.sh
 
 #conf django
 cd /opt/kriek/kriek

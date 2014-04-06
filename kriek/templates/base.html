@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load tags %}
 <html>
   <head>
     <title>{% block title %}kriek{% endblock %}</title>
@@ -27,9 +28,6 @@
 
   </head>
   <body>
-  	{% url 'index' as indexUrl %}
-  	{% url 'ferm' as fermUrl %}
-  	{% url 'brew' as brewUrl %}
   	
 	{% block header %}
     <!-- Fixed navbar -->
@@ -42,8 +40,33 @@
           <ul class="nav navbar-nav">
 
             {% if user.is_authenticated %}
-            <li class="{% ifequal request.path '/brew' %}active{% endifequal %}"><a href="{% url 'brew' %}">Brewing</a></li>
-            <li class="{% ifequal request.path '/ferm' %}active{% endifequal %}"><a href="{% url 'ferm' %}">Fermenting</a></li>
+	            
+	            {% if allBrewConfs.count > 1 %}
+	            	<li class="dropdown" >
+		            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Brewing <b class="caret"></b></a>
+		            	<ul class="dropdown-menu">
+		            	{% for brewConf in allBrewConfs %}
+		            		<li class="{% active request "/brew/" brewConf.pk %}"><a href="{% url 'brew' conf=brewConf.pk %}">{{brewConf}}</a></li>
+		            	{% endfor %}
+		            	</ul>
+		            </li>
+	            {% elif allBrewConfs.count > 0 %}
+	            	<li class="{% active request "/brew/" brewConf.pk %}"><a href="{% url 'brew' conf=brewConf.pk %}">Brewing</a></li>
+	            {% endif %}
+
+	            {% if allFermConfs.count > 1 %}
+	            	<li class="dropdown" >
+		            	<a href="#" class="dropdown-toggle" data-toggle="dropdown">Fermenting <b class="caret"></b></a>
+		            	<ul class="dropdown-menu">
+		            	{% for fermConf in allFermConfs %}
+		            		<li class="{% active request "/ferm/" fermConf.pk %}"><a href="{% url 'ferm' conf=fermConf.pk %}">{{fermConf}}</a></li>
+		            	{% endfor %}
+		            	</ul>
+		            </li>
+	            {% elif allFermConfs.count > 0 %}
+	            	<li class="{% active request "/ferm/" fermConf.pk %}"><a href="{% url 'ferm' conf=1 %}">Fermenting</a></li>
+	            {% endif %}
+	            
             {% endif %}
 
             <li><a href="/admin/">Config</a></li>
