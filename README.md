@@ -96,5 +96,7 @@ sudo reboot
 Once rebooted, you should be able to go to http://yourip and sign in using username: **pi** with password: **pi**
 
 Configuration
+
+**Coming soon**
 -------------
 
