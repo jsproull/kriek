@@ -10,6 +10,11 @@ A Raspberry Pi or BeagleBone Black.
 DS18B20 temperature probes.
 Solid State Relays.
 
+
+Screen Shot
+-----------
+![main screen](screenshots/main.png)
+
 Installation
 ------------
 
