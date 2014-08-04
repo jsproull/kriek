@@ -341,8 +341,9 @@ class Kriek(object):
 		for _dir in glob.glob("/sys/bus/w1/devices/28*"):
 			_file = os.path.basename(_dir)
 			user = User.objects.get(pk=1)
-			probe,created = Probe.objects.get_or_create(one_wire_id=_file, name=_file, owner=user)
+			probe,created = Probe.objects.get_or_create(one_wire_id=_file, owner=user)
 			if created:
+				probe.name = _file
 				print "Adding probe with one-wire id: " + str(_file)
 				probe.save()
 
