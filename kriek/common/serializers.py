@@ -60,13 +60,13 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class ProbeSerializer(serializers.ModelSerializer):
-	last_temp_date  = UnixEpochDateField(source='last_temp_date')
+	last_temp_date  = UnixEpochDateField()
 	ssrs = SSRSerializer(many=True)
 	schedules = ScheduleSerializer(many=True)
 
 	class Meta:
 		model = Probe
-		fields = ('id', 'name', 'one_wire_id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs', 'schedules')
+		fields = ('id', 'name', 'one_wire_id', 'type', 'temperature', 'target_temperature', 'owner', 'ssrs', 'schedules', 'last_temp_date')
 
 
 class BrewConfSerializer(serializers.ModelSerializer):
