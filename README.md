@@ -18,6 +18,8 @@ Screen Shot
 Installation
 ------------
 
+### By hand installation ###
+
 These instructions assume a debian-based install (raspbian, ubuntu, etc) on the pi or BBB.
 
 **Debian Setup**
@@ -36,7 +38,7 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 **pip requirements**
 
-* /opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework South
+* /opt/kriek/env-kriek/bin/pip install django==1.6 gunicorn psycopg2 django-suit djangorestframework south celery django-celery
 
 **We use either wiringpi or Adafruit_BBIO depending on the platform**
 
@@ -84,6 +86,12 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 **For Pi**
 
 * sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules"
+
+### Automatic installation ###
+
+* sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh")
+
+### Common part for both methods ###
 
 **For BBB**
 
