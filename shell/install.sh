@@ -28,7 +28,12 @@ git clone https://github.com/jsproull/kriek.git
 /opt/kriek/env-kriek/bin/pip install -r /opt/kriek/kriek/requirements.txt
 
 # for Pi
-/opt/kriek/env-kriek/bin/pip install wiringpi
+# install wiring pi
+cd /tmp
+git clone git://git.drogon.net/wiringPi && cd wiringPi && sudo ./build
+cd /tmp
+git clone https://github.com/Gadgetoid/WiringPi2-Python.git && cd WiringPi2-Python && /opt/kriek/env-kriek/bin/python setup.py install
+
 # for BBB
 # /opt/kriek/env-kriek/bin/pip install Adafruit_BBIO
 
