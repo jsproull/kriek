@@ -3,10 +3,10 @@
 ##
 #import RPi.GPIO as GPIO
 try:
-	import wiringpi
-	wiringpi_available = True
+	import wiringpi2
+	wiringpi2_available = True
 except ImportError:
-	wiringpi_available = False
+	wiringpi2_available = False
 
 try:
 	import Adafruit_BBIO.GPIO as GPIO
@@ -33,18 +33,18 @@ class SSRController(threading.Thread):
 		threading.Thread.__init__(self)
 		
 		# set up the pin in out mode
-		if wiringpi_available:
+		if wiringpi2_available:
 			#call(["/usr/local/bin/gpio", "mode", str(ssr.pin), "out"])
-			#wiringpi.wiringPiSetupSys()
+			#wiringpi2.wiringPiSetupSys()
 			
 			#rasp numbering
-			wiringpi.wiringPiSetup()
+			wiringpi2.wiringPiSetup()
 			
 			#gpio numbering
-			#wiringpi.wiringPiSetupGpio()
+			#wiringpi2.wiringPiSetupGpio()
 			
 			#set the pinmode
-			wiringpi.pinMode(int(ssr.pin), 1)
+			wiringpi2.pinMode(int(ssr.pin), 1)
 		elif bbb_available:
 			GPIO.setup(ssr.pin, GPIO.OUT)
 			#GPIO.cleanup()
@@ -268,8 +268,8 @@ class SSRController(threading.Thread):
 		if self.ssr.reverse_polarity and self.enabled:
 			_state = not _state
 
-		if wiringpi_available:
-			wiringpi.digitalWrite(int(self.ssr.pin), _state)
+		if wiringpi2_available:
+			wiringpi2.digitalWrite(int(self.ssr.pin), _state)
 
 		elif bbb_available:
 			if _state:
