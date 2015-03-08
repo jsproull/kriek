@@ -60,7 +60,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class ProbeSerializer(serializers.ModelSerializer):
-	last_temp_date  = UnixEpochDateField(source='last_temp_date')
+	# this was throwing a 500. look into why
+	#last_temp_date  = UnixEpochDateField(source='last_temp_date')
 	ssrs = SSRSerializer(many=True)
 	schedules = ScheduleSerializer(many=True)
 
