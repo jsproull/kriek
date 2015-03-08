@@ -1,1 +1,60 @@
-../sites-available/kriek
+# define an upstream server named gunicorn on localhost port 8000
+upstream gunicorn {
+    server localhost:8000;
+}
+
+# make an nginx server
+server {
+    # listen on port 80
+    listen 80;
+
+    # for requests to these domains
+    #server_name <YOUR_DOMAIN>.com www.<YOUR_DOMAIN>.com;
+
+    # look in this directory for files to serve
+    root /var/www/;
+
+    # keep logs in these files
+    access_log /var/log/nginx/kriek.access.log;
+    error_log /var/log/nginx/kriek.error.log;
+
+    # You need this to allow users to upload large files
+    # See http://wiki.nginx.org/HttpCoreModule#client_max_body_size
+    # I'm not sure where it goes, so I put it in twice. It works.
+    client_max_body_size 0;
+
+    # THIS IS THE IMPORTANT LINE
+    # this tries to serve a static file at the requested url
+    # if no static file is found, it passes the url to gunicorn
+    try_files $uri @gunicorn;
+
+    location /static {    
+        autoindex on;    
+        alias /var/www/static/;    
+    }
+
+    # define rules for gunicorn
+    location @gunicorn {
+        # repeated just in case
+        client_max_body_size 0;
+
+        # proxy to the gunicorn upstream defined above
+        proxy_pass http://gunicorn;
+
+        # makes sure the URLs don't actually say http://gunicorn 
+        proxy_redirect off;
+
+        # If gunicorn takes > 5 minutes to respond, give up
+        # Feel free to change the time on this
+        proxy_read_timeout 5m;
+	proxy_connect_timeout  2m;
+	proxy_send_timeout 2m;
+	fastcgi_send_timeout 2m;
+	fastcgi_read_timeout 2m;
+
+        # make sure these HTTP headers are set properly
+        proxy_set_header Host            $host;
+        proxy_set_header X-Real-IP       $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
