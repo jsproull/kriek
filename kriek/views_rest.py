@@ -72,7 +72,6 @@ class SSRViewSet(viewsets.ModelViewSet):
 	permission_classes = (IsAnyone,)
 
 	def pre_save(self, obj):
-		print "HIIII"
 		obj.owner = self.request.user
 		#find any brew configurations and disable all other ssrs if allow_multiple_ssrs is False
 		for bc in BrewConfiguration.objects.all():
