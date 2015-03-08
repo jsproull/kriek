@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-## initial install script. 
+## initial install script.
 ## Only run on a stock raspbian install.
 #
 
@@ -25,7 +25,7 @@ cd /opt/kriek
 git clone https://github.com/jsproull/kriek.git
 
 #pippy
-/opt/kriek/env-kriek/bin/pip install django gunicorn psycopg2 django-suit djangorestframework south celery django-celery
+/opt/kriek/env-kriek/bin/pip install -r /opt/kriek/kriek/requirements.txt
 
 # for Pi
 /opt/kriek/env-kriek/bin/pip install wiringpi
