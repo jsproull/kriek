@@ -52,7 +52,7 @@ class SSRController(threading.Thread):
 		self.daemon = True
 		self.duty_cycle = 0
 		self.cycle_time = 0
-		self.power = 100
+		self.power = 60
 		self.enabled = False
 		self._On = False
 		
@@ -68,7 +68,7 @@ class SSRController(threading.Thread):
 
 		ssr = self.ssr
 
-		#print ssr.name + " update_ssr current " + str(settemp) + " : " + str(target_temp) + " " + str(ssr.pid.power)
+		print ssr.name + " enabled: " + str(enabled) + " update_ssr current " + str(settemp) + " : " + str(target_temp) + " " + str(ssr.pid.power)
 		self.set_enabled(enabled)
 
 		self.power = ssr.pid.power
@@ -80,6 +80,7 @@ class SSRController(threading.Thread):
 			#self.cycle_time = 1
 			self.update_ssr(self.power, self.cycle_time)
 		else:	
+			self.power=80
 			if ssr.pid.power < 100:
 				self.update_ssr(self.power, self.cycle_time)
 			else:
@@ -94,6 +95,7 @@ class SSRController(threading.Thread):
 	
 	def set_enabled(self, enabled):
 		self.ssr = SSR.objects.get(pk=self.ssr.pk)
+		#print str(self.ssr.name) + " set_enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)
 
 		if self.verbose:
 			print str(self.ssr.name) + " set_enabled: " + str(enabled) + " on pin: " + str(self.ssr.pin)

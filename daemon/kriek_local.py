@@ -250,7 +250,8 @@ class Brewing(BaseThreaded):
 					if ssr.manual_mode:
 						ssr_controller.update_ssr_controller(currenttemp, targettemp, True)
 					else:
-						#print "enabled: " + str(enabled) + " " + str(targettemp) + " " + str(currenttemp) + " " + str(ssr.enabled)
+						print ""
+						print ssr.name + " enabled: " + str(enabled) + " target: " + str(targettemp) + " current: " + str(currenttemp) 
 
 						if enabled:
 							ssr_controller.update_ssr_controller(currenttemp, targettemp, currenttemp < targettemp)
@@ -373,6 +374,7 @@ def main(rb):
 	
 if __name__ == "__main__":
 
+	print "Starting Kriek..."
 	kriek = Kriek()
 
 	try:

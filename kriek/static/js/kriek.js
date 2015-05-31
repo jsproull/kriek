@@ -17,8 +17,10 @@ function RaspBrew() {
 	this.lastLoadedData = null;
 	this.latestChartData = null; 	// an array of results from the server
 	this._systemStatus = null;
+        this.updateStatusTimeOut = null;
+        this.loadProbeTimeOut = null;
 	
-	this.updateTime = 1000;
+	this.updateTime = 5000;
 	this.updateSystemSettingsTime = 20000;
 	this.chartPoints = 50;
 	
@@ -89,7 +91,8 @@ function RaspBrew() {
 	
 		//wait for when we have a system status or if we're writing data
 		if (_this._systemStatus == null || _this._writingData) {
-			setTimeout(_this.loadProbes, _this.updateTime);
+			clearTimeout(_this.loadProbeTimeOut);
+        		_this.loadProbeTimeOut = setTimeout(_this.loadProbes, _this.updateTime);
 			return;
 		}
 
@@ -106,10 +109,13 @@ function RaspBrew() {
 					}
 					_this.updateFromData(data.results);
 				}
-				setTimeout(_this.loadProbes, _this.updateTime);
+
+				clearTimeout(_this.loadProbeTimeOut);
+        			_this.loadProbeTimeOut = setTimeout(_this.loadProbes, _this.updateTime);
 			},
 			error: function(data) {
-				setTimeout(_this.loadProbes, _this.updateTime);
+				clearTimeout(_this.loadProbeTimeOut);
+        			_this.loadProbeTimeOut = setTimeout(_this.loadProbes, _this.updateTime);
 			}
 		});
 	}
@@ -118,13 +124,15 @@ function RaspBrew() {
 	this.updateStatus = function() {
 
 		if (!_this.confId || _this._writingData) {
-			setTimeout(_this.updateStatus, _this.updateTime);
+			clearTimeout(_this.updateStatusTimeOut);
+			_this.updateStatusTimeOut = setTimeout(_this.updateStatus, _this.updateTime);
 		}
 
 		var url =  _this.baseURL + '&confId=' + _this.confId + '&numberToReturn=' + _this.chartPoints;
 
 		if (! _this._chartUpdatesEnabled || $("#startDate").is(":focus") || $("#endDate").is(":focus")) {
-			setTimeout(_this.updateStatus, _this.updateTime);
+			clearTimeout(_this.updateStatusTimeOut);
+			_this.updateStatusTimeOut = setTimeout(_this.updateStatus, _this.updateTime);
 			return;
 		}
 		
@@ -163,12 +171,15 @@ function RaspBrew() {
 						}
 					}
 				}
+
+				clearTimeout(_this.updateStatusTimeOut);
+				_this.updateStatusTimeOut = setTimeout(_this.updateStatus, _this.updateTime);
 				
-				setTimeout(_this.updateStatus, _this.updateTime);
 			},
 			error: function(data) {
 				//alert('woops!'); //or whatever
-				setTimeout(_this.updateStatus, 5000);
+				clearTimeout(_this.updateStatusTimeOut);
+				_this.updateStatusTimeOut = setTimeout(_this.updateStatus, _this.updateTime);
 			}
 		});
 	};
@@ -221,7 +232,7 @@ function RaspBrew() {
 			},
 			error: function(data) {
 				//alert('woops!'); //or whatever
-				setTimeout(_this.updateSystemStatus, 5000);
+				setTimeout(_this.updateSystemStatus, _this.updateTime);
 			}
 		});
 	};
@@ -931,6 +942,7 @@ function RaspBrew() {
 
 		//update our values
 		var pid=ssr.pid;
+		pid.pk = pid.id;
 		pid.enabled = pidenabled;
 		ssr.enabled = enabled;
 		
@@ -950,10 +962,15 @@ function RaspBrew() {
 			pid.cycle_time = cycleTime;
 		}
 
+		console.log(pid);
 		var post = { pk: ssr.id, enabled: enabled, pid: pid };
+		console.log(post);
 
 		//call back function
 		var cb = function(data) {
+			var cb2 = function(data) {
+				_this._editingSSR = null;
+			}
 			_this._editingSSR = null;
 		}
 

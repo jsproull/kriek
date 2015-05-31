@@ -30,7 +30,7 @@ class UserSerializer(serializers.ModelSerializer):
 class PIDSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = PID
-		fields = ('cycle_time', 'k_param', 'i_param', 'd_param', 'power', 'enabled')
+		fields = ('id', 'cycle_time', 'k_param', 'i_param', 'd_param', 'power', 'enabled')
 
 
 class SSRSerializer(serializers.ModelSerializer):
@@ -39,6 +39,25 @@ class SSRSerializer(serializers.ModelSerializer):
 	class Meta:
 		model = SSR
 		fields = ('id', 'name', 'pin', 'probe', 'pid', 'enabled', 'state', 'heater_or_chiller', 'owner', 'eta', 'degrees_per_minute')
+
+	#why is this not being called wtf
+	def update(self, instance, validated_data):
+		instance.enabled = validated_data.get('enabled', instance.enabled)
+		instance.save()
+
+		pid = instance.pid
+		if pid and validated_data:
+			pid_dict = validated_data.get('pid')
+			if pid_dict:
+				pid.enabled = pid_dict.get('enabled', pid.enabled)
+				pid.cycle_time = pid_dict.get('cycle_time', pid.enabled)
+				pid.k_param = pid_dict.get('k_param', pid.enabled)
+				pid.i_param = pid_dict.get('i_param', pid.enabled)
+				pid.d_param = pid_dict.get('d_param', pid.enabled)
+				pid.power = pid_dict.get('power', pid.enabled)
+				pid.save()
+		#print pid
+		return instance
 
 
 class ScheduleStepSerializer(serializers.ModelSerializer):
