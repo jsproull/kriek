@@ -20,12 +20,12 @@ Installation
 
 ### By hand installation ###
 
-These instructions assume a debian-based install (raspbian, ubuntu, etc) on the pi or BBB.
+These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc) on the pi or BBB.
 
 **Debian Setup**
 * sudo apt-get update
 * sudo apt-get upgrade -y
-* sudo apt-get install libpq-dev python-dev postgresql-server-dev-9.1  postgresql postgresql-contrib nginx supervisor python-virtualenv -y
+* sudo apt-get install libpq-dev python-dev postgresql postgresql-client nginx supervisor python-virtualenv -y
 
 **For BBB**
 * sudo apt-get install build-essential python-setuptools python-pip python-smbus -y
@@ -38,7 +38,7 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 **pip requirements**
 
-* /opt/kriek/env-kriek/bin/pip install django==1.6 gunicorn psycopg2 django-suit djangorestframework south celery django-celery
+* /opt/kriek/env-kriek/bin/pip install django==1.6.11 gunicorn psycopg2 django-suit djangorestframework==2.4.8 south celery django-celery
 
 **We use either wiringpi or Adafruit_BBIO depending on the platform**
 
@@ -52,7 +52,6 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 
 **Configure postgres**
-
 * sudo su - postgres
 * createdb kriek
 * psql -d kriek -c "CREATE user pi with password 'pi';"
@@ -68,16 +67,12 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * cd /opt/kriek/kriek
 * ./manage.py syncdb
-*  create a user named '**pi**' with password '**pi**'
-* ./manage.py migrate common
-* ./manage.py migrate brew
-* ./manage.py migrate ferm
-* ./manage.py migrate globalsettings
-* ./manage.py migrate status
+* #create a user named '**pi**' with password '**pi**'
 * sudo ./manage.py collectstatic
 
 **then set up gunicorn, supervisord and nginx**
 
+* sudo rm /etc/nginx/sites-enabled/default
 * sudo cp -R /opt/kriek/kriek/conf/ngnix/* /etc/nginx/
 * sudo cp -R /opt/kriek/kriek/conf/supervisor/conf.d/* /etc/supervisor/conf.d/
 
@@ -87,9 +82,9 @@ These instructions assume a debian-based install (raspbian, ubuntu, etc) on the 
 
 * sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules"
 
-### Automatic installation ###
+### Automatic installation (Do not use for now) ###
 
-* sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh")
+~~* sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh”)~~
 
 ### Common part for both methods ###
 
