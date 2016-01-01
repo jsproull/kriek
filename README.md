@@ -25,7 +25,7 @@ These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc
 **Debian Setup**
 * sudo apt-get update
 * sudo apt-get upgrade -y
-* sudo apt-get install libpq-dev python-dev postgresql postgresql-client nginx supervisor python-virtualenv -y
+* sudo apt-get install libpq-dev python-dev postgresql postgresql-client nginx supervisor python-virtualenv -y --force-yes
 
 **For BBB**
 * sudo apt-get install build-essential python-setuptools python-pip python-smbus -y
@@ -36,9 +36,14 @@ These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc
 * sudo chown pi /opt/kriek
 * virtualenv /opt/kriek/env-kriek
 
-**pip requirements**
+**clone the source code**
 
-* /opt/kriek/env-kriek/bin/pip install django==1.6.11 gunicorn psycopg2 django-suit djangorestframework==2.4.8 south celery django-celery
+* cd /opt/kriek/
+* git clone https://github.com/jsproull/kriek.git
+
+
+**pip requirements**
+* /opt/kriek/env-kriek/bin/pip install -r /opt/kriek/kriek/requirements.txt
 
 **We use either wiringpi or Adafruit_BBIO depending on the platform**
 
@@ -50,24 +55,14 @@ These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc
 
 * /opt/kriek/env-kriek/bin/pip install Adafruit_BBIO
 
-
 **Configure postgres**
-* sudo su - postgres
-* createdb kriek
-* psql -d kriek -c "CREATE user pi with password 'pi';"
-* psql -d kriek -c "GRANT ALL PRIVILEGES ON DATABASE kriek to pi;";
-* exit
-
-**clone the source code**
-
-* cd /opt/kriek/
-* git clone https://github.com/jsproull/kriek.git
+* sudo su postgres -c /opt/kriek/kriek/shell/psql.sh
 
 **Configure the django kriek installation**
 
 * cd /opt/kriek/kriek
-* ./manage.py syncdb
-* #create a user named '**pi**' with password '**pi**'
+* ./manage.py syncdb  --noinput
+* echo "from django.contrib.auth.models import User; User.objects.create_superuser('pi', 'pi@example.com', 'pi')" | ./manage.py shell
 * sudo ./manage.py collectstatic
 
 **then set up gunicorn, supervisord and nginx**
@@ -80,11 +75,12 @@ These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc
 
 **For Pi**
 
-* sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules"
+~~* sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules”~~
+* sudo sh -c "echo '#one wire\ndtoverlay=w1-gpio\n' >> /boot/config.txt"
 
 ### Automatic installation (Do not use for now) ###
 
-~~* sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh”)~~
+* sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh”)
 
 ### Common part for both methods ###
 
