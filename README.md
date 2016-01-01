@@ -75,10 +75,9 @@ These instructions assume a debian-based (JESSIE) install (raspbian, ubuntu, etc
 
 **For Pi**
 
-~~* sudo sh -c "echo 'w1_gpio\nw1_therm\n' >> /etc/modules”~~
 * sudo sh -c "echo '#one wire\ndtoverlay=w1-gpio\n' >> /boot/config.txt"
 
-### Automatic installation (Do not use for now) ###
+### Automatic installation ###
 
 * sh < <(curl -s "https://raw.githubusercontent.com/jsproull/kriek/master/shell/install.sh”)
 
